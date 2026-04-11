@@ -1,0 +1,252 @@
+.kanban-board {
+  display: flex;
+  gap: var(--space-5);
+  padding: var(--space-4) var(--space-5);
+  height: calc(100vh - var(--topbar-height));
+  overflow-x: auto;
+  align-items: stretch;
+}
+
+.kanban-column {
+  flex: 1;
+  min-width: 320px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-xl);
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  animation: fadeInUp 400ms ease both;
+  border: 1px solid var(--border-light);
+}
+
+.kanban-column:nth-child(2) { animation-delay: 80ms; }
+.kanban-column:nth-child(3) { animation-delay: 160ms; }
+
+.kanban-column-header {
+  padding: var(--space-4) var(--space-5);
+  flex-shrink: 0;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.kanban-column-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.kanban-column-title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.kanban-column-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.kanban-column-dot.analyzing { background: var(--info); box-shadow: 0 0 8px rgba(116, 185, 255, 0.5); }
+.kanban-column-dot.production { background: var(--warning); box-shadow: 0 0 8px rgba(253, 203, 110, 0.5); }
+.kanban-column-dot.ready { background: var(--success); box-shadow: 0 0 8px rgba(0, 184, 148, 0.5); }
+
+.kanban-column-name {
+  font-size: var(--font-base);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+}
+
+.kanban-column-count {
+  font-size: var(--font-xs);
+  font-weight: var(--fw-bold);
+  color: var(--text-tertiary);
+  background: var(--surface);
+  padding: 2px 10px;
+  border-radius: var(--radius-full);
+  min-width: 28px;
+  text-align: center;
+  border: 1px solid var(--border-light);
+}
+
+.kanban-column-stats {
+  display: flex;
+  gap: var(--space-3);
+}
+
+.kanban-column-stat {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.kanban-column-stat strong {
+  color: var(--text-secondary);
+  font-weight: var(--fw-semibold);
+}
+
+.kanban-column-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-3);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.kanban-column-footer {
+  padding: var(--space-3) var(--space-4);
+  flex-shrink: 0;
+  border-top: 1px solid var(--border-light);
+}
+
+.kanban-finalize-btn {
+  width: 100%;
+  padding: var(--space-3) var(--space-4);
+  background: var(--success);
+  color: white;
+  border: none;
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-weight: var(--fw-bold);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  font-family: inherit;
+}
+
+/* Stats Sidebar (New) */
+.orders-stats-sidebar {
+  width: 280px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  padding: var(--space-5) var(--space-4);
+  background: var(--surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-sm);
+  animation: fadeInRight var(--transition-slow) ease both;
+}
+
+.orders-stats-sidebar-title {
+  font-size: var(--font-sm);
+  font-weight: var(--fw-bold);
+  color: var(--text-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: var(--space-2);
+  padding-left: 4px;
+}
+
+.orders-stats-divider {
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin: var(--space-2) 0 var(--space-1);
+  padding-left: 4px;
+}
+
+.orders-stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-xl);
+  padding: var(--space-5) var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  transition: all var(--transition-fast);
+}
+
+.orders-stat-card:hover {
+  background: var(--surface);
+  border-color: var(--accent-light);
+  box-shadow: var(--shadow-sm);
+  transform: translateX(-4px);
+}
+
+.orders-stat-card.mini {
+  padding: var(--space-3) var(--space-4);
+}
+
+.orders-stat-card.mini:hover {
+  transform: translateX(-2px);
+}
+
+.orders-stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+  flex-shrink: 0;
+  box-shadow: var(--shadow-xs);
+}
+
+.orders-stat-icon.small {
+  width: 32px;
+  height: 32px;
+  font-size: 0.9rem;
+}
+
+.orders-stat-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.orders-stat-label {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  margin-bottom: 2px;
+}
+
+.orders-stat-value {
+  font-size: var(--font-lg);
+  font-weight: var(--fw-extrabold);
+  color: var(--text-primary);
+  line-height: 1.1;
+}
+
+.orders-stat-change {
+  font-size: 10px;
+  color: var(--success);
+  font-weight: var(--fw-semibold);
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 2px;
+}
+
+@keyframes fadeInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@media (max-width: 1400px) {
+  .orders-stats-sidebar {
+    width: 220px;
+    padding: var(--space-4);
+  }
+}
+
+@media (max-width: 1024px) {
+  .kanban-board {
+    padding: var(--space-3);
+  }
+  
+  .orders-stats-sidebar {
+    display: none; /* Hide on mobile/small tablets, maybe move back to top later if requested */
+  }
+}
