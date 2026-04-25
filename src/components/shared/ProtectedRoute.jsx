@@ -1,43 +1,39 @@
-import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 
-export const ProtectedRoute = ({ children, roles = [] }) => {
-  const { user, profile, loading } = useAuth();
-  const location = useLocation();
+const spinnerStyle = {
+  minHeight: '100vh',
+  background: '#050510',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+};
 
-  // Se o usuário tiver flag de troca de senha obrigatória
-  const deveResetarSenha = profile?.forcarTrocaSenha || profile?.avatar_url === 'FORCE_RESET';
-  if (deveResetarSenha && location.pathname !== '/super/reset-password') {
-    return <Navigate to="/super/reset-password" replace />;
-  }
+const ringStyle = {
+  width: 48,
+  height: 48,
+  border: '3px solid rgba(255,196,0,0.15)',
+  borderTop: '3px solid #FFC400',
+  borderRadius: '50%',
+  animation: 'pr-spin 0.8s linear infinite',
+};
+
+export function ProtectedRoute({ children }) {
+  const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-red-500"></div>
+      <div style={spinnerStyle}>
+        <style>{`@keyframes pr-spin { to { transform: rotate(360deg); } }`}</style>
+        <div style={ringStyle} />
       </div>
     );
   }
 
   if (!user) {
-    const isSuper = location.pathname.startsWith('/super');
-    return <Navigate to={isSuper ? "/super/login" : "/login"} state={{ from: location }} replace />;
-  }
-
-  const isSuperPath = location.pathname.startsWith('/super');
-  const isAdminPath = !isSuperPath && location.pathname !== '/';
-
-  // REGRA DE OURO: Lojista não entra no painel do CEO
-  if (isSuperPath && profile?.role !== 'super_admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
-  // REGRA DE OURO: CEO tentando entrar no operacional (opcional: redirecionar para /super)
-  // Mas vamos permitir se o desenvolvedor quiser que o CEO veja a loja
-  if (roles.length > 0 && profile && !roles.includes(profile.role)) {
-    return <Navigate to={profile.role === 'super_admin' ? '/super' : '/'} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;
-};
+}

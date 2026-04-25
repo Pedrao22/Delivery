@@ -3,26 +3,30 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('⚠️ Supabase URL ou Anon Key não configurados no .env.local');
-}
-
-export const supabase = createClient(
-  supabaseUrl || '',
-  supabaseAnonKey || '',
-  {
-    auth: {
-      autoRefreshToken: true,
-      persistSession: true,
-      detectSessionInUrl: true,
+// When env vars are missing, create a safe stub so the app renders (shows login)
+// instead of crashing with "supabaseUrl is required"
+const createMockClient = () => ({
+  auth: {
+    onAuthStateChange: (cb) => {
+      setTimeout(() => cb('INITIAL_SESSION', null), 0);
+      return { data: { subscription: { unsubscribe: () => {} } } };
     },
-  }
-);
+    getSession: async () => ({ data: { session: null }, error: null }),
+    signInWithPassword: async () => {
+      throw new Error('Supabase não configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY nas variáveis de ambiente.');
+    },
+    signOut: async () => {},
+  },
+});
 
-// Helper: URL base da API backend
+export const supabase = (supabaseUrl && supabaseAnonKey)
+  ? createClient(supabaseUrl, supabaseAnonKey, {
+      auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true },
+    })
+  : createMockClient();
+
 export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
 
-// Helper: fetch autenticado
 export async function apiFetch(path, options = {}) {
   const { data: { session } } = await supabase.auth.getSession();
   const token = session?.access_token;
@@ -39,10 +43,6 @@ export async function apiFetch(path, options = {}) {
   });
 
   const data = await response.json();
-
-  if (!response.ok) {
-    throw new Error(data.message || 'Erro na requisição');
-  }
-
+  if (!response.ok) throw new Error(data.message || 'Erro na requisição');
   return data;
 }

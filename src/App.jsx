@@ -15,7 +15,10 @@ import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
 import LoyaltyPage from './pages/LoyaltyPage';
 import CouponsPage from './pages/CouponsPage';
-import { useOrdersContext, OrdersProvider } from './context/OrdersContext';
+import LoginPage from './pages/LoginPage';
+import { OrdersProvider, useOrdersContext } from './context/OrdersContext';
+import { AuthProvider } from './context/AuthContext';
+import { ProtectedRoute } from './components/shared/ProtectedRoute';
 import { useTheme } from './hooks/useTheme';
 import './App.css';
 
@@ -52,11 +55,9 @@ function AppContent() {
         isDark={isDark}
         onToggleTheme={toggleTheme}
       />
-
       <main className="app-main">
         <Routes>
           <Route path="/" element={<OrdersPage onMenuToggle={toggleSidebar} />} />
-
           <Route path="/dashboard" element={
             <PageWrapper title="Dashboard" subtitle="Meu Desempenho" onMenuToggle={toggleSidebar}>
               <DashboardPage />
@@ -115,7 +116,6 @@ function AppContent() {
           <Route path="/cliente" element={<CustomerView />} />
         </Routes>
       </main>
-
       {toast && <div className="toast success">{toast}</div>}
     </div>
   );
@@ -123,9 +123,23 @@ function AppContent() {
 
 function App() {
   return (
-    <OrdersProvider>
-      <AppContent />
-    </OrdersProvider>
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/cliente" element={
+          <OrdersProvider>
+            <CustomerView />
+          </OrdersProvider>
+        } />
+        <Route path="*" element={
+          <ProtectedRoute>
+            <OrdersProvider>
+              <AppContent />
+            </OrdersProvider>
+          </ProtectedRoute>
+        } />
+      </Routes>
+    </AuthProvider>
   );
 }
 
