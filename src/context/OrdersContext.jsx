@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { apiFetch } from '../lib/supabase';
 import { useAuth } from './AuthContext';
+import { inventoryItems as initialInventory } from '../data/inventory';
 
 const OrdersContext = createContext();
 
@@ -220,6 +221,21 @@ export const OrdersProvider = ({ children }) => {
     refreshAll();
   };
 
+  // --- INVENTORY ---
+  const [inventory, setInventory] = useState(initialInventory);
+
+  const addInventoryItem = (item) => {
+    setInventory(prev => [...prev, { ...item, id: Date.now() }]);
+  };
+
+  const updateInventoryItem = (item) => {
+    setInventory(prev => prev.map(i => i.id === item.id ? item : i));
+  };
+
+  const deleteInventoryItem = (id) => {
+    setInventory(prev => prev.filter(i => i.id !== id));
+  };
+
   // --- DASHBOARD STATS LOGIC ---
   const getStatsForPeriod = (days) => {
     const now = new Date();
@@ -280,7 +296,8 @@ export const OrdersProvider = ({ children }) => {
       addCategory, updateCategory, deleteCategory,
       addProduct, updateProduct, deleteProduct,
       restaurantSettings, updateSettings, refreshOrders: refreshAll,
-      getStatsForPeriod
+      getStatsForPeriod,
+      inventory, addInventoryItem, updateInventoryItem, deleteInventoryItem,
     }}>
       {children}
     </OrdersContext.Provider>

@@ -1,16 +1,26 @@
-import { useState } from 'react';
-import { AlertTriangle, CheckCircle, XCircle, TrendingUp } from 'lucide-react';
-import { inventoryItems } from '../../data/inventory';
+import { useState, useMemo } from 'react';
+import {
+  AlertTriangle, CheckCircle, XCircle, TrendingUp,
+  Package, Filter, Plus, Calendar, Ghost, X
+} from 'lucide-react';
+import { useOrdersContext } from '../../context/OrdersContext';
 import SearchInput from '../shared/SearchInput';
+import Button from '../shared/Button';
 import './InventoryPage.css';
 
+const EMPTY_FORM = { name: '', category: '', unit: 'un', qty: 0, minQty: 0, cost: 0, expiry: '', supplier: '' };
+
 export default function InventoryPage() {
-  const [items, setItems] = useState(inventoryItems);
+  const { inventory, updateInventoryItem, addInventoryItem } = useOrdersContext();
   const [search, setSearch] = useState('');
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [showModal, setShowModal] = useState(false);
+  const [form, setForm] = useState(EMPTY_FORM);
+  const [saving, setSaving] = useState(false);
 
   const today = new Date();
+
   const getAlertStatus = (item) => {
-    if (item.qty <= item.minQty * 0.5) return 'low';
     if (item.expiry) {
       const exp = new Date(item.expiry);
       const diffDays = Math.ceil((exp - today) / (1000 * 60 * 60 * 24));
@@ -20,89 +30,215 @@ export default function InventoryPage() {
     return 'ok';
   };
 
-  const updateQty = (id, delta) => {
-    setItems(prev => prev.map(i =>
-      i.id === id ? { ...i, qty: Math.max(0, i.qty + delta) } : i
-    ));
+  const handleUpdateQty = (id, delta) => {
+    const item = inventory.find(i => i.id === id);
+    if (!item) return;
+    updateInventoryItem({ ...item, qty: Math.max(0, item.qty + delta) });
   };
 
-  const filtered = items.filter(i =>
-    i.name.toLowerCase().includes(search.toLowerCase()) ||
-    i.category.toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredItems = useMemo(() => {
+    return inventory.filter(i => {
+      const matchesSearch = i.name.toLowerCase().includes(search.toLowerCase()) ||
+                            i.category.toLowerCase().includes(search.toLowerCase());
+      const alert = getAlertStatus(i);
+      if (activeFilter === 'low') return matchesSearch && (alert === 'low' || alert === 'expiring');
+      if (activeFilter === 'expiring') return matchesSearch && alert === 'expiring';
+      return matchesSearch;
+    });
+  }, [inventory, search, activeFilter]);
 
-  const lowStock = items.filter(i => i.qty <= i.minQty).length;
-  const expiringSoon = items.filter(i => {
-    if (!i.expiry) return false;
-    const diffDays = Math.ceil((new Date(i.expiry) - today) / (1000 * 60 * 60 * 24));
-    return diffDays <= 3;
-  }).length;
+  const stats = useMemo(() => {
+    const low = inventory.filter(i => i.qty <= i.minQty).length;
+    const expiring = inventory.filter(i => {
+      if (!i.expiry) return false;
+      const diffDays = Math.ceil((new Date(i.expiry) - today) / (1000 * 60 * 60 * 24));
+      return diffDays <= 3;
+    }).length;
+    return { low, expiring };
+  }, [inventory]);
+
+  const handleOpenModal = () => {
+    setForm(EMPTY_FORM);
+    setShowModal(true);
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    setSaving(true);
+    addInventoryItem({
+      ...form,
+      qty: Number(form.qty),
+      minQty: Number(form.minQty),
+      cost: Number(form.cost),
+      expiry: form.expiry || null,
+    });
+    setSaving(false);
+    setShowModal(false);
+  };
 
   return (
     <div className="inventory-page">
       <div className="inventory-header">
         <div>
           <h2 style={{ fontSize: 'var(--font-xl)', fontWeight: 'var(--fw-bold)' }}>Gestão de Estoque</h2>
-          <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-tertiary)' }}>Controle de produtos e insumos</p>
+          <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-tertiary)' }}>Gerencie insumos e receba alertas proativos</p>
         </div>
-        <SearchInput value={search} onChange={setSearch} placeholder="Buscar item..." />
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <SearchInput value={search} onChange={setSearch} placeholder="Buscar insumo..." />
+          <Button icon={<Plus size={16} />} onClick={handleOpenModal}>Novo Item</Button>
+        </div>
       </div>
 
       <div className="inventory-stats">
-        <div className="inventory-stat" style={{ animationDelay: '0ms' }}>
-          <div className="inventory-stat-value" style={{ color: 'var(--text-primary)' }}>{items.length}</div>
-          <div className="inventory-stat-label">Total de Itens</div>
+        <div
+          className={`inventory-stat-card ${activeFilter === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveFilter('all')}
+        >
+          <div className="inventory-stat-icon all"><Package size={20} /></div>
+          <div className="inventory-stat-info">
+            <span className="inventory-stat-label">Total</span>
+            <span className="inventory-stat-value">{inventory.length}</span>
+          </div>
         </div>
-        <div className="inventory-stat" style={{ animationDelay: '60ms' }}>
-          <div className="inventory-stat-value" style={{ color: 'var(--warning-dark)' }}>{lowStock}</div>
-          <div className="inventory-stat-label">Estoque Baixo</div>
+        <div
+          className={`inventory-stat-card ${activeFilter === 'low' ? 'active' : ''}`}
+          onClick={() => setActiveFilter('low')}
+        >
+          <div className="inventory-stat-icon low"><AlertTriangle size={20} /></div>
+          <div className="inventory-stat-info">
+            <span className="inventory-stat-label">Estoque Baixo</span>
+            <span className="inventory-stat-value" style={{ color: 'var(--warning-dark)' }}>{stats.low}</span>
+          </div>
         </div>
-        <div className="inventory-stat" style={{ animationDelay: '120ms' }}>
-          <div className="inventory-stat-value" style={{ color: 'var(--danger)' }}>{expiringSoon}</div>
-          <div className="inventory-stat-label">Vencimento Próximo</div>
-        </div>
-        <div className="inventory-stat" style={{ animationDelay: '180ms' }}>
-          <div className="inventory-stat-value" style={{ color: 'var(--success)' }}>{items.length - lowStock}</div>
-          <div className="inventory-stat-label">Estoque OK</div>
+        <div
+          className={`inventory-stat-card ${activeFilter === 'expiring' ? 'active' : ''}`}
+          onClick={() => setActiveFilter('expiring')}
+        >
+          <div className="inventory-stat-icon expiring"><Calendar size={20} /></div>
+          <div className="inventory-stat-info">
+            <span className="inventory-stat-label">Vencendo Logo</span>
+            <span className="inventory-stat-value" style={{ color: 'var(--danger)' }}>{stats.expiring}</span>
+          </div>
         </div>
       </div>
 
-      <div className="inventory-table">
+      <div className="inventory-table-container">
         <div className="inventory-table-header">
-          <span>Produto</span>
+          <span>Insumo</span>
           <span>Categoria</span>
-          <span>Quantidade</span>
+          <span>Quantidade Atual</span>
           <span>Validade</span>
-          <span>Fornecedor</span>
           <span>Status</span>
         </div>
-        {filtered.map((item, i) => {
-          const alert = getAlertStatus(item);
-          return (
-            <div key={item.id} className="inventory-row" style={{ animationDelay: `${i * 30}ms` }}>
-              <div className="inventory-row-name">{item.name}</div>
-              <div className="inventory-row-category">{item.category}</div>
-              <div className="inventory-qty-control">
-                <button className="inventory-qty-btn" onClick={() => updateQty(item.id, -1)}>−</button>
-                <span className="inventory-qty-value">{item.qty}</span>
-                <button className="inventory-qty-btn" onClick={() => updateQty(item.id, 1)}>+</button>
-                <span style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>{item.unit}</span>
+
+        <div className="inventory-rows">
+          {filteredItems.length > 0 ? filteredItems.map((item, i) => {
+            const alert = getAlertStatus(item);
+            return (
+              <div key={item.id} className={`inventory-row ${alert}`} style={{ animationDelay: `${i * 30}ms` }}>
+                <div className="inventory-row-main">
+                  <div className="inventory-item-name">{item.name}</div>
+                  <div className="inventory-item-supplier">{item.supplier}</div>
+                </div>
+                <div className="inventory-row-category">
+                  <span className="cat-badge">{item.category}</span>
+                </div>
+                <div className="inventory-qty-cell">
+                  <div className="qty-controls">
+                    <button onClick={() => handleUpdateQty(item.id, -1)}>−</button>
+                    <span className="qty-number">{item.qty}</span>
+                    <button onClick={() => handleUpdateQty(item.id, 1)}>+</button>
+                  </div>
+                  <span className="qty-unit">{item.unit}</span>
+                </div>
+                <div className="inventory-expiry-cell">
+                  {item.expiry ? (
+                    <span className={`expiry-date ${alert === 'expiring' ? 'critical' : ''}`}>
+                      {new Date(item.expiry).toLocaleDateString('pt-BR')}
+                    </span>
+                  ) : <span className="no-expiry">—</span>}
+                </div>
+                <div className="inventory-status-cell">
+                  <span className={`status-pill ${alert}`}>
+                    {alert === 'ok' ? 'OK' : alert === 'low' ? 'Crítico' : 'Vencendo'}
+                  </span>
+                </div>
               </div>
-              <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
-                {item.expiry ? new Date(item.expiry).toLocaleDateString('pt-BR') : '—'}
-              </div>
-              <div style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>{item.supplier}</div>
-              <div>
-                <span className={`inventory-alert ${alert}`}>
-                  {alert === 'ok' && <><CheckCircle size={12} /> OK</>}
-                  {alert === 'low' && <><AlertTriangle size={12} /> Baixo</>}
-                  {alert === 'expiring' && <><XCircle size={12} /> Vencendo</>}
-                </span>
-              </div>
+            );
+          }) : (
+            <div className="inventory-empty-results">
+              <Ghost size={48} style={{ opacity: 0.2, marginBottom: 12 }} />
+              <p>Nenhum item encontrado nos filtros aplicados.</p>
             </div>
-          );
-        })}
+          )}
+        </div>
       </div>
+
+      {/* Modal Novo Item */}
+      {showModal && (
+        <div className="inv-modal-overlay" onClick={() => setShowModal(false)}>
+          <div className="inv-modal" onClick={e => e.stopPropagation()}>
+            <div className="inv-modal-header">
+              <h3>Novo Insumo</h3>
+              <button className="inv-modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
+            </div>
+            <form onSubmit={handleSubmit} className="inv-modal-form">
+              <div className="inv-form-row">
+                <div className="inv-form-group">
+                  <label>Nome do Insumo *</label>
+                  <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex: Pão Brioche" />
+                </div>
+                <div className="inv-form-group">
+                  <label>Categoria *</label>
+                  <input required value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="Ex: Pães" />
+                </div>
+              </div>
+              <div className="inv-form-row">
+                <div className="inv-form-group">
+                  <label>Unidade *</label>
+                  <select value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}>
+                    <option value="un">un (unidade)</option>
+                    <option value="kg">kg</option>
+                    <option value="L">L (litro)</option>
+                    <option value="g">g (grama)</option>
+                    <option value="ml">ml</option>
+                  </select>
+                </div>
+                <div className="inv-form-group">
+                  <label>Fornecedor</label>
+                  <input value={form.supplier} onChange={e => setForm(f => ({ ...f, supplier: e.target.value }))} placeholder="Ex: Padaria Artesanal" />
+                </div>
+              </div>
+              <div className="inv-form-row">
+                <div className="inv-form-group">
+                  <label>Quantidade Atual *</label>
+                  <input type="number" min="0" required value={form.qty} onChange={e => setForm(f => ({ ...f, qty: e.target.value }))} />
+                </div>
+                <div className="inv-form-group">
+                  <label>Quantidade Mínima *</label>
+                  <input type="number" min="0" required value={form.minQty} onChange={e => setForm(f => ({ ...f, minQty: e.target.value }))} />
+                </div>
+                <div className="inv-form-group">
+                  <label>Custo Unitário (R$)</label>
+                  <input type="number" min="0" step="0.01" value={form.cost} onChange={e => setForm(f => ({ ...f, cost: e.target.value }))} />
+                </div>
+              </div>
+              <div className="inv-form-row">
+                <div className="inv-form-group">
+                  <label>Data de Validade</label>
+                  <input type="date" value={form.expiry} onChange={e => setForm(f => ({ ...f, expiry: e.target.value }))} />
+                </div>
+              </div>
+              <div className="inv-modal-actions">
+                <button type="button" className="inv-btn-cancel" onClick={() => setShowModal(false)}>Cancelar</button>
+                <button type="submit" className="inv-btn-save" disabled={saving}>
+                  {saving ? 'Salvando...' : 'Adicionar Insumo'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

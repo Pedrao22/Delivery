@@ -1,4 +1,4 @@
-import { MapPin, Phone, CreditCard, MessageSquare, ChevronRight, XCircle, Send } from 'lucide-react';
+import { MapPin, Phone, CreditCard, MessageSquare, ChevronRight, XCircle, Send, Truck, Hash } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import { useOrdersContext } from '../../context/OrdersContext';
 import Modal from '../shared/Modal';
@@ -19,8 +19,9 @@ const statusConfig = {
 };
 
 export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
-  const { addChatMessage } = useOrdersContext();
+  const { addChatMessage, drivers, assignDriverToOrder, tables } = useOrdersContext();
   const [isChatOpen, setIsChatOpen] = useState(false);
+  const [showDriverSelect, setShowDriverSelect] = useState(false);
   const [message, setMessage] = useState('');
   const chatEndRef = useRef(null);
 
@@ -34,12 +35,19 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
 
   const type = typeConfig[order.type];
   const status = statusConfig[order.status];
+  const assignedDriver = order.driverId ? drivers.find(d => d.id === order.driverId) : null;
+  const assignedTable = order.tableId ? tables.find(t => t.id === order.tableId) : null;
 
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (!message.trim()) return;
     addChatMessage(order.id, message, 'admin');
     setMessage('');
+  };
+
+  const handleAssignDriver = (driverId) => {
+    assignDriverToOrder(order.id, driverId);
+    setShowDriverSelect(false);
   };
 
   return (
@@ -77,8 +85,49 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
         <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
           <Badge variant={status.variant} dot size="md">{status.label}</Badge>
           <Badge variant={type.variant} size="md">{type.icon} {type.label}</Badge>
+          {assignedTable && (
+            <Badge variant="info" size="md"><Hash size={12} style={{ marginRight: 4 }} /> Mesa {assignedTable.number}</Badge>
+          )}
         </div>
       </div>
+
+      {/* Driver Assignment (for Delivery) */}
+      {order.type === 'delivery' && (
+        <div className="order-modal-section">
+          <div className="order-modal-section-title">Logística / Entregador</div>
+          {assignedDriver ? (
+            <div className="assigned-driver-view">
+              <div className="driver-avatar-small">{assignedDriver.photo}</div>
+              <div className="driver-info-mini">
+                <div className="driver-name-mini">{assignedDriver.name}</div>
+                <div className="driver-sub-mini">{assignedDriver.vehicle} • Em rota</div>
+              </div>
+              <Button size="xs" variant="secondary" onClick={() => setShowDriverSelect(true)}>Trocar</Button>
+            </div>
+          ) : (
+            <div className="assign-driver-placeholder">
+              {showDriverSelect ? (
+                <div className="driver-selection-list">
+                  {drivers.filter(d => d.status === 'available').length > 0 ? (
+                    drivers.filter(d => d.status === 'available').map(d => (
+                      <button key={d.id} className="driver-select-option" onClick={() => handleAssignDriver(d.id)}>
+                        {d.photo} {d.name}
+                      </button>
+                    ))
+                  ) : (
+                    <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>Nenhum entregador disponível</div>
+                  )}
+                  <button className="driver-select-cancel" onClick={() => setShowDriverSelect(false)}>Cancelar</button>
+                </div>
+              ) : (
+                <Button size="sm" variant="secondary" fullWidth onClick={() => setShowDriverSelect(true)} icon={<Truck size={14} />}>
+                  Atribuir Entregador
+                </Button>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Customer Info */}
       <div className="order-modal-section">
@@ -115,7 +164,7 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
                 {item.qty}x {item.name}
               </div>
               <div className="order-modal-item-detail">
-                {[item.variation, ...item.complements].filter(Boolean).join(' • ')}
+                {[item.variation, ...(item.complements || [])].filter(Boolean).join(' • ')}
               </div>
               {item.obs && (
                 <div className="order-modal-item-detail" style={{ color: 'var(--warning-dark)', fontStyle: 'italic' }}>
