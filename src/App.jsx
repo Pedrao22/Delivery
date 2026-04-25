@@ -9,6 +9,12 @@ import InventoryPage from './components/inventory/InventoryPage';
 import DeliveryPage from './components/delivery/DeliveryPage';
 import FinancialPage from './components/financial/FinancialPage';
 import CustomerView from './components/customer/CustomerView';
+import PosPage from './pages/PosPage';
+import TablesPage from './pages/TablesPage';
+import ChatPage from './pages/ChatPage';
+import SettingsPage from './pages/SettingsPage';
+import LoyaltyPage from './pages/LoyaltyPage';
+import CouponsPage from './pages/CouponsPage';
 import { useOrdersContext, OrdersProvider } from './context/OrdersContext';
 import { useTheme } from './hooks/useTheme';
 import './App.css';
@@ -26,33 +32,11 @@ function PageWrapper({ title, subtitle, onMenuToggle, children }) {
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { orders, analyzing, production, ready, moveOrder, addOrder, removeOrder, finalizeReady } = useOrdersContext();
-  const { theme, toggleTheme, isDark } = useTheme();
+  const { analyzing } = useOrdersContext();
+  const { toggleTheme, isDark } = useTheme();
   const [toast, setToast] = useState(null);
 
   const toggleSidebar = () => setSidebarOpen(prev => !prev);
-
-  const handleAddOrder = (orderData) => {
-    const id = addOrder(orderData);
-    showToast(`✅ Pedido ${id} criado com sucesso!`);
-  };
-
-  const handleMoveOrder = (orderId, newStatus) => {
-    if (newStatus === 'cancelled') {
-      removeOrder(orderId);
-      showToast(`❌ Pedido ${orderId} cancelado`);
-    } else {
-      moveOrder(orderId, newStatus);
-      const labels = { production: 'Em Produção', ready: 'Pronto para Entrega' };
-      showToast(`✅ Pedido ${orderId} movido para ${labels[newStatus] || newStatus}`);
-    }
-  };
-
-  const handleFinalizeReady = () => {
-    const count = ready.length;
-    finalizeReady();
-    showToast(`✅ ${count} pedidos finalizados!`);
-  };
 
   const showToast = (msg) => {
     setToast(msg);
@@ -71,66 +55,67 @@ function AppContent() {
 
       <main className="app-main">
         <Routes>
-          <Route
-            path="/"
-            element={
-              <OrdersPage
-                orders={orders}
-                onMoveOrder={handleMoveOrder}
-                onFinalizeReady={handleFinalizeReady}
-                onAddOrder={handleAddOrder}
-                onMenuToggle={toggleSidebar}
-              />
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
-              <PageWrapper title="Dashboard" subtitle="Meu Desempenho" onMenuToggle={toggleSidebar}>
-                <DashboardPage />
-              </PageWrapper>
-            }
-          />
-          <Route
-            path="/cardapio"
-            element={
-              <PageWrapper title="Cardápio" subtitle="Gestão de Produtos" onMenuToggle={toggleSidebar}>
-                <MenuManagementPage />
-              </PageWrapper>
-            }
-          />
-          <Route
-            path="/estoque"
-            element={
-              <PageWrapper title="Estoque" subtitle="Controle de Insumos" onMenuToggle={toggleSidebar}>
-                <InventoryPage />
-              </PageWrapper>
-            }
-          />
-          <Route
-            path="/entregas"
-            element={
-              <PageWrapper title="Entregas" subtitle="Gestão de Entregadores" onMenuToggle={toggleSidebar}>
-                <DeliveryPage />
-              </PageWrapper>
-            }
-          />
-          <Route
-            path="/financeiro"
-            element={
-              <PageWrapper title="Financeiro" subtitle="Visão de Receitas" onMenuToggle={toggleSidebar}>
-                <FinancialPage />
-              </PageWrapper>
-            }
-          />
-          <Route
-            path="/cliente"
-            element={<CustomerView />}
-          />
+          <Route path="/" element={<OrdersPage onMenuToggle={toggleSidebar} />} />
+
+          <Route path="/dashboard" element={
+            <PageWrapper title="Dashboard" subtitle="Meu Desempenho" onMenuToggle={toggleSidebar}>
+              <DashboardPage />
+            </PageWrapper>
+          } />
+          <Route path="/cardapio" element={
+            <PageWrapper title="Cardápio" subtitle="Gestão de Produtos" onMenuToggle={toggleSidebar}>
+              <MenuManagementPage />
+            </PageWrapper>
+          } />
+          <Route path="/estoque" element={
+            <PageWrapper title="Estoque" subtitle="Controle de Insumos" onMenuToggle={toggleSidebar}>
+              <InventoryPage />
+            </PageWrapper>
+          } />
+          <Route path="/entregas" element={
+            <PageWrapper title="Entregas" subtitle="Gestão de Entregadores" onMenuToggle={toggleSidebar}>
+              <DeliveryPage />
+            </PageWrapper>
+          } />
+          <Route path="/financeiro" element={
+            <PageWrapper title="Financeiro" subtitle="Visão de Receitas" onMenuToggle={toggleSidebar}>
+              <FinancialPage />
+            </PageWrapper>
+          } />
+          <Route path="/pdv" element={
+            <PageWrapper title="Caixa (PDV)" subtitle="Novo Pedido" onMenuToggle={toggleSidebar}>
+              <PosPage />
+            </PageWrapper>
+          } />
+          <Route path="/mesas" element={
+            <PageWrapper title="Mesas" subtitle="Mapa de Salão" onMenuToggle={toggleSidebar}>
+              <TablesPage />
+            </PageWrapper>
+          } />
+          <Route path="/atendimento" element={
+            <PageWrapper title="Atendimento" subtitle="Lead Management" onMenuToggle={toggleSidebar}>
+              <ChatPage />
+            </PageWrapper>
+          } />
+          <Route path="/fidelidade" element={
+            <PageWrapper title="Fidelidade" subtitle="Gestão de Prêmios e Pontos" onMenuToggle={toggleSidebar}>
+              <LoyaltyPage />
+            </PageWrapper>
+          } />
+          <Route path="/cupons" element={
+            <PageWrapper title="Cupons" subtitle="Gestão de Descontos" onMenuToggle={toggleSidebar}>
+              <CouponsPage />
+            </PageWrapper>
+          } />
+          <Route path="/configuracoes" element={
+            <PageWrapper title="Configurações" subtitle="Dados do Negócio" onMenuToggle={toggleSidebar}>
+              <SettingsPage />
+            </PageWrapper>
+          } />
+          <Route path="/cliente" element={<CustomerView />} />
         </Routes>
       </main>
 
-      {/* Toast */}
       {toast && <div className="toast success">{toast}</div>}
     </div>
   );
