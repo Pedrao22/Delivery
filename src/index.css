@@ -15,21 +15,21 @@
   /* Border */
   --border: #E9ECEF;
   --border-light: #F1F3F5;
-  --border-focus: #6C5CE7;
+  --border-focus: #FFC400;
 
   /* Text */
   --text-primary: #1A1A2E;
   --text-secondary: #6C757D;
   --text-tertiary: #ADB5BD;
   --text-inverse: #FFFFFF;
-  --text-link: #6C5CE7;
+  --text-link: #E5A800;
 
-  /* Accent */
-  --accent: #6C5CE7;
-  --accent-light: #A29BFE;
-  --accent-lighter: #E8E5FF;
-  --accent-dark: #5A4BD1;
-  --accent-gradient: linear-gradient(135deg, #6C5CE7 0%, #A29BFE 100%);
+  /* Accent — Amarelo/Dourado */
+  --accent: #FFC400;
+  --accent-light: #FFD740;
+  --accent-lighter: #FFF8CC;
+  --accent-dark: #E5A800;
+  --accent-gradient: linear-gradient(135deg, #FFC400 0%, #FFD740 100%);
 
   /* Status */
   --success: #00B894;
@@ -51,7 +51,7 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
-  --shadow-accent: 0 4px 14px rgba(108, 92, 231, 0.3);
+  --shadow-accent: 0 4px 14px rgba(255, 196, 0, 0.35);
 
   /* Radius */
   --radius-xs: 4px;
@@ -76,7 +76,7 @@
   --space-16: 64px;
 
   /* Typography */
-  --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-family: 'Outfit', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-xs: 0.75rem;
   --font-sm: 0.8125rem;
   --font-base: 0.875rem;
@@ -114,39 +114,33 @@
 
 /* ============ DARK MODE ============ */
 [data-theme="dark"] {
-  /* Background */
   --bg-primary: #0F0F1A;
   --bg-secondary: #13131F;
   --bg-tertiary: #1A1A2E;
   --bg-dark: #0A0A12;
   --bg-overlay: rgba(0, 0, 0, 0.7);
 
-  /* Surface */
   --surface: #1A1A2E;
   --surface-hover: #222238;
   --surface-active: #2A2A40;
   --surface-elevated: #1E1E32;
 
-  /* Border */
   --border: #2A2A40;
   --border-light: #222238;
-  --border-focus: #7C6CF0;
+  --border-focus: #FFC400;
 
-  /* Text */
   --text-primary: #F0F0F5;
   --text-secondary: #A0A0B8;
   --text-tertiary: #6B6B82;
   --text-inverse: #0F0F1A;
-  --text-link: #A29BFE;
+  --text-link: #FFD740;
 
-  /* Accent (slightly lighter for dark bg) */
-  --accent: #7C6CF0;
-  --accent-light: #A29BFE;
-  --accent-lighter: rgba(124, 108, 240, 0.15);
-  --accent-dark: #6C5CE7;
-  --accent-gradient: linear-gradient(135deg, #7C6CF0 0%, #A29BFE 100%);
+  --accent: #FFC400;
+  --accent-light: #FFD740;
+  --accent-lighter: rgba(255, 196, 0, 0.15);
+  --accent-dark: #E5A800;
+  --accent-gradient: linear-gradient(135deg, #FFC400 0%, #FFD740 100%);
 
-  /* Status (adjusted for dark bg) */
   --success: #00D2A8;
   --success-light: rgba(0, 210, 168, 0.12);
   --success-dark: #00B894;
@@ -160,13 +154,12 @@
   --info-light: rgba(116, 185, 255, 0.12);
   --info-dark: #5DADE2;
 
-  /* Shadows (darker, more subtle in dark mode) */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.25), 0 1px 2px rgba(0, 0, 0, 0.2);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.3);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.4);
   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.5);
-  --shadow-accent: 0 4px 14px rgba(124, 108, 240, 0.25);
+  --shadow-accent: 0 4px 14px rgba(255, 196, 0, 0.3);
 
   color-scheme: dark;
 }
@@ -196,9 +189,7 @@ body {
   transition: background-color 300ms ease, color 300ms ease;
 }
 
-#root {
-  min-height: 100vh;
-}
+#root { min-height: 100vh; }
 
 a { text-decoration: none; color: inherit; }
 button { cursor: pointer; border: none; background: none; font-family: inherit; }
@@ -217,64 +208,52 @@ ul, ol { list-style: none; }
   from { opacity: 0; }
   to { opacity: 1; }
 }
-
 @keyframes fadeInUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes fadeInDown {
   from { opacity: 0; transform: translateY(-16px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes slideInRight {
   from { opacity: 0; transform: translateX(24px); }
   to { opacity: 1; transform: translateX(0); }
 }
-
 @keyframes slideInLeft {
   from { opacity: 0; transform: translateX(-24px); }
   to { opacity: 1; transform: translateX(0); }
 }
-
 @keyframes slideUp {
   from { opacity: 0; transform: translateY(100%); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes scaleIn {
   from { opacity: 0; transform: scale(0.95); }
   to { opacity: 1; transform: scale(1); }
 }
-
 @keyframes pulse {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.5; }
 }
-
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
-
 @keyframes popIn {
   0% { transform: scale(0); opacity: 0; }
   70% { transform: scale(1.1); }
   100% { transform: scale(1); opacity: 1; }
 }
-
 @keyframes spin {
   to { transform: rotate(360deg); }
 }
-
 @keyframes bounceIn {
   0% { transform: scale(0.3); opacity: 0; }
   50% { transform: scale(1.05); }
   70% { transform: scale(0.9); }
   100% { transform: scale(1); opacity: 1; }
 }
-
 @keyframes slideInUp {
   from { transform: translateY(100%); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -285,6 +264,7 @@ ul, ol { list-style: none; }
 .animate-fadeInUp { animation: fadeInUp var(--transition-slow) ease both; }
 .animate-scaleIn { animation: scaleIn var(--transition-slow) ease both; }
 .animate-slideInRight { animation: slideInRight var(--transition-slow) ease both; }
+.animate-spin { animation: spin 1s linear infinite; }
 
 .stagger-1 { animation-delay: 50ms; }
 .stagger-2 { animation-delay: 100ms; }
@@ -302,11 +282,10 @@ ul, ol { list-style: none; }
 .text-xl { font-size: var(--font-xl); }
 .text-2xl { font-size: var(--font-2xl); }
 .text-3xl { font-size: var(--font-3xl); }
-
 .font-medium { font-weight: var(--fw-medium); }
 .font-semibold { font-weight: var(--fw-semibold); }
 .font-bold { font-weight: var(--fw-bold); }
-
+.text-primary { color: var(--text-primary); }
 .text-secondary { color: var(--text-secondary); }
 .text-tertiary { color: var(--text-tertiary); }
 
@@ -325,28 +304,16 @@ ul, ol { list-style: none; }
 .flex-1 { flex: 1; }
 .flex-wrap { flex-wrap: wrap; }
 .flex-shrink-0 { flex-shrink: 0; }
-
 .grid { display: grid; }
 
 /* ============ RESPONSIVE ============ */
 @media (max-width: 1024px) {
-  :root {
-    --sidebar-width: 0px;
-  }
+  :root { --sidebar-width: 0px; }
 }
-
 @media (max-width: 768px) {
-  :root {
-    --topbar-height: 56px;
-  }
-  
-  html {
-    font-size: 15px;
-  }
+  :root { --topbar-height: 56px; }
+  html { font-size: 15px; }
 }
-
 @media (max-width: 480px) {
-  html {
-    font-size: 14px;
-  }
+  html { font-size: 14px; }
 }

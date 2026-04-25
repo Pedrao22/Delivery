@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink } from 'react-router-dom';
 import {
   ClipboardList, LayoutDashboard, UtensilsCrossed, Package,
   Truck, DollarSign, User, Menu, X, Moon, Sun,
@@ -12,10 +12,10 @@ const navItems = [
   { to: '/cardapio',     icon: UtensilsCrossed, label: 'Cardápio',      section: 'main' },
   { to: '/pdv',          icon: Monitor,         label: 'PDV / Caixa',   section: 'main' },
   { to: '/mesas',        icon: Map,             label: 'Mesas',         section: 'main' },
+  { to: '/atendimento',  icon: MessageSquare,   label: 'Atendimento',   section: 'main' },
   { to: '/estoque',      icon: Package,         label: 'Estoque',       section: 'gestao' },
   { to: '/entregas',     icon: Truck,           label: 'Entregas',      section: 'gestao' },
   { to: '/financeiro',   icon: DollarSign,      label: 'Financeiro',    section: 'gestao' },
-  { to: '/atendimento',  icon: MessageSquare,   label: 'Atendimento',   section: 'gestao' },
   { to: '/fidelidade',   icon: Gift,            label: 'Fidelidade',    section: 'extra' },
   { to: '/cupons',       icon: Ticket,          label: 'Cupons',        section: 'extra' },
   { to: '/configuracoes',icon: Settings,        label: 'Configurações', section: 'extra' },
@@ -23,8 +23,6 @@ const navItems = [
 ];
 
 export default function Sidebar({ isOpen, onToggle, orderCount, isDark, onToggleTheme }) {
-  const location = useLocation();
-
   const renderLinks = (section) =>
     navItems
       .filter(item => item.section === section)
@@ -55,8 +53,12 @@ export default function Sidebar({ isOpen, onToggle, orderCount, isDark, onToggle
 
       <aside className={`sidebar ${isOpen ? 'open' : ''}`}>
         <div className="sidebar-header">
-          <div className="sidebar-logo">
-            <img src="/logo_wide.png" alt="Pedi&Recebe" style={{ height: 36, objectFit: 'contain' }} />
+          <div className="sidebar-logo-wide">
+            <img
+              src="/logo_wide.png"
+              alt="Pedi&Recebe"
+              className="sidebar-logo-img"
+            />
           </div>
         </div>
 
@@ -79,7 +81,7 @@ export default function Sidebar({ isOpen, onToggle, orderCount, isDark, onToggle
           <div className="sidebar-user">
             <div className="sidebar-avatar">PR</div>
             <div className="sidebar-user-info">
-              <div className="sidebar-user-name">Pedi&Recebe</div>
+              <div className="sidebar-user-name">Pedi&amp;Recebe</div>
               <div className="sidebar-user-role">Administrador</div>
             </div>
           </div>

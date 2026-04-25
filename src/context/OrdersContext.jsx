@@ -57,10 +57,12 @@ export function OrdersProvider({ children }) {
   const [tables, setTables] = useState(() => {
     const saved = localStorage.getItem('foodflow_tables');
     return saved ? JSON.parse(saved) : [
-      { id: 1, number: 1, seats: 4, status: 'free' },
-      { id: 2, number: 2, seats: 2, status: 'free' },
-      { id: 3, number: 3, seats: 6, status: 'free' },
-      { id: 4, number: 4, seats: 4, status: 'free' },
+      { id: 1, numero: 1, seats: 4, status: 'free' },
+      { id: 2, numero: 2, seats: 2, status: 'free' },
+      { id: 3, numero: 3, seats: 6, status: 'free' },
+      { id: 4, numero: 4, seats: 4, status: 'free' },
+      { id: 5, numero: 5, seats: 6, status: 'free' },
+      { id: 6, numero: 6, seats: 4, status: 'free' },
     ];
   });
 
