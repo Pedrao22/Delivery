@@ -1,0 +1,169 @@
+/* Estilo de Impressão para Cupom Térmico (80mm) */
+.print-receipt-container {
+  width: 80mm;
+  padding: 5mm;
+  background: white;
+  color: black;
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 10pt;
+  line-height: 1.2;
+}
+
+.receipt-header {
+  text-align: center;
+  margin-bottom: 5mm;
+}
+
+.receipt-logo {
+  font-size: 24pt;
+  display: block;
+}
+
+.receipt-header h1 {
+  font-size: 14pt;
+  margin: 2mm 0;
+  text-transform: uppercase;
+}
+
+.receipt-header p {
+  font-size: 9pt;
+  margin: 0;
+}
+
+.receipt-order-info {
+  margin-top: 3mm;
+  display: flex;
+  flex-direction: column;
+  gap: 1mm;
+}
+
+.receipt-code {
+  font-size: 16pt;
+  font-weight: bold;
+}
+
+.receipt-divider {
+  border-top: 1px dashed black;
+  margin: 3mm 0;
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  font-weight: bold;
+  margin-bottom: 2mm;
+  font-size: 9pt;
+}
+
+.item-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 3mm;
+  align-items: flex-start;
+}
+
+.item-details {
+  display: flex;
+  flex-direction: column;
+  max-width: 70%;
+}
+
+.item-name {
+  font-weight: bold;
+}
+
+.item-sub {
+  font-size: 8pt;
+  padding-left: 4mm;
+}
+
+.item-obs {
+  font-size: 8pt;
+  font-style: italic;
+  padding-left: 4mm;
+  color: #333;
+}
+
+.receipt-summary {
+  margin-top: 4mm;
+}
+
+.summary-row {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2mm;
+}
+
+.summary-total {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14pt;
+  font-weight: bold;
+  margin-top: 3mm;
+  padding-top: 2mm;
+  border-top: 1px solid black;
+}
+
+.receipt-customer {
+  margin-top: 5mm;
+  font-size: 9pt;
+}
+
+.receipt-customer h4 {
+  text-align: center;
+  margin-bottom: 2mm;
+  text-decoration: underline;
+}
+
+.receipt-pix {
+  text-align: center;
+  margin-top: 5mm;
+}
+
+.receipt-pix img {
+  width: 40mm;
+  height: 40mm;
+  margin: 2mm 0;
+}
+
+.pix-key-label {
+  font-size: 7pt;
+  word-break: break-all;
+}
+
+.receipt-footer {
+  text-align: center;
+  margin-top: 5mm;
+  font-size: 8pt;
+}
+
+/* Ocultar tudo na tela ao imprimir, exceto o cupom */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-receipt-container, .print-receipt-container * {
+    visibility: visible;
+  }
+  .print-receipt-container {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+  }
+  /* Remove margens extras da página do navegador */
+  @page {
+    margin: 0;
+  }
+}
+
+/* Ocultar cupom na visualização normal do site */
+.print-receipt-container {
+  display: none;
+}
+
+@media print {
+  .print-receipt-container {
+    display: block !important;
+  }
+}

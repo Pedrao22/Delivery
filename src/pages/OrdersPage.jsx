@@ -1,5 +1,6 @@
-import { useState } from 'react';
-import { Plus, ShoppingCart } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, ShoppingCart, Loader2 } from 'lucide-react';
+import { useOrdersContext } from '../context/OrdersContext';
 import TopBar from '../components/layout/TopBar';
 import KanbanBoard from '../components/orders/KanbanBoard';
 import MenuGrid from '../components/menu/MenuGrid';
@@ -17,12 +18,25 @@ const filterTabs = [
   { value: 'local', label: '🍽️ Local' },
 ];
 
-export default function OrdersPage({ orders, onMoveOrder, onFinalizeReady, onAddOrder, onMenuToggle }) {
+export default function OrdersPage({ onMenuToggle }) {
+  const { 
+    orders, loadingOrders, refreshOrders,
+    moveOrder, finalizeReady, finalizeSingleOrder, addOrder 
+  } = useOrdersContext();
+
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [showCart, setShowCart] = useState(false);
   const { items, total, count, addItem, removeItem, updateQty, clearCart } = useCart();
+
+  // Real-time polling
+  useEffect(() => {
+    const interval = setInterval(() => {
+      refreshOrders();
+    }, 30000); // 30s
+    return () => clearInterval(interval);
+  }, []);
 
   // Filter orders
   let filteredOrders = orders;
@@ -32,38 +46,40 @@ export default function OrdersPage({ orders, onMoveOrder, onFinalizeReady, onAdd
   if (search.trim()) {
     const q = search.toLowerCase();
     filteredOrders = filteredOrders.filter(o =>
-      o.customer.name.toLowerCase().includes(q) ||
-      o.id.toLowerCase().includes(q)
+      o.cliente_nome?.toLowerCase().includes(q) ||
+      o.codigo?.toLowerCase().includes(q)
     );
   }
 
-  const handleConfirmOrder = (orderData) => {
-    onAddOrder(orderData);
+  const handleConfirmOrder = async (orderData) => {
+    await addOrder(orderData);
     setShowNewOrder(false);
+    clearCart();
   };
 
   return (
     <>
       <TopBar
-        title="Pedidos"
-        subtitle={`${orders.length} pedidos ativos`}
+        title="Gestão de Pedidos"
+        subtitle={loadingOrders ? 'Atualizando...' : `${orders.length} pedidos ativos`}
         onMenuClick={onMenuToggle}
       >
         <SearchInput
           value={search}
           onChange={setSearch}
-          placeholder="Buscar pedido..."
+          placeholder="Buscar por cliente ou código..."
         />
         <FilterTabs tabs={filterTabs} active={filter} onChange={setFilter} />
-        <Button onClick={() => setShowNewOrder(true)} icon={<Plus size={16} />}>
+        <Button onClick={() => setShowNewOrder(true)} icon={loadingOrders ? <Loader2 className="animate-spin" size={16} /> : <Plus size={16} />}>
           Novo Pedido
         </Button>
       </TopBar>
 
       <KanbanBoard
         orders={filteredOrders}
-        onMoveOrder={onMoveOrder}
-        onFinalizeReady={onFinalizeReady}
+        onMoveOrder={moveOrder}
+        onFinalizeReady={finalizeReady}
+        onFinalizeOrder={finalizeSingleOrder}
       />
 
       {/* New Order Modal */}

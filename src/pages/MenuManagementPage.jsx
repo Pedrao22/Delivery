@@ -1,15 +1,31 @@
-import { useState } from 'react';
-import { Plus, Edit3, Trash2, Eye, EyeOff, Star, Save, Image as ImageIcon, LayoutGrid, X } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { 
+  Plus, 
+  Edit3, 
+  Trash2, 
+  Star, 
+  Save, 
+  LayoutGrid, 
+  X, 
+  ChevronRight, 
+  Search, 
+  Settings, 
+  Layers, 
+  CheckCircle2,
+  AlertCircle,
+  Loader2
+} from 'lucide-react';
 import { useOrdersContext } from '../context/OrdersContext';
 import SearchInput from '../components/shared/SearchInput';
 import Button from '../components/shared/Button';
 import Badge from '../components/shared/Badge';
 import Modal from '../components/shared/Modal';
+import './MenuManagementPage.css';
 
 export default function MenuManagementPage() {
   const { 
-    products, categories, 
-    updateProduct, addProduct, deleteProduct,
+    products, categories, loadingMenu,
+    addProduct, updateProduct, deleteProduct,
     addCategory, updateCategory, deleteCategory 
   } = useOrdersContext();
 
@@ -18,385 +34,306 @@ export default function MenuManagementPage() {
   const [editingItem, setEditingItem] = useState(null);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
-  const [editingCategory, setEditingCategory] = useState(null);
+  const [activeTab, setActiveTab] = useState('basic'); // basic, variations, combo, complements
+  const [isSaving, setIsSaving] = useState(false);
 
-  const filtered = products.filter(i => {
-    const matchSearch = i.name.toLowerCase().includes(search.toLowerCase());
-    const matchCategory = categoryFilter === 'all' || i.category === categoryFilter;
-    return matchSearch && matchCategory;
-  });
-
-  const getStatusInfo = (item) => {
-    if (item.available === false) return { label: 'Inativo', variant: 'danger' };
-    if (item.stockStatus === 'out') return { label: 'Esgotado', variant: 'warning' };
-    return { label: 'Ativo', variant: 'success' };
-  };
+  // Memoized Filtered List
+  const filtered = useMemo(() => {
+    return products.filter(i => {
+      const matchSearch = i.nome.toLowerCase().includes(search.toLowerCase());
+      const matchCategory = categoryFilter === 'all' || i.categoria_id === categoryFilter;
+      return matchSearch && matchCategory;
+    });
+  }, [products, search, categoryFilter]);
 
   const handleEdit = (item) => {
-    setEditingItem({ ...item, variations: item.variations || [], complements: item.complements || [] });
+    setEditingItem({ 
+      ...item, 
+      variacoes: item.variacoes || [], 
+      complementos: item.complementos || [],
+      config: item.config || { is_combo: false, items_combo: [] }
+    });
+    setActiveTab('basic');
     setShowEditModal(true);
   };
 
-  const handleSave = () => {
-    if (editingItem) {
+  const handleSaveProduct = async () => {
+    if (!editingItem.nome || !editingItem.categoria_id) {
+      alert('Preencha o nome e a categoria!');
+      return;
+    }
+
+    setIsSaving(true);
+    try {
       if (editingItem.id) {
-        updateProduct(editingItem);
+        await updateProduct(editingItem.id, editingItem);
       } else {
-        addProduct(editingItem);
+        await addProduct(editingItem);
       }
       setShowEditModal(false);
       setEditingItem(null);
+    } catch (err) {
+      alert('Erro ao salvar produto');
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  const toggleBestseller = (id) => {
-    const item = products.find(p => p.id === id);
-    if (item) {
-      updateProduct({ ...item, bestseller: !item.bestseller });
-    }
-  };
-
-  const handleSaveCategory = () => {
-    if (editingCategory) {
-      if (editingCategory.id) {
-        updateCategory(editingCategory);
-      } else {
-        addCategory({ ...editingCategory, id: editingCategory.name.toLowerCase().replace(/\s+/g, '-') });
-      }
-      setEditingCategory(null);
+  const handleDeleteProduct = async (id) => {
+    if (window.confirm('Tem certeza que deseja excluir este produto?')) {
+      await deleteProduct(id);
     }
   };
 
   return (
-    <div style={{ padding: 'var(--space-5)', animation: 'fadeIn 300ms ease' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-5)', flexWrap: 'wrap', gap: '12px' }}>
-        <div>
-          <h2 style={{ fontSize: 'var(--font-xl)', fontWeight: 'var(--fw-bold)' }}>Gestão de Cardápio</h2>
-          <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-tertiary)' }}>{products.length} produtos cadastrados</p>
+    <div className="menu-mgmt-container">
+      {/* Header Section */}
+      <header className="menu-header">
+        <div className="header-info">
+          <h1>Gestão de Cardápio</h1>
+          <p>{products.length} itens no ecossistema</p>
         </div>
-        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
-          <SearchInput value={search} onChange={setSearch} placeholder="Buscar produto..." />
+        <div className="header-actions">
+          <SearchInput value={search} onChange={setSearch} placeholder="Buscar por nome..." />
           <Button variant="secondary" onClick={() => setShowCategoryModal(true)} icon={<LayoutGrid size={16} />}>Categorias</Button>
-          <Button onClick={() => handleEdit({ name: '', description: '', price: 0, category: categories[0]?.id || '', image: '🍔', variations: [], complements: [], available: true })} icon={<Plus size={16} />}>Novo Produto</Button>
+          <Button onClick={() => handleEdit({ nome: '', descricao: '', preco: 0, categoria_id: categories[0]?.id || '', imagem_emoji: '🍔', bestseller: false })} icon={<Plus size={16} />}>Novo Item</Button>
         </div>
-      </div>
+      </header>
 
-      {/* Category filter */}
-      <div className="menu-categories-scroll" style={{ marginBottom: 'var(--space-4)' }}>
-        <button
-          className={`menu-category-chip ${categoryFilter === 'all' ? 'active' : ''}`}
+      {/* Categories Bar */}
+      <div className="categories-bar">
+        <button 
+          className={`cat-tab ${categoryFilter === 'all' ? 'active' : ''}`}
           onClick={() => setCategoryFilter('all')}
         >
           Todos
         </button>
         {categories.map(cat => (
-          <button
-            key={cat.id}
-            className={`menu-category-chip ${categoryFilter === cat.id ? 'active' : ''}`}
+          <button 
+            key={cat.id} 
+            className={`cat-tab ${categoryFilter === cat.id ? 'active' : ''}`}
             onClick={() => setCategoryFilter(cat.id)}
           >
-            {cat.icon} {cat.name}
+            <span>{cat.icone}</span>
+            {cat.nome}
           </button>
         ))}
       </div>
 
-      {/* Products Table */}
-      <div style={{ background: 'var(--surface)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)', overflow: 'hidden' }}>
-        {/* Header */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: '48px 2fr 1fr 100px 100px 120px',
-          padding: 'var(--space-3) var(--space-4)',
-          background: 'var(--bg-secondary)',
-          fontSize: 'var(--font-xs)',
-          fontWeight: 600,
-          color: 'var(--text-tertiary)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.05em',
-        }}>
-          <span></span>
-          <span>Produto</span>
-          <span>Categoria</span>
-          <span>Preço</span>
-          <span>Status</span>
-          <span>Ações</span>
-        </div>
-
-        {filtered.map((item, i) => {
-          const status = getStatusInfo(item);
-          return (
-            <div key={item.id} style={{
-              display: 'grid',
-              gridTemplateColumns: '48px 2fr 1fr 100px 100px 120px',
-              padding: 'var(--space-3) var(--space-4)',
-              borderBottom: '1px solid var(--border-light)',
-              alignItems: 'center',
-              fontSize: 'var(--font-sm)',
-              animation: 'fadeInUp 200ms ease both',
-              animationDelay: `${i * 20}ms`,
-              opacity: (item.available === false || item.stockStatus === 'out') ? 0.6 : 1,
-              transition: 'background var(--transition-fast), opacity var(--transition-fast)',
-            }}
-            onMouseEnter={(e) => e.currentTarget.style.background = 'var(--bg-secondary)'}
-            onMouseLeave={(e) => e.currentTarget.style.background = ''}
-            >
-              <span style={{ fontSize: '1.5rem' }}>{item.image}</span>
-              <div>
-                <div style={{ fontWeight: 600, color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: 6 }}>
-                  {item.name}
-                  {item.bestseller && (
-                    <span style={{ color: 'var(--warning)', cursor: 'help' }} title="Mais Vendido">
-                      <Star size={12} fill="currentColor" />
-                    </span>
-                  )}
+      {/* Main Grid/List */}
+      <div className="products-list-container">
+        {loadingMenu ? (
+          <div className="menu-loading">
+            <Loader2 className="animate-spin" />
+            <span>Sincronizando cardápio...</span>
+          </div>
+        ) : filtered.length === 0 ? (
+          <div className="empty-state">
+            <AlertCircle size={48} />
+            <h3>Nenhum item encontrado</h3>
+            <p>Ajuste os filtros ou crie um novo produto.</p>
+          </div>
+        ) : (
+          <div className="products-grid">
+            {filtered.map((item) => (
+              <div key={item.id} className={`product-card ${!item.ativo ? 'inactive' : ''}`}>
+                <div className="product-card-header">
+                  <span className="product-emoji">{item.imagem_emoji}</span>
+                  {item.bestseller && <Star size={16} fill="#f59e0b" color="#f59e0b" className="star-icon" />}
+                  <div className="card-actions">
+                    <button onClick={() => handleEdit(item)}><Edit3 size={16} /></button>
+                    <button onClick={() => handleDeleteProduct(item.id)} className="delete"><Trash2 size={16} /></button>
+                  </div>
                 </div>
-                <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)', marginTop: 2 }}>
-                  {item.variations?.length > 0 && `${item.variations.length} variações`}
-                  {item.variations?.length > 0 && item.complements?.length > 0 && ' • '}
-                  {item.complements?.length > 0 && `${item.complements.length} complementos`}
+                <div className="product-card-body">
+                  <h3>{item.nome}</h3>
+                  <p className="card-cat">{categories.find(c => c.id === item.categoria_id)?.nome || 'Sem categoria'}</p>
+                  <p className="card-desc">{item.descricao || 'Sem descrição'}</p>
+                </div>
+                <div className="product-card-footer">
+                  <span className="card-price">R$ {parseFloat(item.preco).toFixed(2).replace('.', ',')}</span>
+                  {item.config?.is_combo && <Badge variant="info">Combo</Badge>}
+                  {item.variacoes?.length > 0 && <Badge variant="secondary">{item.variacoes.length} Sabores</Badge>}
                 </div>
               </div>
-              <span style={{ color: 'var(--text-secondary)' }}>
-                {categories.find(c => c.id === item.category)?.icon} {categories.find(c => c.id === item.category)?.name}
-              </span>
-              <span style={{ fontWeight: 700, color: 'var(--accent)' }}>
-                R$ {item.price.toFixed(2).replace('.', ',')}
-              </span>
-              <div>
-                <Badge variant={status.variant} dot size="xs">
-                  {status.label}
-                </Badge>
-              </div>
-              <div style={{ display: 'flex', gap: '4px' }}>
-                <button
-                  onClick={() => toggleBestseller(item.id)}
-                  style={{
-                    width: 32, height: 32, borderRadius: 'var(--radius-sm)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: item.bestseller ? 'var(--warning)' : 'var(--text-tertiary)', transition: 'all var(--transition-fast)',
-                    border: 'none', background: 'none', cursor: 'pointer',
-                  }}
-                  title="Destaque (Mais Vendido)"
-                >
-                  <Star size={16} fill={item.bestseller ? "currentColor" : "none"} />
-                </button>
-                <button
-                  onClick={() => handleEdit(item)}
-                  style={{
-                    width: 32, height: 32, borderRadius: 'var(--radius-sm)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--text-tertiary)', transition: 'all var(--transition-fast)',
-                    border: 'none', background: 'none', cursor: 'pointer',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--accent-lighter)'; e.currentTarget.style.color = 'var(--accent)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
-                >
-                  <Edit3 size={16} />
-                </button>
-                <button
-                  onClick={() => deleteProduct(item.id)}
-                  style={{
-                    width: 32, height: 32, borderRadius: 'var(--radius-sm)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    color: 'var(--text-tertiary)', transition: 'all var(--transition-fast)',
-                    border: 'none', background: 'none', cursor: 'pointer',
-                  }}
-                  onMouseEnter={(e) => { e.currentTarget.style.background = 'var(--danger-lighter)'; e.currentTarget.style.color = 'var(--danger)'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.background = ''; e.currentTarget.style.color = 'var(--text-tertiary)'; }}
-                >
-                  <Trash2 size={16} />
-                </button>
-              </div>
-            </div>
-        );
-        })}
+            ))}
+          </div>
+        )}
       </div>
 
-      {/* Product Modal Overhaul */}
+      {/* Product Modal - PRO VERSION */}
       <Modal
         isOpen={showEditModal}
-        onClose={() => { setShowEditModal(false); setEditingItem(null); }}
-        title={editingItem?.id ? `Editar: ${editingItem.name}` : 'Novo Produto'}
+        onClose={() => { if (!isSaving) setShowEditModal(false); }}
+        title={editingItem?.id ? `Editar: ${editingItem.nome}` : 'Criar Novo Item'}
         size="large"
-        footer={<Button onClick={handleSave} icon={<Save size={16} />}>Salvar Produto</Button>}
+        footer={
+          <div className="modal-footer-actions">
+             <Button variant="secondary" onClick={() => setShowEditModal(false)}>Cancelar</Button>
+             <Button onClick={handleSaveProduct} disabled={isSaving} icon={isSaving ? <Loader2 className="animate-spin" size={16} /> : <Save size={16} />}>
+               {isSaving ? 'Salvando...' : 'Salvar Alterações'}
+             </Button>
+          </div>
+        }
       >
         {editingItem && (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-            <div style={{ display: 'grid', gridTemplateColumns: '80px 1fr', gap: 'var(--space-4)', alignItems: 'end' }}>
-              <div>
-                <label style={{ fontSize: 'var(--font-sm)', fontWeight: 600, display: 'block', marginBottom: 6 }}>Imagem</label>
-                <div style={{ 
-                  width: 80, height: 80, borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)',
-                  display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem', border: '1px solid var(--border)' 
-                }}>
-                  {editingItem.image}
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                {['🍔', '🍕', '🥤', '🍟', '🍰', '🥗', '🍗', '🍺', '🍦'].map(emoji => (
-                  <button 
-                    key={emoji}
-                    onClick={() => setEditingItem({ ...editingItem, image: emoji })}
-                    style={{ 
-                      width: 36, height: 36, borderRadius: 'var(--radius-sm)', border: editingItem.image === emoji ? '2px solid var(--accent)' : '1px solid var(--border)',
-                      background: 'var(--surface)', cursor: 'pointer', fontSize: '1.2rem'
-                    }}
-                  >
-                    {emoji}
-                  </button>
-                ))}
-              </div>
+          <div className="product-pro-editor">
+            <div className="editor-tabs">
+              <button className={activeTab === 'basic' ? 'active' : ''} onClick={() => setActiveTab('basic')}><Settings size={18} /> Básico</button>
+              <button className={activeTab === 'variations' ? 'active' : ''} onClick={() => setActiveTab('variations')}><Layers size={18} /> Sabores/Tamanhos</button>
+              <button className={activeTab === 'combo' ? 'active' : ''} onClick={() => setActiveTab('combo')}><LayoutGrid size={18} /> Combo Builder</button>
             </div>
 
-            <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: 'var(--space-4)' }}>
-              <div>
-                <label style={{ fontSize: 'var(--font-sm)', fontWeight: 600, display: 'block', marginBottom: 6 }}>Nome</label>
-                <input
-                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)', outline: 'none' }}
-                  value={editingItem.name}
-                  onChange={(e) => setEditingItem({ ...editingItem, name: e.target.value })}
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: 'var(--font-sm)', fontWeight: 600, display: 'block', marginBottom: 6 }}>Categoria</label>
-                <select
-                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)', outline: 'none', background: 'white' }}
-                  value={editingItem.category}
-                  onChange={(e) => setEditingItem({ ...editingItem, category: e.target.value })}
-                >
-                  {categories.map(c => <option key={c.id} value={c.id}>{c.icon} {c.name}</option>)}
-                </select>
-              </div>
-            </div>
-
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 'var(--space-4)' }}>
-              <div>
-                <label style={{ fontSize: 'var(--font-sm)', fontWeight: 600, display: 'block', marginBottom: 6 }}>Preço (R$)</label>
-                <input
-                  type="number"
-                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)', outline: 'none' }}
-                  value={editingItem.price}
-                  onChange={(e) => setEditingItem({ ...editingItem, price: parseFloat(e.target.value) || 0 })}
-                />
-              </div>
-              <div>
-                <label style={{ fontSize: 'var(--font-sm)', fontWeight: 600, display: 'block', marginBottom: 6 }}>Status</label>
-                <select
-                  style={{ width: '100%', padding: '10px 14px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)', outline: 'none', background: 'white' }}
-                  value={editingItem.available === false ? 'inactive' : editingItem.stockStatus === 'out' ? 'soldout' : 'active'}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    setEditingItem({ 
-                      ...editingItem, 
-                      available: val !== 'inactive', 
-                      stockStatus: val === 'soldout' ? 'out' : 'normal' 
-                    });
-                  }}
-                >
-                  <option value="active">Ativo</option>
-                  <option value="inactive">Inativo</option>
-                  <option value="soldout">Esgotado</option>
-                </select>
-              </div>
-              <div>
-                <label style={{ fontSize: 'var(--font-sm)', fontWeight: 600, display: 'block', marginBottom: 6 }}>Destaque</label>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '10px 0' }}>
-                  <input 
-                    type="checkbox" 
-                    checked={editingItem.bestseller} 
-                    onChange={(e) => setEditingItem({ ...editingItem, bestseller: e.target.checked })} 
-                  />
-                  <span>Mais Vendido (Bestseller)</span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ fontSize: 'var(--font-sm)', fontWeight: 600 }}>Variações (Sabores/Tamanhos)</label>
-                <Button size="xs" variant="secondary" onClick={() => setEditingItem({ ...editingItem, variations: [...(editingItem.variations || []), { id: Date.now(), name: '', price: 0 }] })}>+ Add</Button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {editingItem.variations?.map((v, idx) => (
-                  <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <input style={{ flex: 1, padding: '8px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }} value={v.name} onChange={(e) => {
-                      const newV = [...editingItem.variations];
-                      newV[idx].name = e.target.value;
-                      setEditingItem({ ...editingItem, variations: newV });
-                    }} placeholder="Ex: Grande" />
-                    <input type="number" style={{ width: 80, padding: '8px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }} value={v.price} onChange={(e) => {
-                      const newV = [...editingItem.variations];
-                      newV[idx].price = parseFloat(e.target.value) || 0;
-                      setEditingItem({ ...editingItem, variations: newV });
-                    }} />
-                    <button onClick={() => setEditingItem({ ...editingItem, variations: editingItem.variations.filter((_, i) => i !== idx) })} style={{ color: 'var(--danger)', border: 'none', background: 'none', cursor: 'pointer' }}><Trash2 size={14} /></button>
+            <div className="editor-content">
+              {activeTab === 'basic' && (
+                <div className="tab-pane animate-in">
+                  <div className="form-row">
+                    <div className="form-group flex-1">
+                      <label>Nome do Produto *</label>
+                      <input value={editingItem.nome} onChange={e => setEditingItem({...editingItem, nome: e.target.value})} placeholder="Ex: Burger Bacon" />
+                    </div>
+                    <div className="form-group" style={{ width: '120px' }}>
+                      <label>Emoji/Ícone</label>
+                      <input value={editingItem.imagem_emoji} onChange={e => setEditingItem({...editingItem, imagem_emoji: e.target.value})} placeholder="🍔" style={{ textAlign: 'center', fontSize: '1.5rem' }} />
+                    </div>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            <div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-                <label style={{ fontSize: 'var(--font-sm)', fontWeight: 600 }}>Complementos (Acompanhamentos)</label>
-                <Button size="xs" variant="secondary" onClick={() => setEditingItem({ ...editingItem, complements: [...(editingItem.complements || []), { id: Date.now(), name: '', price: 0 }] })}>+ Add</Button>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                {editingItem.complements?.map((c, idx) => (
-                  <div key={idx} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-                    <input style={{ flex: 1, padding: '8px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }} value={c.name} onChange={(e) => {
-                      const newC = [...editingItem.complements];
-                      newC[idx].name = e.target.value;
-                      setEditingItem({ ...editingItem, complements: newC });
-                    }} placeholder="Ex: Bacon Extra" />
-                    <input type="number" style={{ width: 80, padding: '8px', border: '1px solid var(--border)', borderRadius: 'var(--radius-sm)' }} value={c.price} onChange={(e) => {
-                      const newC = [...editingItem.complements];
-                      newC[idx].price = parseFloat(e.target.value) || 0;
-                      setEditingItem({ ...editingItem, complements: newC });
-                    }} />
-                    <button onClick={() => setEditingItem({ ...editingItem, complements: editingItem.complements.filter((_, i) => i !== idx) })} style={{ color: 'var(--danger)', border: 'none', background: 'none', cursor: 'pointer' }}><Trash2 size={14} /></button>
+                  
+                  <div className="form-group">
+                    <label>Descrição Curta</label>
+                    <textarea value={editingItem.descricao} onChange={e => setEditingItem({...editingItem, descricao: e.target.value})} placeholder="Ingredientes e detalhes..." />
                   </div>
-                ))}
-              </div>
+
+                  <div className="form-row">
+                    <div className="form-group flex-1">
+                      <label>Categoria Principal</label>
+                      <select value={editingItem.categoria_id} onChange={e => setEditingItem({...editingItem, categoria_id: e.target.value})}>
+                        {categories.map(c => <option key={c.id} value={c.id}>{c.icone} {c.nome}</option>)}
+                      </select>
+                    </div>
+                    <div className="form-group flex-1">
+                      <label>Preço Base (R$)</label>
+                      <input type="number" value={editingItem.preco} onChange={e => setEditingItem({...editingItem, preco: parseFloat(e.target.value) || 0})} />
+                    </div>
+                  </div>
+
+                  <div className="form-toggles">
+                    <label className="toggle-label">
+                      <input type="checkbox" checked={editingItem.bestseller} onChange={e => setEditingItem({...editingItem, bestseller: e.target.checked})} />
+                      <span>Destacar como "Mais Vendido"</span>
+                    </label>
+                    <label className="toggle-label">
+                      <input type="checkbox" checked={editingItem.ativo} onChange={e => setEditingItem({...editingItem, ativo: e.target.checked})} />
+                      <span>Item Disponível no Cardápio</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'variations' && (
+                <div className="tab-pane animate-in">
+                  <div className="pane-header">
+                    <h4>Sabores e Tamanhos</h4>
+                    <p>Adicione variações de preço para diferentes versões deste item.</p>
+                  </div>
+                  <div className="variations-dynamic-list">
+                    {editingItem.variacoes?.map((v, i) => (
+                      <div key={i} className="dynamic-row">
+                        <input placeholder="Ex: Média (35cm)" value={v.name} onChange={e => {
+                          const news = [...editingItem.variacoes];
+                          news[i].name = e.target.value;
+                          setEditingItem({...editingItem, variacoes: news});
+                        }} />
+                        <div className="price-input">
+                          <span>R$</span>
+                          <input type="number" value={v.price} onChange={e => {
+                            const news = [...editingItem.variacoes];
+                            news[i].price = parseFloat(e.target.value) || 0;
+                            setEditingItem({...editingItem, variacoes: news});
+                          }} />
+                        </div>
+                        <button className="del-btn" onClick={() => setEditingItem({...editingItem, variacoes: editingItem.variacoes.filter((_, idx) => idx !== i)})}><X size={16} /></button>
+                      </div>
+                    ))}
+                    <button className="add-dynamic-btn" onClick={() => setEditingItem({...editingItem, variacoes: [...editingItem.variacoes, { name: '', price: 0 }]})}>
+                      <Plus size={16} /> Adicionar Variação/Sabor
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'combo' && (
+                <div className="tab-pane animate-in">
+                  <div className="pane-header">
+                    <div className="flex-j-between">
+                      <div>
+                        <h4>Configuração de Combo</h4>
+                        <p>Selecione quais itens individuais compõem este combo.</p>
+                      </div>
+                      <label className="toggle-switch">
+                         <input type="checkbox" checked={editingItem.config?.is_combo} onChange={e => setEditingItem({...editingItem, config: { ...editingItem.config, is_combo: e.target.checked }})} />
+                         <span className="slider"></span>
+                      </label>
+                    </div>
+                  </div>
+
+                  {editingItem.config?.is_combo ? (
+                    <div className="combo-builder-area">
+                       <label>Itens inclusos neste Combo:</label>
+                       <div className="combo-items-selector">
+                          {products.filter(p => p.id !== editingItem.id && !p.config?.is_combo).map(p => (
+                            <button 
+                              key={p.id} 
+                              className={`combo-item-chip ${editingItem.config.items_combo?.includes(p.id) ? 'selected' : ''}`}
+                              onClick={() => {
+                                const current = editingItem.config.items_combo || [];
+                                const news = current.includes(p.id) ? current.filter(id => id !== p.id) : [...current, p.id];
+                                setEditingItem({...editingItem, config: { ...editingItem.config, items_combo: news }});
+                              }}
+                            >
+                              {p.imagem_emoji} {p.nome}
+                              {editingItem.config.items_combo?.includes(p.id) && <CheckCircle2 size={14} />}
+                            </button>
+                          ))}
+                       </div>
+                    </div>
+                  ) : (
+                    <div className="empty-tab-state">
+                      <AlertCircle size={32} />
+                      <p>Ative a chave acima para transformar este produto em um Combo.</p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         )}
       </Modal>
 
-      {/* Category Management Modal */}
+      {/* Category Management Modal (Similar Logic) */}
       <Modal
         isOpen={showCategoryModal}
         onClose={() => setShowCategoryModal(false)}
         title="Gestão de Categorias"
-        footer={<Button onClick={() => setShowCategoryModal(false)}>Fechar</Button>}
       >
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', gap: '8px' }}>
-            <input 
-              style={{ flex: 1, padding: '10px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-md)' }}
-              placeholder="Nova categoria..."
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && e.target.value.trim()) {
-                  addCategory({ id: e.target.value.toLowerCase().replace(/\s+/g, '-'), name: e.target.value, icon: '📦' });
-                  e.target.value = '';
-                }
-              }}
-            />
-            <Button icon={<Plus size={16} />}>Add</Button>
-          </div>
-          
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-            {categories.map(cat => (
-              <div key={cat.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-md)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span>{cat.icon}</span>
-                  <span style={{ fontWeight: 600 }}>{cat.name}</span>
-                </div>
-                <div style={{ display: 'flex', gap: '4px' }}>
-                  <button onClick={() => deleteCategory(cat.id)} style={{ color: 'var(--danger)', border: 'none', background: 'none', cursor: 'pointer' }}><Trash2 size={16} /></button>
-                </div>
-              </div>
-            ))}
-          </div>
+        <div className="category-manager">
+           <div className="add-cat-row">
+             <input placeholder="Nova categoria..." id="new-cat-input" />
+             <Button onClick={() => {
+               const val = document.getElementById('new-cat-input').value;
+               if (val) {
+                 addCategory({ nome: val, icone: '📦' });
+                 document.getElementById('new-cat-input').value = '';
+               }
+             }}>Adicionar</Button>
+           </div>
+           <div className="cat-list">
+             {categories.map(c => (
+               <div key={c.id} className="cat-list-item">
+                 <span>{c.icone} {c.nome}</span>
+                 <button onClick={() => deleteCategory(c.id)}><Trash2 size={14} /></button>
+               </div>
+             ))}
+           </div>
         </div>
       </Modal>
     </div>
