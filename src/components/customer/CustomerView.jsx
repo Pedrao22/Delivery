@@ -1,25 +1,33 @@
-import React, { useState, useEffect } from 'react';
-import { Phone, ShoppingCart, ArrowLeft, Check, MapPin, CreditCard, QrCode, Wallet, Info } from 'lucide-react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { 
+  Phone, ShoppingCart, ArrowLeft, Check, 
+  MapPin, CreditCard, QrCode, Wallet, Info,
+  Star, Clock, ChevronRight, Search, 
+  ChevronDown, MessageCircle, Heart
+} from 'lucide-react';
 import Modal from '../shared/Modal';
 import { menuCategories, menuItems } from '../../data/menuItems';
 import { customers, loyaltyTiers } from '../../data/customers';
 import ProductCard from '../menu/ProductCard';
 import ProductModal from '../menu/ProductModal';
 import Button from '../shared/Button';
-import { useOrders } from '../../hooks/useOrders';
+import { useOrdersContext } from '../../context/OrdersContext';
 import Badge from '../shared/Badge';
 import './CustomerView.css';
 
 export default function CustomerView() {
-  const { orders, addOrder } = useOrders();
-  const [step, setStep] = useState(() => localStorage.getItem('foodflow_customer_step') || 'login'); 
+  const { orders, addOrder, coupons, restaurantSettings, products, categories } = useOrdersContext();
+  
+  const [step, setStep] = useState(() => localStorage.getItem('pedirecebe_customer_step') || 'login'); 
   const [phone, setPhone] = useState('');
   const [customer, setCustomer] = useState(null);
   const [cart, setCart] = useState([]);
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [activeCategory, setActiveCategory] = useState('all');
-  const [activeOrderId, setActiveOrderId] = useState(() => localStorage.getItem('foodflow_active_order_id'));
+  const [activeOrderId, setActiveOrderId] = useState(() => localStorage.getItem('pedirecebe_active_order_id'));
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  
   const [checkoutForm, setCheckoutForm] = useState({
     customerName: '',
     customerPhone: '',
@@ -28,8 +36,19 @@ export default function CustomerView() {
     reference: '',
     paymentMethod: 'pix_online',
     needsChange: false,
-    cashAmount: ''
+    cashAmount: '',
+    taxId: '',
+    couponCode: '',
+    couponDiscount: 0
   });
+
+  // Effective Brand Data
+  const brandName = restaurantSettings.name || 'Pedi&Recebe';
+  const primaryColor = restaurantSettings.primaryColor || '#e74c3c';
+
+  // Catalog Data (Context version preferred)
+  const displayProducts = products?.length > 0 ? products : menuItems;
+  const displayCategories = categories?.length > 0 ? categories : menuCategories;
 
   // Pre-fill form when customer logs in
   useEffect(() => {
@@ -44,9 +63,9 @@ export default function CustomerView() {
 
   // Sync state to localStorage
   useEffect(() => {
-    localStorage.setItem('foodflow_customer_step', step);
-    if (activeOrderId) localStorage.setItem('foodflow_active_order_id', activeOrderId);
-    else localStorage.removeItem('foodflow_active_order_id');
+    localStorage.setItem('pedirecebe_customer_step', step);
+    if (activeOrderId) localStorage.setItem('pedirecebe_active_order_id', activeOrderId);
+    else localStorage.removeItem('pedirecebe_active_order_id');
   }, [step, activeOrderId]);
 
   const trackingOrder = activeOrderId ? orders.find(o => o.id === activeOrderId) : null;
@@ -64,10 +83,10 @@ export default function CustomerView() {
   const addToCart = (product, variation, complements, qty, obs) => {
     const complementsTotal = complements.reduce((sum, c) => sum + c.price, 0);
     const variationPrice = variation ? variation.price : 0;
-    const unitPrice = product.price + variationPrice + complementsTotal;
+    const unitPrice = parseFloat(product.preco || 0) + variationPrice + complementsTotal;
     setCart(prev => [...prev, {
       id: Date.now(),
-      name: product.name,
+      name: product.nome,
       variation: variation?.name || '',
       complements: complements.map(c => c.name),
       qty,
@@ -80,10 +99,16 @@ export default function CustomerView() {
   const cartCount = cart.reduce((sum, i) => sum + i.qty, 0);
 
   const handleOrder = () => {
+    if (cartTotal < restaurantSettings.minOrder) {
+      // alert used for simplicity, but could be a nice toast
+      return;
+    }
     setIsCheckoutOpen(true);
   };
 
   const handleFinalConfirm = () => {
+    const finalTotal = cartTotal - checkoutForm.couponDiscount;
+
     const orderId = addOrder({
       customer: {
         name: checkoutForm.customerName || customer?.name || 'Cliente',
@@ -92,333 +117,238 @@ export default function CustomerView() {
         reference: checkoutForm.reference,
       },
       items: cart,
-      total: cartTotal,
+      total: finalTotal,
+      subtotal: cartTotal,
       type: checkoutForm.type,
       payment: checkoutForm.paymentMethod.replace('_', ' ').toUpperCase(),
-      cashPaid: checkoutForm.paymentMethod === 'dinheiro' && checkoutForm.needsChange ? parseFloat(checkoutForm.cashAmount) : null,
+      cashPaid: checkoutForm.paymentMethod === 'cash' && checkoutForm.needsChange ? parseFloat(checkoutForm.cashAmount) : null,
+      taxId: checkoutForm.taxId,
+      couponUsed: checkoutForm.couponCode,
+      discounts: checkoutForm.couponDiscount
     });
     
     setActiveOrderId(orderId);
     setCart([]);
     setIsCheckoutOpen(false);
+    setCheckoutForm(prev => ({ ...prev, couponCode: '', couponDiscount: 0, taxId: '' }));
     setStep('tracking');
   };
 
-  const getTier = (points) => loyaltyTiers.find(t => points >= t.minPoints && points <= t.maxPoints) || loyaltyTiers[0];
-  const tier = customer ? getTier(customer.points) : null;
+  const filtered = useMemo(() => {
+    return displayProducts.filter(i => {
+      const matchesCategory = activeCategory === 'all' || i.categoria_id === activeCategory;
+      const matchesSearch = (i.nome || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                            (i.descricao || '').toLowerCase().includes(searchQuery.toLowerCase());
+      return matchesCategory && matchesSearch && i.ativo !== false;
+    });
+  }, [activeCategory, searchQuery, displayProducts]);
 
-  const filtered = activeCategory === 'all' ? menuItems : menuItems.filter(i => i.category === activeCategory);
-
-  // Login step
+  // 1. Login Step
   if (step === 'login') {
     return (
-      <div className="customer-view">
-        <div className="customer-header">
-          <h1>🍽️ FoodFlow</h1>
-          <p>Faça seu pedido de forma rápida e prática</p>
-        </div>
-        <div className="customer-login">
-          <h2>Bem-vindo!</h2>
-          <p>Digite seu telefone para começar</p>
-          <input
-            className="customer-phone-input"
-            placeholder="(00) 00000-0000"
-            value={phone}
-            onChange={(e) => setPhone(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
-          />
-          <Button fullWidth onClick={handleLogin} icon={<Phone size={16} />}>
-            Entrar
-          </Button>
-          <p style={{ marginTop: 'var(--space-3)', fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>
-            Teste: (11) 98765-4321
-          </p>
+      <div className="customer-wrapper login-step">
+        <div className="login-card">
+          <div className="login-branding">
+            <div className="login-logo-image">
+              <img src="/logo_wide.png" alt={brandName} style={{ maxWidth: 200 }} />
+            </div>
+            <h1>{brandName}</h1>
+            <p>Seja bem-vindo de volta! 👋</p>
+          </div>
+          
+          <div className="login-form">
+            <div className="input-group">
+              <label>Seu Telefone</label>
+              <input
+                type="tel"
+                placeholder="(00) 00000-0000"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleLogin()}
+              />
+            </div>
+            <button className="btn-primary" onClick={handleLogin} style={{ backgroundColor: primaryColor }}>
+              Entrar e pedir
+            </button>
+            <span className="login-helper">Não precisa de senha, entraremos com seu número</span>
+          </div>
         </div>
       </div>
     );
   }
 
-  // Tracking step
+  // 2. Tracking Step
   if (step === 'tracking' && trackingOrder) {
     const steps = [
-      { label: 'Pedido Recebido', desc: 'Seu pedido foi enviado ao restaurante', status: 'completed' },
-      { label: 'Em Análise', desc: 'O restaurante está verificando seu pedido', status: trackingOrder.status === 'analyzing' ? 'active' : 'completed' },
-      { label: 'Em Produção', desc: 'Seu pedido está sendo preparado', status: trackingOrder.status === 'production' ? 'active' : (trackingOrder.status === 'ready' ? 'completed' : 'pending') },
-      { label: 'Pronto!', desc: 'Seu pedido está pronto para entrega', status: trackingOrder.status === 'ready' ? 'active' : 'pending' },
+      { label: 'Recebido', icon: <Check size={16} />, status: 'completed' },
+      { label: 'Análise', icon: <Search size={16} />, status: trackingOrder.status === 'analyzing' ? 'active' : 'completed' },
+      { label: 'Preparo', icon: <ChefHat size={16} />, status: trackingOrder.status === 'production' ? 'active' : (['ready', 'delivery', 'completed'].includes(trackingOrder.status) ? 'completed' : 'pending') },
+      { label: 'Pronto', icon: <Star size={16} />, status: trackingOrder.status === 'ready' ? 'active' : (['delivery', 'completed'].includes(trackingOrder.status) ? 'completed' : 'pending') },
     ];
 
     return (
-      <div className="customer-view">
-        <div className="customer-header">
-          <h1>Acompanhe seu Pedido</h1>
-          <p>{trackingOrder.id}</p>
-        </div>
-        <div className="customer-content">
-          <div className="customer-tracking">
-            <div style={{ textAlign: 'center', marginBottom: 'var(--space-5)' }}>
-              <div style={{ fontSize: '3rem', marginBottom: 'var(--space-2)' }}>👨‍🍳</div>
-              <h3 style={{ fontSize: 'var(--font-lg)', fontWeight: 'var(--fw-semibold)' }}>
-                Preparando seu pedido...
-              </h3>
-              <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-tertiary)' }}>
-                Tempo estimado: 20-30 min
-              </p>
-            </div>
+      <div className="customer-wrapper tracking-step">
+        <header className="tracking-header">
+           <button className="back-btn" onClick={() => { setStep('menu'); setActiveOrderId(null); }}>
+             <ArrowLeft size={20} />
+           </button>
+           <div className="header-info">
+             <h2>Acompanhar Pedido</h2>
+             <span>#{trackingOrder.id.slice(-4).toUpperCase()}</span>
+           </div>
+        </header>
 
-            <div className="tracking-steps">
-              {steps.map((s, i) => (
-                <div key={i} className="tracking-step">
-                  <div className={`tracking-step-dot ${s.status}`}>
-                    {s.status === 'completed' ? <Check size={16} /> : i + 1}
-                  </div>
-                  {i < steps.length - 1 && (
-                    <div className={`tracking-step-line ${s.status === 'completed' ? 'completed' : 'pending'}`} />
-                  )}
-                  <div className="tracking-step-info">
-                    <h4>{s.label}</h4>
-                    <p>{s.desc}</p>
-                  </div>
+        <div className="tracking-content">
+          <div className="status-hero">
+            <div className="status-animation">🚚</div>
+            <h3>{trackingOrder.status === 'ready' ? 'Seu pedido está pronto!' : 'Estamos cuidando de tudo'}</h3>
+            <p>Previsão: {restaurantSettings.deliveryTime}</p>
+          </div>
+
+          <div className="timeline">
+            {steps.map((s, i) => (
+              <div key={i} className={`timeline-step ${s.status}`}>
+                <div className="step-marker">{s.icon}</div>
+                <div className="step-text">
+                  <strong>{s.label}</strong>
                 </div>
-              ))}
-            </div>
+                {i < steps.length - 1 && <div className="step-line" />}
+              </div>
+            ))}
           </div>
 
-          <div style={{ marginTop: 'var(--space-4)', textAlign: 'center' }}>
-            <Button variant="secondary" onClick={() => { setStep('menu'); setActiveOrderId(null); }} icon={<ArrowLeft size={16} />}>
-              Fazer Novo Pedido
-            </Button>
+          <div className="order-summary-card">
+             <h4>Resumo do Pedido</h4>
+             <div className="summary-items">
+                {trackingOrder.items.map((item, idx) => (
+                  <div key={idx} className="summary-item">
+                    <span>{item.qty}x {item.name}</span>
+                    <span>R$ {item.price.toFixed(2)}</span>
+                  </div>
+                ))}
+             </div>
+             <div className="summary-total">
+               <span>Total Pago</span>
+               <strong>R$ {trackingOrder.total.toFixed(2)}</strong>
+             </div>
           </div>
+          
+          <button className="btn-support" style={{ border: `1px solid ${primaryColor}`, color: primaryColor }}>
+            <MessageCircle size={18} /> Preciso de ajuda
+          </button>
         </div>
       </div>
     );
   }
 
-  // Menu step
+  // 3. Menu Step
   return (
-    <div className="customer-view" style={{ paddingBottom: cartCount > 0 ? '80px' : '0' }}>
-      <div className="customer-header">
-        <h1>🍽️ FoodFlow</h1>
-        <p>Olá, {customer?.name}!</p>
-      </div>
-
-      <div className="customer-content">
-        {/* Welcome */}
-        <div className="customer-welcome">
-          <h3>Olá, {customer?.name?.split(' ')[0]}! 👋</h3>
-          <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-secondary)' }}>
-            {customer?.orders > 0 ? `${customer.orders} pedidos realizados` : 'Primeiro pedido? Aproveite!'}
-          </p>
+    <div className="customer-wrapper menu-step">
+      {/* Dynamic Header */}
+      <header className="menu-header" style={{ borderTop: `4px solid ${primaryColor}` }}>
+        <div className="header-top">
+          <div className="brand-box">
+             <div className="brand-logo">
+               <img src="/logo_wide.png" alt={brandName} style={{ height: 36, objectFit: 'contain' }} />
+             </div>
+             <div className="brand-meta">
+               <h1>{brandName}</h1>
+               <div className="brand-status">
+                 {restaurantSettings.isOpen ? (
+                   <span className="status-tag open">Aberto</span>
+                 ) : (
+                   <span className="status-tag closed">Fechado</span>
+                 )}
+                 <span className="status-info"><Clock size={12} /> {restaurantSettings.deliveryTime}</span>
+               </div>
+             </div>
+          </div>
+          <button className="user-points">
+            <div className="points-label">Meus Pontos</div>
+            <div className="points-val">★ {customer?.points || 0}</div>
+          </button>
         </div>
 
-        {/* Loyalty */}
-        {customer && customer.points > 0 && tier && (
-          <div className="customer-loyalty">
-            <div className="customer-loyalty-header">
-              <div>
-                <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-secondary)', marginBottom: 2 }}>Seus Pontos</div>
-                <div className="customer-loyalty-points">{customer.points} pts</div>
-              </div>
-              <span className="customer-loyalty-tier" style={{ background: tier.color, color: 'white' }}>
-                {tier.name}
-              </span>
-            </div>
-            <div className="customer-benefits">
-              {tier.benefits.map((b, i) => (
-                <div key={i} className="customer-benefit">{b}</div>
+        {/* Floating Search */}
+        <div className="search-bar">
+          <Search size={18} />
+          <input 
+            type="text" 
+            placeholder="O que você quer comer hoje?" 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
+        </div>
+      </header>
+
+      {/* Sticky Categories */}
+      <nav className="categories-nav sticky">
+        <button 
+          className={`cat-pill ${activeCategory === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveCategory('all')}
+          style={activeCategory === 'all' ? { backgroundColor: primaryColor } : {}}
+        >
+          Todos
+        </button>
+        {displayCategories.map(cat => (
+          <button
+            key={cat.id}
+            className={`cat-pill ${activeCategory === cat.id ? 'active' : ''}`}
+            onClick={() => setActiveCategory(cat.id)}
+            style={activeCategory === cat.id ? { backgroundColor: primaryColor } : {}}
+          >
+            {cat.icone} {cat.nome}
+          </button>
+        ))}
+      </nav>
+
+      <main className="menu-inner">
+        {/* Bestsellers Section */}
+        {activeCategory === 'all' && !searchQuery && (
+          <section className="menu-section">
+            <h2 className="section-title"><Star size={18} fill="currentColor" /> Os mais pedidos</h2>
+            <div className="products-scroll">
+              {displayProducts.filter(p => p.bestseller).map(product => (
+                <div key={product.id} className="bestseller-card-wrapper">
+                    <ProductCard product={product} onAdd={() => setSelectedProduct(product)} compact />
+                </div>
               ))}
             </div>
-          </div>
+          </section>
         )}
 
-        {/* Categories */}
-        <div className="menu-categories-scroll" style={{ marginBottom: 'var(--space-4)' }}>
-          <button className={`menu-category-chip ${activeCategory === 'all' ? 'active' : ''}`} onClick={() => setActiveCategory('all')}>
-            🍽️ Todos
-          </button>
-          {menuCategories.map(cat => (
-            <button key={cat.id} className={`menu-category-chip ${activeCategory === cat.id ? 'active' : ''}`} onClick={() => setActiveCategory(cat.id)}>
-              {cat.icon} {cat.name}
-            </button>
-          ))}
+        {/* Main Grid */}
+        <section className="menu-section">
+          <h2 className="section-title">{activeCategory === 'all' ? 'Cardápio Completo' : displayCategories.find(c => c.id === activeCategory)?.nome}</h2>
+          <div className="products-grid">
+            {filtered.map(product => (
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                onAdd={() => setSelectedProduct(product)}
+              />
+            ))}
+          </div>
+        </section>
+      </main>
+
+      {/* Premium Floating Cart */}
+      {cartCount > 0 && (
+        <div className="floating-cart-bar">
+          <div className="cart-content" onClick={handleOrder} style={{ backgroundColor: primaryColor }}>
+            <div className="cart-left">
+               <div className="cart-count">{cartCount}</div>
+               <div className="cart-text">Ver carrinho</div>
+            </div>
+            <div className="cart-right">
+               <span>R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
+               <ChevronRight size={18} />
+            </div>
+          </div>
         </div>
+      )}
 
-        {/* Products */}
-        <div className="menu-products-grid">
-          {filtered.map((product, i) => (
-            <ProductCard key={product.id} product={product} onClick={() => setSelectedProduct(product)} delay={i * 40} />
-          ))}
-        </div>
-      </div>
-
-      {/* Checkout Modal */}
-      <Modal
-        isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
-        title="Finalizar Pedido"
-        size="large"
-      >
-        <div className="checkout-form">
-          <section className="checkout-section">
-            <h4>Seus Dados</h4>
-            <div className="checkout-grid">
-              <div className="checkout-field">
-                <label>Nome</label>
-                <input 
-                  type="text" 
-                  value={checkoutForm.customerName}
-                  onChange={(e) => setCheckoutForm({...checkoutForm, customerName: e.target.value})}
-                  placeholder="Seu nome completo"
-                />
-              </div>
-              <div className="checkout-field">
-                <label>Telefone</label>
-                <input 
-                  type="text" 
-                  value={checkoutForm.customerPhone}
-                  onChange={(e) => setCheckoutForm({...checkoutForm, customerPhone: e.target.value})}
-                  placeholder="(00) 00000-0000"
-                />
-              </div>
-            </div>
-          </section>
-
-          <section className="checkout-section">
-            <h4>Como deseja receber?</h4>
-            <div className="checkout-type-selector">
-              <button 
-                className={`checkout-type-btn ${checkoutForm.type === 'delivery' ? 'active' : ''}`}
-                onClick={() => setCheckoutForm({...checkoutForm, type: 'delivery'})}
-              >
-                <MapPin size={20} />
-                <span>Entrega</span>
-              </button>
-              <button 
-                className={`checkout-type-btn ${checkoutForm.type === 'pickup' ? 'active' : ''}`}
-                onClick={() => setCheckoutForm({...checkoutForm, type: 'pickup'})}
-              >
-                <ShoppingCart size={20} />
-                <span>Retirada</span>
-              </button>
-              <button 
-                className={`checkout-type-btn ${checkoutForm.type === 'local' ? 'active' : ''}`}
-                onClick={() => setCheckoutForm({...checkoutForm, type: 'local'})}
-              >
-                <Check size={20} />
-                <span>Local</span>
-              </button>
-            </div>
-
-            {checkoutForm.type === 'delivery' && (
-              <div className="checkout-animation-fade">
-                <div className="checkout-field" style={{ marginTop: 'var(--space-3)' }}>
-                  <label>Endereço de Entrega</label>
-                  <input 
-                    type="text" 
-                    value={checkoutForm.address}
-                    onChange={(e) => setCheckoutForm({...checkoutForm, address: e.target.value})}
-                    placeholder="Rua, número, bairro..."
-                  />
-                </div>
-                <div className="checkout-field" style={{ marginTop: 'var(--space-2)' }}>
-                  <label>Referência (Opcional)</label>
-                  <input 
-                    type="text" 
-                    value={checkoutForm.reference}
-                    onChange={(e) => setCheckoutForm({...checkoutForm, reference: e.target.value})}
-                    placeholder="Ex: Próximo ao mercado..."
-                  />
-                </div>
-              </div>
-            )}
-          </section>
-
-          <section className="checkout-section">
-            <h4>Forma de Pagamento</h4>
-            <div className="checkout-payment-grid">
-              {[
-                { id: 'pix_online', label: 'Pix Online', icon: <QrCode size={18} /> },
-                { id: 'pix_balcao', label: 'Pix Balcão', icon: <QrCode size={18} /> },
-                { id: 'cartao', label: 'Cartão', icon: <CreditCard size={18} /> },
-                { id: 'dinheiro', label: 'Dinheiro', icon: <Wallet size={18} /> },
-              ].map(method => (
-                <button 
-                  key={method.id}
-                  className={`checkout-payment-btn ${checkoutForm.paymentMethod === method.id ? 'active' : ''}`}
-                  onClick={() => setCheckoutForm({...checkoutForm, paymentMethod: method.id})}
-                >
-                  {method.icon}
-                  <span>{method.label}</span>
-                </button>
-              ))}
-            </div>
-
-            {checkoutForm.paymentMethod === 'dinheiro' && (
-              <div className="checkout-animation-fade" style={{ marginTop: 'var(--space-4)' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-2)', marginBottom: 'var(--space-2)' }}>
-                  <input 
-                    type="checkbox" 
-                    id="needsChange"
-                    checked={checkoutForm.needsChange}
-                    onChange={(e) => setCheckoutForm({...checkoutForm, needsChange: e.target.checked})}
-                    style={{ width: 18, height: 18, accentColor: 'var(--accent)' }}
-                  />
-                  <label htmlFor="needsChange" style={{ fontSize: 'var(--font-sm)', fontWeight: 600 }}>Precisa de troco?</label>
-                </div>
-                
-                {checkoutForm.needsChange && (
-                  <div className="checkout-field">
-                    <label>Troco para quanto?</label>
-                    <div style={{ position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: 'var(--text-tertiary)' }}>R$</span>
-                      <input 
-                        type="number" 
-                        value={checkoutForm.cashAmount}
-                        onChange={(e) => setCheckoutForm({...checkoutForm, cashAmount: e.target.value})}
-                        placeholder="Ex: 50,00"
-                        style={{ paddingLeft: '32px' }}
-                      />
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </section>
-
-          <section className="checkout-section summary">
-            <div className="checkout-summary-header">
-              <h4>Resumo do Pedido</h4>
-              <span>{cartCount} {cartCount === 1 ? 'item' : 'itens'}</span>
-            </div>
-            <div className="checkout-summary-list">
-              {cart.map(item => (
-                <div key={item.id} className="checkout-summary-item">
-                  <span>{item.qty}x {item.name} {item.variation && `(${item.variation})`}</span>
-                  <span>R$ {item.price.toFixed(2).replace('.', ',')}</span>
-                </div>
-              ))}
-              
-              {checkoutForm.paymentMethod === 'dinheiro' && checkoutForm.needsChange && checkoutForm.cashAmount && (
-                <div className="checkout-summary-item" style={{ borderTop: '1px solid var(--border-light)', paddingTop: 'var(--space-2)', marginTop: 'var(--space-2)' }}>
-                  <span style={{ color: 'var(--text-tertiary)' }}>Troco (R$ {checkoutForm.cashAmount} - R$ {cartTotal.toFixed(2)})</span>
-                  <span style={{ color: 'var(--success-dark)', fontWeight: 600 }}>
-                    R$ {(parseFloat(checkoutForm.cashAmount) - cartTotal).toFixed(2).replace('.', ',')}
-                  </span>
-                </div>
-              )}
-            </div>
-            <div className="checkout-summary-total">
-              <span>Total</span>
-              <span>R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
-            </div>
-          </section>
-
-          <Button fullWidth size="large" onClick={handleFinalConfirm}>
-            Confirmar Pedido
-          </Button>
-        </div>
-      </Modal>
-
-      {/* Product Modal */}
+      {/* Modals */}
       {selectedProduct && (
         <ProductModal
           product={selectedProduct}
@@ -428,20 +358,82 @@ export default function CustomerView() {
         />
       )}
 
-      {/* Cart Bar */}
-      {cartCount > 0 && (
-        <div className="customer-cart-bar">
-          <div>
-            <div style={{ fontWeight: 600 }}>{cartCount} {cartCount === 1 ? 'item' : 'itens'}</div>
-            <div style={{ fontSize: 'var(--font-lg)', fontWeight: 700, color: 'var(--accent)' }}>
-              R$ {cartTotal.toFixed(2).replace('.', ',')}
-            </div>
+      <Modal
+        isOpen={isCheckoutOpen}
+        onClose={() => setIsCheckoutOpen(false)}
+        title="Finalizar Pedido"
+        size="large"
+      >
+        <div className="checkout-revamp">
+          <div className="revamp-section">
+             <h4>Dados de Entrega</h4>
+             <div className="revamp-toggle">
+                <button className={checkoutForm.type === 'delivery' ? 'active' : ''} onClick={() => setCheckoutForm({...checkoutForm, type: 'delivery'})}>Entrega</button>
+                <button className={checkoutForm.type === 'pickup' ? 'active' : ''} onClick={() => setCheckoutForm({...checkoutForm, type: 'pickup'})}>Retirada</button>
+             </div>
+             
+             {checkoutForm.type === 'delivery' && (
+               <div className="animated-fields">
+                  <input placeholder="Endereço Completo" value={checkoutForm.address} onChange={e => setCheckoutForm({...checkoutForm, address: e.target.value})} />
+                  <input placeholder="Referência (Opcional)" value={checkoutForm.reference} onChange={e => setCheckoutForm({...checkoutForm, reference: e.target.value})} />
+               </div>
+             )}
           </div>
-          <Button onClick={handleOrder} icon={<ShoppingCart size={16} />}>
-            Finalizar Pedido
-          </Button>
+
+          <div className="revamp-section">
+             <h4>Forma de Pagamento</h4>
+             <div className="payment-grid-modern">
+                {[
+                  { id: 'pix_online', label: 'Pix', icon: <QrCode size={18} /> },
+                  { id: 'card_credit', label: 'Cartão', icon: <CreditCard size={18} /> },
+                  { id: 'cash', label: 'Dinheiro', icon: <Wallet size={18} /> },
+                ].map(m => (
+                  <button 
+                    key={m.id} 
+                    className={`pay-btn ${checkoutForm.paymentMethod === m.id ? 'active' : ''}`}
+                    onClick={() => setCheckoutForm({...checkoutForm, paymentMethod: m.id})}
+                    style={checkoutForm.paymentMethod === m.id ? { borderColor: primaryColor, color: primaryColor } : {}}
+                  >
+                    {m.icon}
+                    <span>{m.label}</span>
+                  </button>
+                ))}
+             </div>
+          </div>
+
+          <div className="checkout-footer-sticky">
+             <div className="final-sum">
+                <span>Total a pagar</span>
+                <strong>R$ {cartTotal.toFixed(2)}</strong>
+             </div>
+             <button className="confirm-btn" style={{ backgroundColor: primaryColor }} onClick={handleFinalConfirm}>
+                Confirmar agora
+             </button>
+          </div>
         </div>
-      )}
+      </Modal>
     </div>
+  );
+}
+
+function ChefHat(props) {
+  return (
+    <svg
+      {...props}
+      xmlns="http://www.w3.org/2000/svg"
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M6 13.8V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v9.8" />
+      <path d="M6 13c-2 0-3 1-3 3s1 3 3 3h12c2 0 3-1 3-3s-1-3-3-3" />
+      <path d="M9 20h6" />
+      <path d="M10 22h4" />
+    </svg>
   );
 }

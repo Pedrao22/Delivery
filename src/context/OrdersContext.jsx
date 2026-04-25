@@ -10,9 +10,10 @@ const STORAGE_KEY = 'foodflow_orders';
 
 const DEFAULT_RESTAURANT_SETTINGS = {
   name: 'Pedi&Recebe',
-  logo: '🍔',
-  primaryColor: '#e74c3c',
+  logo: '',
+  primaryColor: '#FFC400',
   isOpen: true,
+  deliveryTime: '40 a 60 min',
   payments: { pix: true, card: true, cash: true, pix_counter: true },
 };
 
