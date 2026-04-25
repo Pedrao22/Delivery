@@ -19,14 +19,13 @@
   max-height: 100%;
   animation: fadeInUp 400ms ease both;
   overflow: hidden;
-  background: var(--surface);
-  border: 1px solid var(--border-light);
-  box-shadow: var(--shadow-sm);
+  border: none;
+  box-shadow: var(--shadow-md);
   transition: box-shadow var(--transition-fast);
 }
 
 .kanban-column:hover {
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
 }
 
 @media (max-width: 768px) {
@@ -36,23 +35,18 @@
   }
 }
 
+.kanban-column.col-analyzing { background: #E74C3C; }
+.kanban-column.col-production { background: #F1C40F; }
+.kanban-column.col-ready     { background: #27AE60; }
+
 .kanban-column:nth-child(2) { animation-delay: 80ms; }
 .kanban-column:nth-child(3) { animation-delay: 160ms; }
 
-/* ============ COLUMN HEADER — colored gradient ============ */
+/* ============ COLUMN HEADER ============ */
 .kanban-column-header {
-  padding: var(--space-4) var(--space-5);
+  padding: var(--space-5) var(--space-5);
   flex-shrink: 0;
-}
-
-.kanban-column.col-analyzing .kanban-column-header {
-  background: linear-gradient(135deg, #C0392B 0%, #E74C3C 100%);
-}
-.kanban-column.col-production .kanban-column-header {
-  background: linear-gradient(135deg, #D4AC0D 0%, #F4D03F 100%);
-}
-.kanban-column.col-ready .kanban-column-header {
-  background: linear-gradient(135deg, #1E8449 0%, #27AE60 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .kanban-column-title-row {
@@ -98,18 +92,16 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  background: var(--bg-secondary);
 }
 
 .kanban-column-body::-webkit-scrollbar { width: 4px; }
-.kanban-column-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+.kanban-column-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 4px; }
 
 /* ============ COLUMN FOOTER ============ */
 .kanban-column-footer {
   padding: var(--space-3) var(--space-4);
   flex-shrink: 0;
-  border-top: 1px solid var(--border-light);
-  background: var(--surface);
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
 }
 
 .kanban-finalize-btn {
