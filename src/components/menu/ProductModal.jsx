@@ -1,12 +1,19 @@
 import { useState } from 'react';
-import { Star, Clock, ShoppingCart } from 'lucide-react';
+import { Star, Clock, ShoppingCart, Minus, Plus, Info } from 'lucide-react';
 import Modal from '../shared/Modal';
 import Button from '../shared/Button';
+import { useOrdersContext } from '../../context/OrdersContext';
 import './ProductModal.css';
 
 export default function ProductModal({ product, isOpen, onClose, onAdd }) {
+  const { restaurantSettings } = useOrdersContext();
+  const primaryColor = restaurantSettings.primaryColor || '#e74c3c';
+
+  const variations = product?.variacoes || [];
+  const complements = product?.complementos || [];
+  
   const [selectedVariation, setSelectedVariation] = useState(
-    product.variations.length > 0 ? product.variations[0] : null
+    variations.length > 0 ? variations[0] : null
   );
   const [selectedComplements, setSelectedComplements] = useState([]);
   const [qty, setQty] = useState(1);
@@ -21,7 +28,7 @@ export default function ProductModal({ product, isOpen, onClose, onAdd }) {
   };
 
   const calcTotal = () => {
-    let total = product.price;
+    let total = parseFloat(product.preco || 0);
     if (selectedVariation) total += selectedVariation.price;
     total += selectedComplements.reduce((sum, c) => sum + c.price, 0);
     return total * qty;
@@ -31,113 +38,147 @@ export default function ProductModal({ product, isOpen, onClose, onAdd }) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={product.name}
+      title={product.nome}
       size="large"
-      footer={
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%', gap: '16px' }}>
-          <div className="product-modal-total" style={{ flex: 1 }}>
-            <span className="product-modal-total-label">Total</span>
-            <span className="product-modal-total-value">
-              R$ {calcTotal().toFixed(2).replace('.', ',')}
-            </span>
-          </div>
-          <Button
-            onClick={() => onAdd(selectedVariation, selectedComplements, qty, obs)}
-            icon={<ShoppingCart size={16} />}
-          >
-            Adicionar
-          </Button>
-        </div>
-      }
     >
-      {/* Product Image */}
-      <div className="product-modal-image">{product.image}</div>
-
-      {/* Meta */}
-      <div className="product-modal-meta">
-        <div className="product-modal-meta-item">
-          <Star size={14} fill="var(--warning)" color="var(--warning)" />
-          {product.rating}
+      <div className="premium-modal-content">
+        {/* Hero Section with Image & Basic Info */}
+        <div className="modal-hero">
+           <div className="modal-image-bg" style={{ background: `${primaryColor}10` }}>
+             <span className="modal-emoji-hero">{product.imagem_emoji}</span>
+           </div>
+           
+           <div className="modal-info-bar">
+             <div className="info-chip">
+                <Star size={14} fill="#F59F00" color="#F59F00" />
+                <span>{product.rating || '4.8'}</span>
+             </div>
+             <div className="info-chip">
+                <Clock size={14} />
+                <span>{product.prepTime || '20-30 min'}</span>
+             </div>
+             <div className="info-chip category">
+                <span>{product.categoria_id}</span>
+             </div>
+           </div>
         </div>
-        <div className="product-modal-meta-item">
-          <Clock size={14} />
-          {product.prepTime}
-        </div>
-        <div style={{
-          fontSize: 'var(--font-xl)',
-          fontWeight: 'var(--fw-bold)',
-          color: 'var(--accent)',
-          marginLeft: 'auto',
-        }}>
-          R$ {product.price.toFixed(2).replace('.', ',')}
-        </div>
-      </div>
 
-      <p className="product-modal-desc">{product.description}</p>
+        <div className="modal-body-scroll">
+          <div className="modal-desc-box">
+             <p>{product.descricao}</p>
+          </div>
 
-      {/* Variations */}
-      {product.variations.length > 0 && (
-        <div className="product-modal-section">
-          <div className="product-modal-section-title">Escolha a variação</div>
-          <div className="product-modal-options">
-            {product.variations.map(v => (
-              <div
-                key={v.id}
-                className={`product-modal-option ${selectedVariation?.id === v.id ? 'selected' : ''}`}
-                onClick={() => setSelectedVariation(v)}
-              >
-                <span className="product-modal-option-name">{v.name}</span>
-                <span className="product-modal-option-price">
-                  {v.price > 0 ? `+ R$ ${v.price.toFixed(2).replace('.', ',')}` : 'Incluso'}
-                </span>
+          {/* Variations */}
+          {(product.variacoes || []).length > 0 && (
+            <div className="modal-section-v2">
+              <div className="section-header-v2">
+                 <h3>Selecione uma opção</h3>
+                 <span className="required-tag">Obrigatório</span>
               </div>
-            ))}
+              <div className="options-list-v2">
+                {(product.variacoes || []).map(v => (
+                  <div
+                    key={v.id}
+                    className={`option-card-v2 ${selectedVariation?.id === v.id ? 'active' : ''}`}
+                    onClick={() => setSelectedVariation(v)}
+                    style={selectedVariation?.id === v.id ? { borderColor: primaryColor } : {}}
+                  >
+                    <div className="option-check" style={selectedVariation?.id === v.id ? { backgroundColor: primaryColor } : {}}>
+                       {selectedVariation?.id === v.id && <div className="dot" />}
+                    </div>
+                    <span className="option-name">{v.name}</span>
+                    <span className="option-price">
+                      {v.price > 0 ? `+ R$ ${v.price.toFixed(2)}` : 'Incluso'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Complements */}
+          {(product.complementos || []).length > 0 && (
+            <div className="modal-section-v2">
+              <div className="section-header-v2">
+                 <h3>Complementos extras</h3>
+                 <span className="optional-tag">Opcional</span>
+              </div>
+              <div className="options-list-v2">
+                {(product.complementos || []).map(c => {
+                  const isSelected = selectedComplements.find(sc => sc.id === c.id);
+                  return (
+                    <div
+                      key={c.id}
+                      className={`option-card-v2 checkbox ${isSelected ? 'active' : ''}`}
+                      onClick={() => toggleComplement(c)}
+                      style={isSelected ? { borderColor: primaryColor } : {}}
+                    >
+                      <div className="option-checkbox" style={isSelected ? { backgroundColor: primaryColor, borderColor: primaryColor } : {}}>
+                         {isSelected && <Check size={12} strokeWidth={4} color="white" />}
+                      </div>
+                      <span className="option-name">{c.name}</span>
+                      <span className="option-price">+ R$ {c.price.toFixed(2)}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Observations */}
+          <div className="modal-section-v2">
+            <div className="section-header-v2">
+               <h3>Observações</h3>
+            </div>
+            <textarea
+              className="premium-obs-input"
+              placeholder="Ex: Tirar cebola, ponto da carne, etc..."
+              value={obs}
+              onChange={(e) => setObs(e.target.value)}
+            />
           </div>
         </div>
-      )}
 
-      {/* Complements */}
-      {product.complements.length > 0 && (
-        <div className="product-modal-section">
-          <div className="product-modal-section-title">Complementos</div>
-          <div className="product-modal-options">
-            {product.complements.map(c => (
-              <div
-                key={c.id}
-                className={`product-modal-complement ${selectedComplements.find(sc => sc.id === c.id) ? 'selected' : ''}`}
-                onClick={() => toggleComplement(c)}
-              >
-                <span className="product-modal-option-name">{c.name}</span>
-                <span className="product-modal-option-price">
-                  + R$ {c.price.toFixed(2).replace('.', ',')}
-                </span>
-              </div>
-            ))}
+        {/* Sticky Footer */}
+        <div className="modal-footer-lux">
+          <div className="qty-selector-lux">
+            <button onClick={() => setQty(Math.max(1, qty - 1))}><Minus size={18} /></button>
+            <span>{qty}</span>
+            <button onClick={() => setQty(qty + 1)}><Plus size={18} /></button>
           </div>
+          
+          <button 
+            className="add-to-cart-lux" 
+            style={{ backgroundColor: primaryColor }}
+            onClick={() => onAdd(selectedVariation, selectedComplements, qty, obs)}
+          >
+            <div className="lux-btn-left">
+               <ShoppingCart size={18} />
+               <span>Adicionar</span>
+            </div>
+            <div className="lux-btn-right">
+               R$ {calcTotal().toFixed(2).replace('.', ',')}
+            </div>
+          </button>
         </div>
-      )}
-
-      {/* Quantity */}
-      <div className="product-modal-section">
-        <div className="product-modal-section-title">Quantidade</div>
-        <div className="product-modal-qty">
-          <button className="product-modal-qty-btn" onClick={() => setQty(Math.max(1, qty - 1))}>−</button>
-          <span className="product-modal-qty-value">{qty}</span>
-          <button className="product-modal-qty-btn" onClick={() => setQty(qty + 1)}>+</button>
-        </div>
-      </div>
-
-      {/* Observations */}
-      <div className="product-modal-section">
-        <div className="product-modal-section-title">Observações</div>
-        <textarea
-          className="product-modal-obs-input"
-          rows={3}
-          placeholder="Alguma observação? (ex: sem cebola, ponto da carne...)"
-          value={obs}
-          onChange={(e) => setObs(e.target.value)}
-        />
       </div>
     </Modal>
+  );
+}
+
+function Check({ size, color, strokeWidth }) {
+  return (
+    <svg 
+      width={size} 
+      height={size} 
+      viewBox="0 0 24 24" 
+      fill="none" 
+      stroke={color} 
+      strokeWidth={strokeWidth} 
+      strokeLinecap="round" 
+      strokeLinejoin="round"
+    >
+      <polyline points="20 6 9 17 4 12" />
+    </svg>
   );
 }

@@ -3,18 +3,18 @@ import { useState, useCallback } from 'react';
 export function useCart() {
   const [items, setItems] = useState([]);
 
-  const addItem = useCallback((product, variation, complements, qty, obs) => {
+  const addItem = useCallback((product, variation = null, complements = [], qty = 1, obs = '') => {
     const id = Date.now() + Math.random();
-    const complementsTotal = complements.reduce((sum, c) => sum + c.price, 0);
-    const variationPrice = variation ? variation.price : 0;
-    const unitPrice = product.price + variationPrice + complementsTotal;
-    
+    const complementsTotal = complements.reduce((sum, c) => sum + (c.price || 0), 0);
+    const variationPrice = variation ? (variation.price || 0) : 0;
+    const unitPrice = parseFloat(product.preco || 0) + variationPrice + complementsTotal;
+
     setItems(prev => [...prev, {
       id,
       productId: product.id,
-      name: product.name,
+      name: product.nome,
       variation: variation?.name || '',
-      complements: complements.map(c => c.name),
+      complements: complements.map(c => c.name || c),
       qty,
       unitPrice,
       price: unitPrice * qty,

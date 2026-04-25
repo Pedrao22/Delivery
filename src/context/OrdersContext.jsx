@@ -2,6 +2,7 @@ import { createContext, useContext, useState, useCallback, useEffect } from 'rea
 import { initialOrders } from '../data/orders';
 import { menuCategories as initialCategories, menuItems as initialProducts } from '../data/menuItems';
 import { inventoryItems as initialInventory } from '../data/inventory';
+import { drivers as initialDrivers } from '../data/drivers';
 
 const OrdersContext = createContext();
 
@@ -86,6 +87,11 @@ export function OrdersProvider({ children }) {
     return saved ? JSON.parse(saved) : DEFAULT_COUPONS;
   });
 
+  const [drivers, setDrivers] = useState(() => {
+    const saved = localStorage.getItem('foodflow_drivers');
+    return saved ? JSON.parse(saved) : initialDrivers;
+  });
+
   // Persist all state
   useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(orders)); }, [orders]);
   useEffect(() => { localStorage.setItem('foodflow_products', JSON.stringify(products)); }, [products]);
@@ -96,6 +102,7 @@ export function OrdersProvider({ children }) {
   useEffect(() => { localStorage.setItem('foodflow_settings', JSON.stringify(restaurantSettings)); }, [restaurantSettings]);
   useEffect(() => { localStorage.setItem('foodflow_loyalty', JSON.stringify(loyaltySettings)); }, [loyaltySettings]);
   useEffect(() => { localStorage.setItem('foodflow_coupons', JSON.stringify(coupons)); }, [coupons]);
+  useEffect(() => { localStorage.setItem('foodflow_drivers', JSON.stringify(drivers)); }, [drivers]);
 
   useEffect(() => {
     const handleStorageChange = (e) => {
@@ -154,15 +161,31 @@ export function OrdersProvider({ children }) {
     }));
   }, []);
 
-  // Products
-  const addProduct = useCallback((p) => setProducts(prev => [...prev, { ...p, id: Date.now() }]), []);
-  const updateProduct = useCallback((p) => setProducts(prev => prev.map(x => x.id === p.id ? p : x)), []);
+  // Products — updateProduct accepts (id, data) OR (item) signature
+  const addProduct = useCallback((data) => setProducts(prev => [...prev, { ...data, id: Date.now(), ativo: true }]), []);
+  const updateProduct = useCallback((idOrItem, data) => {
+    if (data !== undefined) {
+      setProducts(prev => prev.map(x => x.id === idOrItem ? { ...x, ...data } : x));
+    } else {
+      setProducts(prev => prev.map(x => x.id === idOrItem.id ? idOrItem : x));
+    }
+  }, []);
   const deleteProduct = useCallback((id) => setProducts(prev => prev.filter(x => x.id !== id)), []);
 
-  // Categories
-  const addCategory = useCallback((c) => setCategories(prev => [...prev, c]), []);
-  const updateCategory = useCallback((c) => setCategories(prev => prev.map(x => x.id === c.id ? c : x)), []);
+  // Categories — updateCategory accepts (id, data) OR (item) signature
+  const addCategory = useCallback((c) => setCategories(prev => [...prev, { ...c, id: c.id || Date.now() }]), []);
+  const updateCategory = useCallback((idOrItem, data) => {
+    if (data !== undefined) {
+      setCategories(prev => prev.map(x => x.id === idOrItem ? { ...x, ...data } : x));
+    } else {
+      setCategories(prev => prev.map(x => x.id === idOrItem.id ? idOrItem : x));
+    }
+  }, []);
   const deleteCategory = useCallback((id) => setCategories(prev => prev.filter(x => x.id !== id)), []);
+
+  // Drivers
+  const addDriver = useCallback((d) => setDrivers(prev => [...prev, { ...d, id: Date.now() }]), []);
+  const removeDriver = useCallback((id) => setDrivers(prev => prev.filter(d => d.id !== id)), []);
 
   // Inventory
   const addInventoryItem = useCallback((item) => setInventory(prev => [...prev, { ...item, id: Date.now() }]), []);
@@ -201,9 +224,11 @@ export function OrdersProvider({ children }) {
     refreshOrders: () => {},
     products,
     categories,
+    loadingMenu: false,
     inventory,
     tables,
     leads,
+    drivers,
     restaurantSettings,
     loyaltySettings,
     coupons,
@@ -230,6 +255,8 @@ export function OrdersProvider({ children }) {
     addLeadMessage,
     markLeadAsRead,
     updateSettings,
+    addDriver,
+    removeDriver,
   };
 
   return (

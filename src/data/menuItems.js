@@ -1,30 +1,32 @@
 export const menuCategories = [
-  { id: 'hamburgueres', name: 'Hambúrgueres', icon: '🍔' },
-  { id: 'pizzas', name: 'Pizzas', icon: '🍕' },
-  { id: 'bebidas', name: 'Bebidas', icon: '🥤' },
-  { id: 'acompanhamentos', name: 'Acompanhamentos', icon: '🍟' },
-  { id: 'sobremesas', name: 'Sobremesas', icon: '🍰' },
-  { id: 'saladas', name: 'Saladas', icon: '🥗' },
+  { id: 'hamburgueres', nome: 'Hambúrgueres', icone: '🍔' },
+  { id: 'pizzas', nome: 'Pizzas', icone: '🍕' },
+  { id: 'bebidas', nome: 'Bebidas', icone: '🥤' },
+  { id: 'acompanhamentos', nome: 'Acompanhamentos', icone: '🍟' },
+  { id: 'sobremesas', nome: 'Sobremesas', icone: '🍰' },
+  { id: 'saladas', nome: 'Saladas', icone: '🥗' },
 ];
 
 export const menuItems = [
   // Hambúrgueres
   {
     id: 1,
-    name: 'Smash Burger Clássico',
-    description: 'Pão brioche, blend bovino 150g, queijo cheddar, cebola caramelizada, picles e molho especial',
-    price: 32.90,
-    category: 'hamburgueres',
-    image: '🍔',
+    nome: 'Smash Burger Clássico',
+    descricao: 'Pão brioche, blend bovino 150g, queijo cheddar, cebola caramelizada, picles e molho especial',
+    preco: 32.90,
+    categoria_id: 'hamburgueres',
+    imagem_emoji: '🍔',
     bestseller: true,
     rating: 4.8,
     prepTime: '15-20 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Simples', price: 0 },
       { id: 'v2', name: 'Duplo', price: 12 },
       { id: 'v3', name: 'Triplo', price: 22 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Bacon crocante', price: 5 },
       { id: 'c2', name: 'Ovo frito', price: 4 },
       { id: 'c3', name: 'Cebola crispy', price: 3 },
@@ -34,19 +36,21 @@ export const menuItems = [
   },
   {
     id: 2,
-    name: 'Burger BBQ Supremo',
-    description: 'Pão australiano, blend 180g, onion rings, bacon, queijo prato e molho BBQ defumado',
-    price: 38.90,
-    category: 'hamburgueres',
-    image: '🍔',
+    nome: 'Burger BBQ Supremo',
+    descricao: 'Pão australiano, blend 180g, onion rings, bacon, queijo prato e molho BBQ defumado',
+    preco: 38.90,
+    categoria_id: 'hamburgueres',
+    imagem_emoji: '🍔',
     bestseller: true,
     rating: 4.9,
     prepTime: '18-25 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Simples', price: 0 },
       { id: 'v2', name: 'Duplo', price: 14 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Bacon extra', price: 5 },
       { id: 'c2', name: 'Cheddar extra', price: 5 },
       { id: 'c3', name: 'Onion rings extra', price: 6 },
@@ -54,70 +58,78 @@ export const menuItems = [
   },
   {
     id: 3,
-    name: 'Chicken Burger Crispy',
-    description: 'Pão com gergelim, filé de frango empanado crocante, salada, tomate e maionese de ervas',
-    price: 29.90,
-    category: 'hamburgueres',
-    image: '🍗',
+    nome: 'Chicken Burger Crispy',
+    descricao: 'Pão com gergelim, filé de frango empanado crocante, salada, tomate e maionese de ervas',
+    preco: 29.90,
+    categoria_id: 'hamburgueres',
+    imagem_emoji: '🍗',
     bestseller: false,
     rating: 4.6,
     prepTime: '15-20 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Normal', price: 0 },
       { id: 'v2', name: 'Duplo', price: 10 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Bacon', price: 5 },
       { id: 'c2', name: 'Queijo cheddar', price: 5 },
     ]
   },
   {
     id: 4,
-    name: 'Veggie Burger',
-    description: 'Pão integral, hambúrguer de grão-de-bico e quinoa, rúcula, tomate seco e molho tahine',
-    price: 31.90,
-    category: 'hamburgueres',
-    image: '🥬',
+    nome: 'Veggie Burger',
+    descricao: 'Pão integral, hambúrguer de grão-de-bico e quinoa, rúcula, tomate seco e molho tahine',
+    preco: 31.90,
+    categoria_id: 'hamburgueres',
+    imagem_emoji: '🥬',
     bestseller: false,
     rating: 4.5,
     prepTime: '15 min',
-    variations: [],
-    complements: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [],
+    complementos: [
       { id: 'c1', name: 'Abacate', price: 4 },
       { id: 'c2', name: 'Cogumelos', price: 5 },
     ]
   },
   {
     id: 5,
-    name: 'Burger Trufado',
-    description: 'Pão negro, blend wagyu 200g, queijo brie, rúcula, tomate confit e aioli trufado',
-    price: 49.90,
-    category: 'hamburgueres',
-    image: '🍔',
+    nome: 'Burger Trufado',
+    descricao: 'Pão negro, blend wagyu 200g, queijo brie, rúcula, tomate confit e aioli trufado',
+    preco: 49.90,
+    categoria_id: 'hamburgueres',
+    imagem_emoji: '🍔',
     bestseller: true,
     rating: 4.9,
     prepTime: '20-25 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Simples', price: 0 },
       { id: 'v2', name: 'Duplo', price: 20 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Foie gras', price: 15 },
       { id: 'c2', name: 'Bacon trufado', price: 8 },
     ]
   },
   {
     id: 6,
-    name: 'Smash Kids',
-    description: 'Mini pão, blend 80g, queijo, ketchup e batata frita',
-    price: 22.90,
-    category: 'hamburgueres',
-    image: '🍔',
+    nome: 'Smash Kids',
+    descricao: 'Mini pão, blend 80g, queijo, ketchup e batata frita',
+    preco: 22.90,
+    categoria_id: 'hamburgueres',
+    imagem_emoji: '🍔',
     bestseller: false,
     rating: 4.7,
     prepTime: '10-15 min',
-    variations: [],
-    complements: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [],
+    complementos: [
       { id: 'c1', name: 'Nuggets (3un)', price: 6 },
       { id: 'c2', name: 'Suco natural', price: 5 },
     ]
@@ -126,96 +138,106 @@ export const menuItems = [
   // Pizzas
   {
     id: 7,
-    name: 'Margherita Especial',
-    description: 'Molho de tomate San Marzano, muçarela de búfala, manjericão fresco e azeite extra virgem',
-    price: 45.90,
-    category: 'pizzas',
-    image: '🍕',
+    nome: 'Margherita Especial',
+    descricao: 'Molho de tomate San Marzano, muçarela de búfala, manjericão fresco e azeite extra virgem',
+    preco: 45.90,
+    categoria_id: 'pizzas',
+    imagem_emoji: '🍕',
     bestseller: true,
     rating: 4.8,
     prepTime: '20-25 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Médio (6 fatias)', price: 0 },
       { id: 'v2', name: 'Grande (8 fatias)', price: 12 },
       { id: 'v3', name: 'Família (12 fatias)', price: 22 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Borda recheada', price: 8 },
       { id: 'c2', name: 'Oregano extra', price: 2 },
     ]
   },
   {
     id: 8,
-    name: 'Pepperoni Premium',
-    description: 'Molho de tomate, muçarela, pepperoni importado e pimenta calabresa',
-    price: 48.90,
-    category: 'pizzas',
-    image: '🍕',
+    nome: 'Pepperoni Premium',
+    descricao: 'Molho de tomate, muçarela, pepperoni importado e pimenta calabresa',
+    preco: 48.90,
+    categoria_id: 'pizzas',
+    imagem_emoji: '🍕',
     bestseller: true,
     rating: 4.9,
     prepTime: '20-25 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Médio', price: 0 },
       { id: 'v2', name: 'Grande', price: 12 },
       { id: 'v3', name: 'Família', price: 22 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Borda recheada', price: 8 },
       { id: 'c2', name: 'Extra pepperoni', price: 6 },
     ]
   },
   {
     id: 9,
-    name: 'Quatro Queijos',
-    description: 'Muçarela, gorgonzola, parmesão e catupiry gratinado',
-    price: 46.90,
-    category: 'pizzas',
-    image: '🧀',
+    nome: 'Quatro Queijos',
+    descricao: 'Muçarela, gorgonzola, parmesão e catupiry gratinado',
+    preco: 46.90,
+    categoria_id: 'pizzas',
+    imagem_emoji: '🧀',
     bestseller: false,
     rating: 4.7,
     prepTime: '20-25 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Médio', price: 0 },
       { id: 'v2', name: 'Grande', price: 12 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Borda de cheddar', price: 9 },
     ]
   },
   {
     id: 10,
-    name: 'Frango com Catupiry',
-    description: 'Frango desfiado temperado, catupiry cremoso, milho e orégano',
-    price: 44.90,
-    category: 'pizzas',
-    image: '🍕',
+    nome: 'Frango com Catupiry',
+    descricao: 'Frango desfiado temperado, catupiry cremoso, milho e orégano',
+    preco: 44.90,
+    categoria_id: 'pizzas',
+    imagem_emoji: '🍕',
     bestseller: false,
     rating: 4.6,
     prepTime: '20-25 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Médio', price: 0 },
       { id: 'v2', name: 'Grande', price: 12 },
       { id: 'v3', name: 'Família', price: 22 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Borda recheada', price: 8 },
     ]
   },
   {
     id: 11,
-    name: 'Portuguesa Gourmet',
-    description: 'Presunto parma, ovos caipira, cebola roxa, azeitona preta e muçarela',
-    price: 47.90,
-    category: 'pizzas',
-    image: '🍕',
+    nome: 'Portuguesa Gourmet',
+    descricao: 'Presunto parma, ovos caipira, cebola roxa, azeitona preta e muçarela',
+    preco: 47.90,
+    categoria_id: 'pizzas',
+    imagem_emoji: '🍕',
     bestseller: false,
     rating: 4.5,
     prepTime: '20-30 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Médio', price: 0 },
       { id: 'v2', name: 'Grande', price: 12 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Borda de catupiry', price: 8 },
     ]
   },
@@ -223,128 +245,142 @@ export const menuItems = [
   // Bebidas
   {
     id: 12,
-    name: 'Coca-Cola',
-    description: 'Coca-Cola gelada 350ml',
-    price: 6.90,
-    category: 'bebidas',
-    image: '🥤',
+    nome: 'Coca-Cola',
+    descricao: 'Coca-Cola gelada 350ml',
+    preco: 6.90,
+    categoria_id: 'bebidas',
+    imagem_emoji: '🥤',
     bestseller: true,
     rating: 4.5,
     prepTime: '1 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: '350ml', price: 0 },
       { id: 'v2', name: '600ml', price: 3 },
       { id: 'v3', name: '1L', price: 5 },
       { id: 'v4', name: '2L', price: 8 },
     ],
-    complements: []
+    complementos: []
   },
   {
     id: 13,
-    name: 'Suco Natural',
-    description: 'Suco natural feito na hora - Laranja, Limão, Abacaxi ou Maracujá',
-    price: 9.90,
-    category: 'bebidas',
-    image: '🧃',
+    nome: 'Suco Natural',
+    descricao: 'Suco natural feito na hora - Laranja, Limão, Abacaxi ou Maracujá',
+    preco: 9.90,
+    categoria_id: 'bebidas',
+    imagem_emoji: '🧃',
     bestseller: false,
     rating: 4.8,
     prepTime: '5 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Laranja', price: 0 },
       { id: 'v2', name: 'Limão', price: 0 },
       { id: 'v3', name: 'Abacaxi', price: 0 },
       { id: 'v4', name: 'Maracujá', price: 1 },
     ],
-    complements: []
+    complementos: []
   },
   {
     id: 14,
-    name: 'Milkshake Artesanal',
-    description: 'Milkshake cremoso com calda e chantilly',
-    price: 18.90,
-    category: 'bebidas',
-    image: '🥛',
+    nome: 'Milkshake Artesanal',
+    descricao: 'Milkshake cremoso com calda e chantilly',
+    preco: 18.90,
+    categoria_id: 'bebidas',
+    imagem_emoji: '🥛',
     bestseller: true,
     rating: 4.9,
     prepTime: '8 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Chocolate', price: 0 },
       { id: 'v2', name: 'Morango', price: 0 },
       { id: 'v3', name: 'Ovomaltine', price: 2 },
       { id: 'v4', name: 'Nutella', price: 4 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Cobertura extra', price: 3 },
       { id: 'c2', name: 'Calda de caramelo', price: 3 },
     ]
   },
   {
     id: 15,
-    name: 'Água Mineral',
-    description: 'Água mineral sem gás 500ml',
-    price: 4.90,
-    category: 'bebidas',
-    image: '💧',
+    nome: 'Água Mineral',
+    descricao: 'Água mineral sem gás 500ml',
+    preco: 4.90,
+    categoria_id: 'bebidas',
+    imagem_emoji: '💧',
     bestseller: false,
     rating: 5.0,
     prepTime: '1 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Sem gás', price: 0 },
       { id: 'v2', name: 'Com gás', price: 0 },
     ],
-    complements: []
+    complementos: []
   },
   {
     id: 16,
-    name: 'Cerveja Artesanal',
-    description: 'Cerveja artesanal local - IPA, Pilsen ou Wheat',
-    price: 14.90,
-    category: 'bebidas',
-    image: '🍺',
+    nome: 'Cerveja Artesanal',
+    descricao: 'Cerveja artesanal local - IPA, Pilsen ou Wheat',
+    preco: 14.90,
+    categoria_id: 'bebidas',
+    imagem_emoji: '🍺',
     bestseller: false,
     rating: 4.7,
     prepTime: '1 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'IPA', price: 0 },
       { id: 'v2', name: 'Pilsen', price: 0 },
       { id: 'v3', name: 'Wheat', price: 2 },
     ],
-    complements: []
+    complementos: []
   },
   {
     id: 17,
-    name: 'Chá Gelado',
-    description: 'Chá gelado artesanal com frutas frescas',
-    price: 8.90,
-    category: 'bebidas',
-    image: '🍵',
+    nome: 'Chá Gelado',
+    descricao: 'Chá gelado artesanal com frutas frescas',
+    preco: 8.90,
+    categoria_id: 'bebidas',
+    imagem_emoji: '🍵',
     bestseller: false,
     rating: 4.4,
     prepTime: '3 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Pêssego', price: 0 },
       { id: 'v2', name: 'Limão', price: 0 },
       { id: 'v3', name: 'Frutos vermelhos', price: 2 },
     ],
-    complements: []
+    complementos: []
   },
 
   // Acompanhamentos
   {
     id: 18,
-    name: 'Batata Frita Crocante',
-    description: 'Batata frita sequinha com tempero especial da casa',
-    price: 16.90,
-    category: 'acompanhamentos',
-    image: '🍟',
+    nome: 'Batata Frita Crocante',
+    descricao: 'Batata frita sequinha com tempero especial da casa',
+    preco: 16.90,
+    categoria_id: 'acompanhamentos',
+    imagem_emoji: '🍟',
     bestseller: true,
     rating: 4.7,
     prepTime: '10 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Porção individual', price: 0 },
       { id: 'v2', name: 'Porção grande', price: 8 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Cheddar e bacon', price: 8 },
       { id: 'c2', name: 'Molho especial', price: 3 },
       { id: 'c3', name: 'Parmesão e trufas', price: 10 },
@@ -352,68 +388,76 @@ export const menuItems = [
   },
   {
     id: 19,
-    name: 'Onion Rings',
-    description: 'Anéis de cebola empanados com especiarias',
-    price: 18.90,
-    category: 'acompanhamentos',
-    image: '🧅',
+    nome: 'Onion Rings',
+    descricao: 'Anéis de cebola empanados com especiarias',
+    preco: 18.90,
+    categoria_id: 'acompanhamentos',
+    imagem_emoji: '🧅',
     bestseller: false,
     rating: 4.6,
     prepTime: '10 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Porção (8un)', price: 0 },
       { id: 'v2', name: 'Porção grande (14un)', price: 8 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Molho barbecue', price: 3 },
     ]
   },
   {
     id: 20,
-    name: 'Nuggets Artesanais',
-    description: 'Nuggets de frango artesanais com molho à escolha',
-    price: 19.90,
-    category: 'acompanhamentos',
-    image: '🍗',
+    nome: 'Nuggets Artesanais',
+    descricao: 'Nuggets de frango artesanais com molho à escolha',
+    preco: 19.90,
+    categoria_id: 'acompanhamentos',
+    imagem_emoji: '🍗',
     bestseller: false,
     rating: 4.5,
     prepTime: '12 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: '6 unidades', price: 0 },
       { id: 'v2', name: '10 unidades', price: 8 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Molho honey mustard', price: 3 },
       { id: 'c2', name: 'Molho ranch', price: 3 },
     ]
   },
   {
     id: 21,
-    name: 'Mandioca Frita',
-    description: 'Mandioca frita crocante com tempero verde',
-    price: 15.90,
-    category: 'acompanhamentos',
-    image: '🥔',
+    nome: 'Mandioca Frita',
+    descricao: 'Mandioca frita crocante com tempero verde',
+    preco: 15.90,
+    categoria_id: 'acompanhamentos',
+    imagem_emoji: '🥔',
     bestseller: false,
     rating: 4.4,
     prepTime: '12 min',
-    variations: [],
-    complements: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [],
+    complementos: [
       { id: 'c1', name: 'Catupiry', price: 4 },
     ]
   },
   {
     id: 22,
-    name: 'Mix de Petiscos',
-    description: 'Combinação de batata, onion rings, nuggets e mandioca',
-    price: 34.90,
-    category: 'acompanhamentos',
-    image: '🍽️',
+    nome: 'Mix de Petiscos',
+    descricao: 'Combinação de batata, onion rings, nuggets e mandioca',
+    preco: 34.90,
+    categoria_id: 'acompanhamentos',
+    imagem_emoji: '🍽️',
     bestseller: true,
     rating: 4.8,
     prepTime: '15 min',
-    variations: [],
-    complements: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [],
+    complementos: [
       { id: 'c1', name: 'Molho extra', price: 3 },
     ]
   },
@@ -421,72 +465,80 @@ export const menuItems = [
   // Sobremesas
   {
     id: 23,
-    name: 'Brownie com Sorvete',
-    description: 'Brownie quentinho de chocolate belga com sorvete de baunilha e calda',
-    price: 22.90,
-    category: 'sobremesas',
-    image: '🍫',
+    nome: 'Brownie com Sorvete',
+    descricao: 'Brownie quentinho de chocolate belga com sorvete de baunilha e calda',
+    preco: 22.90,
+    categoria_id: 'sobremesas',
+    imagem_emoji: '🍫',
     bestseller: true,
     rating: 4.9,
     prepTime: '10 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Calda de chocolate', price: 0 },
       { id: 'v2', name: 'Calda de caramelo', price: 0 },
       { id: 'v3', name: 'Calda de morango', price: 0 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Sorvete extra', price: 5 },
       { id: 'c2', name: 'Chantilly', price: 3 },
     ]
   },
   {
     id: 24,
-    name: 'Petit Gâteau',
-    description: 'Bolo de chocolate com coração derretido, sorvete de creme e frutas vermelhas',
-    price: 26.90,
-    category: 'sobremesas',
-    image: '🎂',
+    nome: 'Petit Gâteau',
+    descricao: 'Bolo de chocolate com coração derretido, sorvete de creme e frutas vermelhas',
+    preco: 26.90,
+    categoria_id: 'sobremesas',
+    imagem_emoji: '🎂',
     bestseller: true,
     rating: 4.9,
     prepTime: '15 min',
-    variations: [],
-    complements: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [],
+    complementos: [
       { id: 'c1', name: 'Frutas frescas extra', price: 5 },
     ]
   },
   {
     id: 25,
-    name: 'Cheesecake',
-    description: 'Cheesecake cremoso com calda de frutas vermelhas',
-    price: 19.90,
-    category: 'sobremesas',
-    image: '🍰',
+    nome: 'Cheesecake',
+    descricao: 'Cheesecake cremoso com calda de frutas vermelhas',
+    preco: 19.90,
+    categoria_id: 'sobremesas',
+    imagem_emoji: '🍰',
     bestseller: false,
     rating: 4.7,
     prepTime: '5 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Frutas vermelhas', price: 0 },
       { id: 'v2', name: 'Maracujá', price: 0 },
       { id: 'v3', name: 'Chocolate', price: 2 },
     ],
-    complements: []
+    complementos: []
   },
   {
     id: 26,
-    name: 'Açaí Premium',
-    description: 'Açaí puro batido com frutas, granola e mel',
-    price: 24.90,
-    category: 'sobremesas',
-    image: '🫐',
+    nome: 'Açaí Premium',
+    descricao: 'Açaí puro batido com frutas, granola e mel',
+    preco: 24.90,
+    categoria_id: 'sobremesas',
+    imagem_emoji: '🫐',
     bestseller: false,
     rating: 4.6,
     prepTime: '8 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: '300ml', price: 0 },
       { id: 'v2', name: '500ml', price: 8 },
       { id: 'v3', name: '700ml', price: 14 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Leite em pó', price: 2 },
       { id: 'c2', name: 'Paçoca', price: 3 },
       { id: 'c3', name: 'Nutella', price: 5 },
@@ -497,69 +549,77 @@ export const menuItems = [
   // Saladas
   {
     id: 27,
-    name: 'Caesar Salad',
-    description: 'Alface romana, croutons, parmesão, frango grelhado e molho caesar',
-    price: 28.90,
-    category: 'saladas',
-    image: '🥗',
+    nome: 'Caesar Salad',
+    descricao: 'Alface romana, croutons, parmesão, frango grelhado e molho caesar',
+    preco: 28.90,
+    categoria_id: 'saladas',
+    imagem_emoji: '🥗',
     bestseller: true,
     rating: 4.7,
     prepTime: '10 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Com frango', price: 0 },
       { id: 'v2', name: 'Com camarão', price: 12 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Bacon', price: 5 },
       { id: 'c2', name: 'Ovo cozido', price: 3 },
     ]
   },
   {
     id: 28,
-    name: 'Salada Tropical',
-    description: 'Mix de folhas, manga, abacate, tomate cereja, nozes e vinagrete de maracujá',
-    price: 26.90,
-    category: 'saladas',
-    image: '🥗',
+    nome: 'Salada Tropical',
+    descricao: 'Mix de folhas, manga, abacate, tomate cereja, nozes e vinagrete de maracujá',
+    preco: 26.90,
+    categoria_id: 'saladas',
+    imagem_emoji: '🥗',
     bestseller: false,
     rating: 4.5,
     prepTime: '8 min',
-    variations: [],
-    complements: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [],
+    complementos: [
       { id: 'c1', name: 'Frango desfiado', price: 6 },
       { id: 'c2', name: 'Queijo cottage', price: 4 },
     ]
   },
   {
     id: 29,
-    name: 'Bowl Proteico',
-    description: 'Arroz integral, frango, ovo, abacate, edamame e molho teriyaki',
-    price: 32.90,
-    category: 'saladas',
-    image: '🥙',
+    nome: 'Bowl Proteico',
+    descricao: 'Arroz integral, frango, ovo, abacate, edamame e molho teriyaki',
+    preco: 32.90,
+    categoria_id: 'saladas',
+    imagem_emoji: '🥙',
     bestseller: false,
     rating: 4.6,
     prepTime: '12 min',
-    variations: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [
       { id: 'v1', name: 'Com frango', price: 0 },
       { id: 'v2', name: 'Com salmão', price: 10 },
     ],
-    complements: [
+    complementos: [
       { id: 'c1', name: 'Edamame extra', price: 4 },
     ]
   },
   {
     id: 30,
-    name: 'Salada Caprese',
-    description: 'Tomate italiano, muçarela de búfala, manjericão e redução balsâmica',
-    price: 24.90,
-    category: 'saladas',
-    image: '🍅',
+    nome: 'Salada Caprese',
+    descricao: 'Tomate italiano, muçarela de búfala, manjericão e redução balsâmica',
+    preco: 24.90,
+    categoria_id: 'saladas',
+    imagem_emoji: '🍅',
     bestseller: false,
     rating: 4.4,
     prepTime: '5 min',
-    variations: [],
-    complements: [
+    ativo: true,
+    config: { is_combo: false },
+    variacoes: [],
+    complementos: [
       { id: 'c1', name: 'Presunto parma', price: 8 },
     ]
   },

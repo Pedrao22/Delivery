@@ -10,8 +10,8 @@ export default function MenuGrid({ onAddToCart }) {
   const [selectedProduct, setSelectedProduct] = useState(null);
 
   const filtered = activeCategory === 'all'
-    ? products.filter(p => p.available !== false)
-    : products.filter(item => item.category === activeCategory && item.available !== false);
+    ? products.filter(p => p.ativo !== false)
+    : products.filter(item => item.categoria_id === activeCategory && item.ativo !== false);
 
   return (
     <div className="menu-grid-container">
@@ -28,7 +28,7 @@ export default function MenuGrid({ onAddToCart }) {
             className={`menu-category-chip ${activeCategory === cat.id ? 'active' : ''}`}
             onClick={() => setActiveCategory(cat.id)}
           >
-            {cat.icon} {cat.name}
+            {cat.icone} {cat.nome}
           </button>
         ))}
       </div>
@@ -38,7 +38,7 @@ export default function MenuGrid({ onAddToCart }) {
           <ProductCard
             key={product.id}
             product={product}
-            onClick={() => setSelectedProduct(product)}
+            onAdd={() => setSelectedProduct(product)}
             delay={i * 40}
           />
         ))}
