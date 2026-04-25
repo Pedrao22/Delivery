@@ -61,7 +61,7 @@ export default function Cart({ items, total, count, onUpdateQty, onRemove, onCle
                 <div className="cart-item-info">
                   <div className="cart-item-name">{item.name}</div>
                   <div className="cart-item-detail">
-                    {[item.variation, ...item.complements].filter(Boolean).join(' • ')}
+                    {[item.variation, ...(item.complements || [])].filter(Boolean).join(' • ')}
                   </div>
                   <div className="cart-item-price">
                     R$ {item.price.toFixed(2).replace('.', ',')}
