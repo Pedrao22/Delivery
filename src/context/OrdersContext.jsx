@@ -41,13 +41,29 @@ export function OrdersProvider({ children }) {
   });
 
   const [products, setProducts] = useState(() => {
-    const saved = localStorage.getItem('foodflow_products');
-    return saved ? JSON.parse(saved) : initialProducts;
+    try {
+      const saved = localStorage.getItem('foodflow_products');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Validate new format — old cache has 'name', new has 'nome'
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].nome) return parsed;
+      }
+    } catch {}
+    localStorage.removeItem('foodflow_products');
+    return initialProducts;
   });
 
   const [categories, setCategories] = useState(() => {
-    const saved = localStorage.getItem('foodflow_categories');
-    return saved ? JSON.parse(saved) : initialCategories;
+    try {
+      const saved = localStorage.getItem('foodflow_categories');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Validate new format — old cache has 'name', new has 'nome'
+        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].nome) return parsed;
+      }
+    } catch {}
+    localStorage.removeItem('foodflow_categories');
+    return initialCategories;
   });
 
   const [inventory, setInventory] = useState(() => {
