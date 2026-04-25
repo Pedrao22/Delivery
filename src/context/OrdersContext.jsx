@@ -10,8 +10,8 @@ const STORAGE_KEY = 'foodflow_orders';
 
 const DEFAULT_RESTAURANT_SETTINGS = {
   name: 'Pedi&Recebe',
-  logo: '',
-  primaryColor: '#FFC400',
+  logo: '🍔',
+  primaryColor: '#e74c3c',
   isOpen: true,
   deliveryTime: '40 a 60 min',
   payments: { pix: true, card: true, cash: true, pix_counter: true },
@@ -90,8 +90,16 @@ export function OrdersProvider({ children }) {
   });
 
   const [restaurantSettings, setRestaurantSettings] = useState(() => {
-    const saved = localStorage.getItem('foodflow_settings');
-    return saved ? JSON.parse(saved) : DEFAULT_RESTAURANT_SETTINGS;
+    try {
+      const saved = localStorage.getItem('foodflow_settings');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Discard cache with old brand name
+        if (parsed.name && parsed.name !== 'FoodFlow' && parsed.name !== 'Admin Silva') return parsed;
+      }
+    } catch {}
+    localStorage.removeItem('foodflow_settings');
+    return DEFAULT_RESTAURANT_SETTINGS;
   });
 
   const [loyaltySettings, setLoyaltySettings] = useState(() => {

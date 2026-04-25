@@ -149,9 +149,13 @@ export default function CustomerView() {
       <div className="customer-wrapper login-step">
         <div className="login-card">
           <div className="login-branding">
-            <div className="login-logo-image">
-              <img src="/logo_wide.png" alt={brandName} style={{ maxWidth: 200 }} />
-            </div>
+            {restaurantSettings.logo ? (
+               <div className="login-logo-emoji" style={{ background: `${primaryColor}15` }}>{restaurantSettings.logo}</div>
+            ) : (
+               <div className="login-logo-image">
+                 <img src="/logo_wide.png" alt={brandName} />
+               </div>
+            )}
             <h1>{brandName}</h1>
             <p>Seja bem-vindo de volta! 👋</p>
           </div>
@@ -248,9 +252,7 @@ export default function CustomerView() {
       <header className="menu-header" style={{ borderTop: `4px solid ${primaryColor}` }}>
         <div className="header-top">
           <div className="brand-box">
-             <div className="brand-logo">
-               <img src="/logo_wide.png" alt={brandName} style={{ height: 36, objectFit: 'contain' }} />
-             </div>
+             <div className="brand-logo">{restaurantSettings.logo}</div>
              <div className="brand-meta">
                <h1>{brandName}</h1>
                <div className="brand-status">
