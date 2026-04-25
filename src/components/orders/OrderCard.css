@@ -1,18 +1,18 @@
+/* ============ ORDER CARD ============ */
 .order-card {
   background: var(--surface);
-  border-radius: var(--radius-lg);
-  padding: 0;
+  border-radius: var(--radius-md);
   cursor: pointer;
-  transition: all var(--transition-base);
-  box-shadow: var(--shadow-sm);
-  border: 1.5px solid var(--border-light);
-  animation: fadeInUp 300ms ease both;
+  transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
+  border: 1px solid var(--border-light);
+  animation: fadeInUp 280ms ease both;
   position: relative;
   overflow: hidden;
+  box-shadow: var(--shadow-xs);
 }
 
 .order-card:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.09);
   border-color: var(--accent-light);
   transform: translateY(-3px);
 }
@@ -23,25 +23,27 @@
   opacity: 0.9;
 }
 
+/* Urgency indicator — colored left bar */
 .order-card-urgency {
   position: absolute;
   top: 0;
   left: 0;
-  width: 100%;
-  height: 3px;
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+  width: 4px;
+  height: 100%;
+  border-radius: var(--radius-md) 0 0 var(--radius-md);
   transition: background var(--transition-fast);
 }
 
 .order-card-inner {
-  padding: var(--space-5) var(--space-4) var(--space-4);
+  padding: var(--space-3) var(--space-4) var(--space-3) calc(var(--space-4) + 4px);
 }
 
+/* Header */
 .order-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
 }
 
 .order-card-header-left {
@@ -51,45 +53,66 @@
 }
 
 .order-card-id {
-  font-size: var(--font-xs);
+  font-size: 10px;
   font-weight: var(--fw-bold);
   color: var(--text-tertiary);
   font-family: 'SF Mono', 'Fira Code', 'Consolas', monospace;
   background: var(--bg-tertiary);
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
+  padding: 2px 6px;
+  border-radius: var(--radius-xs);
+  letter-spacing: 0.04em;
 }
 
 .order-card-timer {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: var(--font-xs);
+  gap: 3px;
+  font-size: 11px;
   font-weight: var(--fw-bold);
-  padding: 3px 10px;
+  padding: 2px 8px;
   border-radius: var(--radius-full);
 }
 
+.order-card-finalize-single {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  background: linear-gradient(135deg, var(--success-dark), var(--success));
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  box-shadow: 0 2px 8px rgba(0, 184, 148, 0.3);
+}
+
+.order-card-finalize-single:hover {
+  transform: scale(1.12);
+  box-shadow: 0 4px 14px rgba(0, 184, 148, 0.45);
+}
+
+/* Customer row */
 .order-card-customer-row {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
-  margin-bottom: var(--space-3);
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
 }
 
 .order-card-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-xl);
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-md);
   background: var(--accent-lighter);
-  color: var(--accent);
+  color: var(--accent-dark);
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: var(--fw-bold);
-  font-size: var(--font-base);
+  font-size: var(--font-xs);
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(99, 102, 241, 0.15);
 }
 
 .order-card-customer-info {
@@ -98,32 +121,53 @@
 }
 
 .order-card-customer {
-  font-size: var(--font-lg);
-  font-weight: var(--fw-bold);
+  font-size: var(--font-sm);
+  font-weight: var(--fw-semibold);
   color: var(--text-primary);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  line-height: 1.2;
 }
 
 .order-card-customer-phone {
-  font-size: var(--font-xs);
+  font-size: 11px;
   color: var(--text-tertiary);
+  line-height: 1.2;
 }
 
+.order-card-tax-badge {
+  font-size: 9px;
+  font-weight: var(--fw-extrabold);
+  background: var(--accent-lighter);
+  color: var(--accent-dark);
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,196,0,0.3);
+  letter-spacing: 0.03em;
+}
+
+.order-card-coupon-badge {
+  font-size: 10px;
+  font-weight: var(--fw-bold);
+  color: var(--success-dark);
+}
+
+/* Items list */
 .order-card-items-list {
-  margin-bottom: var(--space-4);
-  padding: var(--space-3) var(--space-4);
+  margin-bottom: var(--space-2);
+  padding: var(--space-2) var(--space-3);
   background: var(--bg-secondary);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-light);
 }
 
 .order-card-item-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 3px 0;
-  font-size: var(--font-xs);
+  padding: 1px 0;
+  font-size: 11px;
 }
 
 .order-card-item-name {
@@ -136,40 +180,41 @@
 
 .order-card-item-price {
   color: var(--text-primary);
-  font-weight: var(--fw-bold);
-  margin-left: var(--space-3);
+  font-weight: var(--fw-semibold);
+  margin-left: var(--space-2);
   white-space: nowrap;
 }
 
 .order-card-item-more {
-  font-size: var(--font-xs);
-  color: var(--accent);
+  font-size: 11px;
+  color: var(--accent-dark);
   font-weight: var(--fw-medium);
-  padding: 3px 0;
+  padding: 1px 0;
 }
 
 .order-card-divider {
   height: 1px;
   background: var(--border-light);
-  margin: 0 calc(-1 * var(--space-4));
 }
 
+/* Footer */
 .order-card-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-2);
-  padding: var(--space-3) var(--space-4);
+  padding: var(--space-2) var(--space-4) var(--space-2) calc(var(--space-4) + 4px);
 }
 
 .order-card-total {
-  font-size: var(--font-xl);
+  font-size: var(--font-base);
   font-weight: var(--fw-extrabold);
-  color: var(--accent);
+  color: var(--accent-dark);
+  letter-spacing: -0.01em;
 }
 
 .order-card-total small {
-  font-size: var(--font-xs);
+  font-size: 10px;
   font-weight: var(--fw-regular);
   color: var(--text-tertiary);
 }
@@ -181,41 +226,58 @@
 }
 
 .order-card-payment {
-  font-size: var(--font-xs);
+  font-size: 11px;
   color: var(--text-tertiary);
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
 }
 
+/* Type badge */
 .order-card-type-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.6875rem;
+  gap: 3px;
+  font-size: 10px;
   font-weight: var(--fw-semibold);
-  padding: 3px 10px;
+  padding: 2px 7px;
   border-radius: var(--radius-full);
   white-space: nowrap;
+  letter-spacing: 0.02em;
 }
 
 .order-card-type-badge.delivery { background: #EBF5FF; color: #2E86DE; }
-.order-card-type-badge.pickup { background: #FFF3E0; color: #E67E22; }
-.order-card-type-badge.local { background: #E8F5E9; color: #27AE60; }
+.order-card-type-badge.pickup   { background: #FFF3E0; color: #E67E22; }
+.order-card-type-badge.local    { background: #E8F5E9; color: #27AE60; }
 
 [data-theme="dark"] .order-card-type-badge.delivery { background: rgba(46,134,222,0.15); color: #74B9FF; }
-[data-theme="dark"] .order-card-type-badge.pickup { background: rgba(230,126,34,0.15); color: #FECA57; }
-[data-theme="dark"] .order-card-type-badge.local { background: rgba(39,174,96,0.15); color: #55EFC4; }
+[data-theme="dark"] .order-card-type-badge.pickup   { background: rgba(230,126,34,0.15); color: #FECA57; }
+[data-theme="dark"] .order-card-type-badge.local    { background: rgba(39,174,96,0.15);  color: #55EFC4; }
 
 /* Obs indicator */
 .order-card-obs-indicator {
   display: flex;
   align-items: center;
-  gap: 4px;
-  font-size: var(--font-xs);
+  gap: 3px;
+  font-size: 11px;
   color: var(--warning-dark);
   background: var(--warning-light);
-  padding: 2px 8px;
+  padding: 1px 6px;
   border-radius: var(--radius-full);
-  margin-top: var(--space-2);
+  margin-top: var(--space-1);
+}
+
+@keyframes flash {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}
+
+.order-card-timer.flashing {
+  animation: flash 900ms ease-in-out infinite;
+  box-shadow: 0 0 10px rgba(235, 77, 75, 0.25);
+}
+
+.order-card.urgent {
+  border: 1.5px solid var(--danger);
+  box-shadow: 0 4px 16px rgba(235, 77, 75, 0.14);
 }

@@ -1,6 +1,8 @@
 .topbar {
   height: var(--topbar-height);
-  background: var(--surface);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(16px) saturate(180%);
+  -webkit-backdrop-filter: blur(16px) saturate(180%);
   border-bottom: 1px solid var(--border-light);
   display: flex;
   align-items: center;
@@ -10,6 +12,11 @@
   position: sticky;
   top: 0;
   z-index: var(--z-topbar);
+  transition: background 300ms ease, border-color 300ms ease;
+}
+
+[data-theme="dark"] .topbar {
+  background: rgba(15, 15, 26, 0.88);
 }
 
 .topbar-left {
@@ -33,6 +40,7 @@
 
 .topbar-menu-btn:hover {
   background: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .topbar-title {
@@ -40,6 +48,7 @@
   font-weight: var(--fw-bold);
   color: var(--text-primary);
   white-space: nowrap;
+  letter-spacing: -0.01em;
 }
 
 .topbar-subtitle {
@@ -83,6 +92,22 @@
   border: 2px solid var(--surface);
 }
 
+.topbar-notification-dot::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: var(--danger);
+  animation: ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes ping {
+  75%, 100% {
+    transform: scale(2);
+    opacity: 0;
+  }
+}
+
 @media (max-width: 1024px) {
   .topbar-menu-btn {
     display: flex;
@@ -93,7 +118,7 @@
   .topbar {
     padding: 0 var(--space-4);
   }
-  
+
   .topbar-title {
     font-size: var(--font-lg);
   }

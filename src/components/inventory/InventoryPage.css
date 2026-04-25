@@ -154,12 +154,14 @@
   height: 24px;
   border-radius: 6px;
   border: none;
-  background: #f1f2f6;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   font-weight: bold;
+  transition: all var(--transition-fast);
 }
 
 .qty-controls button:hover { background: var(--accent); color: white; }

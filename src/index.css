@@ -266,6 +266,34 @@ ul, ol { list-style: none; }
 .animate-slideInRight { animation: slideInRight var(--transition-slow) ease both; }
 .animate-spin { animation: spin 1s linear infinite; }
 
+/* Glass card */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px) saturate(160%);
+  -webkit-backdrop-filter: blur(12px) saturate(160%);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+[data-theme="dark"] .glass {
+  background: rgba(26, 26, 46, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/* Accent glow utility */
+.glow-accent { box-shadow: 0 0 0 2px var(--accent-lighter), var(--shadow-accent); }
+
+/* Surface card utility */
+.card-base {
+  background: var(--surface);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-light);
+  box-shadow: var(--shadow-xs);
+}
+
+/* Ping animation for notification dots */
+@keyframes ping {
+  75%, 100% { transform: scale(2); opacity: 0; }
+}
+
 .stagger-1 { animation-delay: 50ms; }
 .stagger-2 { animation-delay: 100ms; }
 .stagger-3 { animation-delay: 150ms; }

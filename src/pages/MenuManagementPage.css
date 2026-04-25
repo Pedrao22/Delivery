@@ -69,9 +69,10 @@
 
 .cat-tab.active {
   background: var(--accent);
-  color: white;
+  color: #1A1A2E;
   border-color: var(--accent);
-  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.2);
+  font-weight: 700;
+  box-shadow: var(--shadow-accent);
 }
 
 /* Products Grid */

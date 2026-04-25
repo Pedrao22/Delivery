@@ -4,7 +4,7 @@
 }
 
 .financial-total-card {
-  background: var(--accent-gradient);
+  background: linear-gradient(135deg, #121212 0%, #2A2A2A 100%);
   border-radius: var(--radius-xl);
   padding: var(--space-8) var(--space-10);
   color: white;
@@ -15,7 +15,16 @@
   position: relative;
   overflow: hidden;
   animation: fadeInUp 400ms ease;
-  box-shadow: var(--shadow-accent);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,196,0,0.3);
+}
+
+.financial-total-value {
+  font-size: 3rem;
+  font-weight: var(--fw-extrabold);
+  line-height: 1.1;
+  margin-bottom: var(--space-2);
+  color: var(--accent);
 }
 
 .financial-total-card::before {
@@ -101,18 +110,20 @@
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   border: 1px solid var(--border-light);
+  border-left: 3px solid transparent;
   animation: fadeInUp 400ms ease both;
   display: flex;
   align-items: center;
   gap: var(--space-4);
-  transition: all var(--transition-fast);
+  transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
 }
 
 .financial-method-card:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  border-left-color: var(--accent);
 }
 
 .financial-method-card::after {

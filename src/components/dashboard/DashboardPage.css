@@ -5,7 +5,7 @@
 
 /* Hero KPI Banner */
 .dashboard-hero-kpi {
-  background: var(--accent-gradient);
+  background: linear-gradient(135deg, #121212 0%, #2A2A2A 100%);
   border-radius: var(--radius-xl);
   padding: var(--space-8) var(--space-8);
   color: white;
@@ -15,7 +15,8 @@
   margin-bottom: var(--space-5);
   position: relative;
   overflow: hidden;
-  box-shadow: var(--shadow-accent);
+  box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+  border: 1px solid rgba(255,196,0,0.3);
 }
 
 .dashboard-hero-kpi::before {
@@ -55,6 +56,7 @@
   font-weight: var(--fw-extrabold);
   line-height: 1.1;
   margin-bottom: var(--space-2);
+  color: var(--accent);
 }
 
 .dashboard-hero-change {
@@ -108,17 +110,19 @@
   border-radius: var(--radius-lg);
   padding: var(--space-5);
   border: 1px solid var(--border-light);
+  border-left: 3px solid transparent;
   animation: fadeInUp 400ms ease both;
   display: flex;
   align-items: flex-start;
   gap: var(--space-4);
-  transition: all var(--transition-fast);
+  transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .kpi-card:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--border);
-  transform: translateY(-2px);
+  border-color: var(--accent-light);
+  border-left-color: var(--accent);
+  transform: translateY(-3px);
 }
 
 .kpi-icon {
@@ -137,6 +141,8 @@
   font-size: var(--font-xs);
   color: var(--text-tertiary);
   margin-bottom: var(--space-1);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
 }
 
 .kpi-value {
@@ -167,16 +173,17 @@
 
 .dashboard-chart-card {
   background: var(--surface);
-  border-radius: var(--radius-lg);
+  border-radius: var(--radius-xl);
   padding: var(--space-5);
   border: 1px solid var(--border-light);
   animation: fadeInUp 500ms ease both;
-  transition: all var(--transition-fast);
+  transition: all 220ms cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .dashboard-chart-card:hover {
   box-shadow: var(--shadow-md);
-  border-color: var(--border);
+  border-color: var(--accent-light);
+  transform: translateY(-2px);
 }
 
 .dashboard-chart-header {
@@ -471,4 +478,36 @@
   .dashboard-kpis {
     grid-template-columns: 1fr;
   }
+}
+
+.dashboard-hero-change.positive {
+  color: var(--success);
+}
+
+.dashboard-hero-change.negative {
+  color: #FF7675;
+}
+
+.donut-center-valueSmall {
+  font-size: var(--font-xs);
+  font-weight: var(--fw-bold);
+  color: var(--text-tertiary);
+  margin-bottom: -4px;
+}
+
+.dashboard-page.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  text-align: center;
+}
+
+.dashboard-empty-state {
+  max-width: 400px;
+  animation: fadeInUp 400ms ease;
+}
+
+.dashboard-charts.solo {
+  grid-template-columns: 1fr;
 }
