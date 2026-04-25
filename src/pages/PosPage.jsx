@@ -120,8 +120,19 @@ export default function PosPage() {
 
         <div className="pos-controls">
           <div className="pos-search-wrapper">
-            <Search size={18} className="pos-search-icon" />
-            <input type="text" placeholder="Buscar produto..." value={search} onChange={(e) => setSearch(e.target.value)} />
+            <Search size={16} className="pos-search-icon" />
+            <input
+              type="text"
+              className="pos-search-input"
+              placeholder="Buscar produto..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+            {search && (
+              <button className="pos-search-clear" onClick={() => setSearch('')}>
+                <X size={14} />
+              </button>
+            )}
           </div>
         </div>
 
