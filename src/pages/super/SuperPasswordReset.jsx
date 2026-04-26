@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { ShieldAlert, Lock, CheckCircle, ArrowRight, Loader2, AlertTriangle, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import { supabase, apiFetch } from '../../lib/supabase';
+import { apiFetch } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import './SuperLoginPage.css';
 
@@ -23,12 +23,11 @@ export default function SuperPasswordReset() {
     setError(null);
 
     try {
-      // 1. Atualiza a senha no Supabase Auth
-      const { error: authError } = await supabase.auth.updateUser({ 
-        password: newPassword 
+      // 1. Atualiza a senha via backend
+      await apiFetch('/auth/password', {
+        method: 'PATCH',
+        body: JSON.stringify({ password: newPassword }),
       });
-
-      if (authError) throw authError;
 
       // 2. Limpa o marcador de reset (no nosso caso, o avatar_url)
       await apiFetch('/auth/profile', {

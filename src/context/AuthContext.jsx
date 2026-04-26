@@ -1,10 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { supabase, apiFetch } from '../lib/supabase';
+import { apiFetch, storeSession, clearSession, getStoredToken } from '../lib/supabase';
 
 const AuthContext = createContext({});
 
-// Render free tier sleeps after inactivity — cold start can take 30-60s.
-// Cap the wait so the app never shows a white screen indefinitely.
 const BACKEND_TIMEOUT_MS = 8_000;
 
 function LoadingScreen() {
@@ -43,90 +41,78 @@ export const AuthProvider = ({ children }) => {
   const [impersonatedId, setImpersonatedId] = useState(null);
   const [maintenance, setMaintenance] = useState(false);
 
-  const getFullProfile = async (authUser) => {
-    // Race the API call against a hard timeout so the app never blocks forever.
+  const applyProfile = (data) => {
+    setUser({ id: data.id, email: data.email, authId: data.auth_id });
+    setProfile(data);
+    setMaintenance(!!data.maintenanceMode);
+    if (data.restaurantes) setRestaurant(data.restaurantes);
+    if (data.role === 'super_admin') {
+      const stored = localStorage.getItem('pedirecebe_impersonate_id');
+      if (stored) setImpersonatedId(stored);
+    }
+  };
+
+  const getFullProfile = async () => {
     const timeoutPromise = new Promise((_, reject) =>
       setTimeout(() => reject(new Error('backend_timeout')), BACKEND_TIMEOUT_MS)
     );
 
     try {
       const result = await Promise.race([apiFetch('/auth/me'), timeoutPromise]);
-
       if (result.success) {
-        setUser(authUser);
-        setProfile(result.data);
-        setMaintenance(!!result.data.maintenanceMode);
-        if (result.data.restaurantes) {
-          setRestaurant(result.data.restaurantes);
-        }
-        if (result.data.role === 'super_admin') {
-          const stored = localStorage.getItem('pedirecebe_impersonate_id');
-          if (stored) setImpersonatedId(stored);
-        }
+        applyProfile(result.data);
         return result.data;
-      } else {
-        throw new Error(result.message || 'Falha ao carregar perfil');
       }
+      throw new Error(result.message || 'Falha ao carregar perfil');
     } catch (error) {
       const msg = error.message || '';
       const isAuthError = msg.includes('401') || msg.includes('Unauthorized') || msg.includes('JWT');
 
       if (isAuthError) {
-        console.warn('Token inválido, encerrando sessão:', msg);
-        setUser(null);
-        setProfile(null);
-        setRestaurant(null);
-        setImpersonatedId(null);
+        clearSession();
+        setUser(null); setProfile(null); setRestaurant(null); setImpersonatedId(null);
         localStorage.removeItem('pedirecebe_impersonate_id');
-        await supabase.auth.signOut();
       } else {
-        // Backend offline or timed out — keep Supabase session valid, degrade gracefully.
         if (msg === 'backend_timeout') {
           console.warn('Backend não respondeu em', BACKEND_TIMEOUT_MS, 'ms — carregando sem perfil completo.');
         } else {
           console.warn('Backend indisponível ao carregar perfil:', msg);
         }
-        setUser(authUser);
       }
       return null;
     }
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
-      if (session && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-        await getFullProfile(session.user);
-      } else if (event === 'SIGNED_OUT' || (event === 'INITIAL_SESSION' && !session)) {
-        setUser(null);
-        setProfile(null);
-        setRestaurant(null);
-        setImpersonatedId(null);
-        setMaintenance(false);
-        localStorage.removeItem('pedirecebe_impersonate_id');
-      }
-
-      if (event === 'INITIAL_SESSION') {
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    if (getStoredToken()) {
+      getFullProfile().finally(() => setLoading(false));
+    } else {
+      setLoading(false);
+    }
   }, []);
 
   const refreshProfile = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (session?.user) await getFullProfile(session.user);
+    if (getStoredToken()) await getFullProfile();
   };
 
   const login = async (email, password) => {
-    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-    const profileData = await getFullProfile(data.user);
-    return { ...data, profileData };
+    const result = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    if (!result.success) throw new Error(result.message);
+
+    storeSession(result.data.session);
+    const profileData = await getFullProfile();
+    return { ...result.data, profileData };
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    try { await apiFetch('/auth/logout', { method: 'POST' }); } catch {}
+    clearSession();
+    setUser(null); setProfile(null); setRestaurant(null);
+    setImpersonatedId(null); setMaintenance(false);
+    localStorage.removeItem('pedirecebe_impersonate_id');
   };
 
   const impersonate = (restaurantId) => {

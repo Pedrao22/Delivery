@@ -1,37 +1,57 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-// When env vars are missing, create a safe stub so the app renders (shows login)
-// instead of crashing with "supabaseUrl is required"
-const createMockClient = () => ({
-  auth: {
-    onAuthStateChange: (cb) => {
-      setTimeout(() => cb('INITIAL_SESSION', null), 0);
-      return { data: { subscription: { unsubscribe: () => {} } } };
-    },
-    getSession: async () => ({ data: { session: null }, error: null }),
-    signInWithPassword: async () => {
-      throw new Error('Supabase não configurado. Defina VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY nas variáveis de ambiente.');
-    },
-    signOut: async () => {},
-  },
-});
-
-export const supabase = (supabaseUrl && supabaseAnonKey)
-  ? createClient(supabaseUrl, supabaseAnonKey, {
-      auth: { autoRefreshToken: true, persistSession: true, detectSessionInUrl: true },
-    })
-  : createMockClient();
-
-// Normalize: always ensure the URL ends with /api regardless of how env var is set
 const _raw = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
 export const API_URL = _raw.endsWith('/api') ? _raw : _raw.replace(/\/$/, '') + '/api';
 
+const TOKEN_KEY = 'pedirecebe_token';
+const REFRESH_KEY = 'pedirecebe_refresh';
+const EXPIRES_KEY = 'pedirecebe_expires';
+
+export function getStoredToken() {
+  return localStorage.getItem(TOKEN_KEY);
+}
+
+export function storeSession(session) {
+  localStorage.setItem(TOKEN_KEY, session.access_token);
+  localStorage.setItem(REFRESH_KEY, session.refresh_token);
+  localStorage.setItem(EXPIRES_KEY, String(session.expires_at));
+}
+
+export function clearSession() {
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REFRESH_KEY);
+  localStorage.removeItem(EXPIRES_KEY);
+}
+
+async function getValidToken() {
+  const token = localStorage.getItem(TOKEN_KEY);
+  if (!token) return null;
+
+  const expiresAt = parseInt(localStorage.getItem(EXPIRES_KEY) || '0', 10);
+  const nowSeconds = Math.floor(Date.now() / 1000);
+
+  // Renew if less than 60s left
+  if (expiresAt - nowSeconds > 60) return token;
+
+  const refreshToken = localStorage.getItem(REFRESH_KEY);
+  if (!refreshToken) { clearSession(); return null; }
+
+  try {
+    const res = await fetch(`${API_URL}/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refresh_token: refreshToken }),
+    });
+    if (!res.ok) { clearSession(); return null; }
+    const data = await res.json();
+    storeSession(data.data);
+    return data.data.access_token;
+  } catch {
+    clearSession();
+    return null;
+  }
+}
+
 export async function apiFetch(path, options = {}) {
-  const { data: { session } } = await supabase.auth.getSession();
-  const token = session?.access_token;
+  const token = await getValidToken();
   const impersonateId = localStorage.getItem('pedirecebe_impersonate_id');
 
   const response = await fetch(`${API_URL}${path}`, {

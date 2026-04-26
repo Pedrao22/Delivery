@@ -8,7 +8,7 @@ import {
 } from 'lucide-react';
 import { useOrdersContext } from '../context/OrdersContext';
 import { useAuth } from '../context/AuthContext';
-import { supabase } from '../lib/supabase';
+import { apiFetch } from '../lib/supabase';
 import Button from '../components/shared/Button';
 import './SettingsPage.css';
 
@@ -63,8 +63,10 @@ export default function SettingsPage() {
     }
     setPwStatus('loading');
     try {
-      const { error } = await supabase.auth.updateUser({ password: pwForm.newPassword });
-      if (error) throw error;
+      await apiFetch('/auth/password', {
+        method: 'PATCH',
+        body: JSON.stringify({ password: pwForm.newPassword }),
+      });
       setPwStatus('success');
       setPwForm({ newPassword: '', confirmPassword: '' });
       setTimeout(() => setPwStatus(null), 4000);
