@@ -211,47 +211,27 @@
 }
 
 /* ===== MODAL NOVO ITEM ===== */
-.inv-modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.5);
-  display: flex; align-items: center; justify-content: center;
-  z-index: 1000; padding: 16px;
-}
-.inv-modal {
-  background: var(--bg-primary); border-radius: var(--radius-lg);
-  width: 100%; max-width: 560px; box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-  animation: fadeInUp 200ms ease;
-}
-.inv-modal-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 20px 24px 16px; border-bottom: 1px solid var(--border-light);
-}
-.inv-modal-header h3 { font-size: var(--font-lg); font-weight: var(--fw-bold); margin: 0; }
-.inv-modal-close {
-  background: none; border: none; cursor: pointer;
-  color: var(--text-tertiary); padding: 4px; border-radius: 6px;
-}
-.inv-modal-close:hover { background: var(--bg-secondary); color: var(--text-primary); }
-.inv-modal-form { padding: 20px 24px 24px; display: flex; flex-direction: column; gap: 14px; }
+.inv-modal-form { display: flex; flex-direction: column; gap: 14px; }
 .inv-form-row { display: flex; gap: 12px; }
-.inv-form-group { display: flex; flex-direction: column; gap: 5px; flex: 1; }
-.inv-form-group label { font-size: var(--font-sm); font-weight: var(--fw-semibold); color: var(--text-secondary); }
-.inv-form-group input, .inv-form-group select {
-  padding: 8px 12px; border-radius: var(--radius-md);
-  border: 1px solid var(--border-light); background: var(--bg-secondary);
-  color: var(--text-primary); font-size: var(--font-sm);
-  outline: none; transition: border-color 150ms;
-}
-.inv-form-group input:focus, .inv-form-group select:focus { border-color: var(--accent); }
-.inv-modal-actions { display: flex; gap: 10px; justify-content: flex-end; padding-top: 4px; }
-.inv-btn-cancel {
-  padding: 9px 18px; border-radius: var(--radius-md); border: 1px solid var(--border-light);
-  background: transparent; color: var(--text-secondary); cursor: pointer; font-size: var(--font-sm);
-}
-.inv-btn-cancel:hover { background: var(--bg-secondary); }
-.inv-btn-save {
-  padding: 9px 20px; border-radius: var(--radius-md); border: none;
-  background: var(--accent); color: white; cursor: pointer;
+.inv-form-group { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.inv-form-group label {
   font-size: var(--font-sm); font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
 }
-.inv-btn-save:hover { opacity: 0.9; }
-.inv-btn-save:disabled { opacity: 0.6; cursor: not-allowed; }
+.inv-form-group input, .inv-form-group select {
+  padding: 10px 14px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--border);
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+  font-size: var(--font-base);
+  font-family: inherit;
+  outline: none;
+  transition: border-color 150ms, box-shadow 150ms;
+  width: 100%;
+}
+.inv-form-group input:focus, .inv-form-group select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(255,196,0,0.12);
+}
+.inv-form-group select { cursor: pointer; }

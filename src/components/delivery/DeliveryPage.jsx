@@ -94,21 +94,19 @@ export default function DeliveryPage() {
   return (
     <div className="delivery-page">
       <div className="delivery-header-row">
-        <div>
-          <h2 style={{ fontSize: 'var(--font-xl)', fontWeight: 'var(--fw-bold)' }}>Gestão de Entregas</h2>
-          <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-tertiary)' }}>
-            {available} disponíveis • {delivering} em rota
-          </p>
-        </div>
+        <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-tertiary)' }}>
+          {available} disponíveis • {delivering} em rota
+        </p>
         <div style={{ display: 'flex', gap: '12px' }}>
-          <Button 
-            variant="outline" 
-            icon={<Plus size={16} />}
+          <Button
+            variant="outline"
+            size="sm"
+            icon={<Plus size={15} />}
             onClick={() => setIsModalOpen(true)}
           >
             Adicionar Entregador
           </Button>
-          <Button icon={<Navigation size={16} />}>Enviar Localização</Button>
+          <Button size="sm" icon={<Navigation size={15} />}>Enviar Localização</Button>
         </div>
       </div>
 

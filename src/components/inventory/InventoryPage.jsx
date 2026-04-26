@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import {
-  AlertTriangle, CheckCircle, XCircle, TrendingUp,
-  Package, Filter, Plus, Calendar, Ghost, X
+  AlertTriangle, TrendingUp,
+  Package, Plus, Calendar, Ghost
 } from 'lucide-react';
 import { useOrdersContext } from '../../context/OrdersContext';
 import SearchInput from '../shared/SearchInput';
 import Button from '../shared/Button';
+import Modal from '../shared/Modal';
 import './InventoryPage.css';
 
 const EMPTY_FORM = { name: '', category: '', unit: 'un', qty: 0, minQty: 0, cost: 0, expiry: '', supplier: '' };
@@ -174,71 +175,68 @@ export default function InventoryPage() {
         </div>
       </div>
 
-      {/* Modal Novo Item */}
-      {showModal && (
-        <div className="inv-modal-overlay" onClick={() => setShowModal(false)}>
-          <div className="inv-modal" onClick={e => e.stopPropagation()}>
-            <div className="inv-modal-header">
-              <h3>Novo Insumo</h3>
-              <button className="inv-modal-close" onClick={() => setShowModal(false)}><X size={18} /></button>
-            </div>
-            <form onSubmit={handleSubmit} className="inv-modal-form">
-              <div className="inv-form-row">
-                <div className="inv-form-group">
-                  <label>Nome do Insumo *</label>
-                  <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex: Pão Brioche" />
-                </div>
-                <div className="inv-form-group">
-                  <label>Categoria *</label>
-                  <input required value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="Ex: Pães" />
-                </div>
-              </div>
-              <div className="inv-form-row">
-                <div className="inv-form-group">
-                  <label>Unidade *</label>
-                  <select value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}>
-                    <option value="un">un (unidade)</option>
-                    <option value="kg">kg</option>
-                    <option value="L">L (litro)</option>
-                    <option value="g">g (grama)</option>
-                    <option value="ml">ml</option>
-                  </select>
-                </div>
-                <div className="inv-form-group">
-                  <label>Fornecedor</label>
-                  <input value={form.supplier} onChange={e => setForm(f => ({ ...f, supplier: e.target.value }))} placeholder="Ex: Padaria Artesanal" />
-                </div>
-              </div>
-              <div className="inv-form-row">
-                <div className="inv-form-group">
-                  <label>Quantidade Atual *</label>
-                  <input type="number" min="0" required value={form.qty} onChange={e => setForm(f => ({ ...f, qty: e.target.value }))} />
-                </div>
-                <div className="inv-form-group">
-                  <label>Quantidade Mínima *</label>
-                  <input type="number" min="0" required value={form.minQty} onChange={e => setForm(f => ({ ...f, minQty: e.target.value }))} />
-                </div>
-                <div className="inv-form-group">
-                  <label>Custo Unitário (R$)</label>
-                  <input type="number" min="0" step="0.01" value={form.cost} onChange={e => setForm(f => ({ ...f, cost: e.target.value }))} />
-                </div>
-              </div>
-              <div className="inv-form-row">
-                <div className="inv-form-group">
-                  <label>Data de Validade</label>
-                  <input type="date" value={form.expiry} onChange={e => setForm(f => ({ ...f, expiry: e.target.value }))} />
-                </div>
-              </div>
-              <div className="inv-modal-actions">
-                <button type="button" className="inv-btn-cancel" onClick={() => setShowModal(false)}>Cancelar</button>
-                <button type="submit" className="inv-btn-save" disabled={saving}>
-                  {saving ? 'Salvando...' : 'Adicionar Insumo'}
-                </button>
-              </div>
-            </form>
+      <Modal
+        isOpen={showModal}
+        onClose={() => setShowModal(false)}
+        title="Novo Insumo"
+        footer={
+          <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
+            <Button variant="secondary" onClick={() => setShowModal(false)}>Cancelar</Button>
+            <Button onClick={handleSubmit} disabled={saving}>
+              {saving ? 'Salvando...' : 'Adicionar Insumo'}
+            </Button>
           </div>
-        </div>
-      )}
+        }
+      >
+        <form onSubmit={handleSubmit} className="inv-modal-form">
+          <div className="inv-form-row">
+            <div className="inv-form-group">
+              <label>Nome do Insumo *</label>
+              <input required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))} placeholder="Ex: Pão Brioche" />
+            </div>
+            <div className="inv-form-group">
+              <label>Categoria *</label>
+              <input required value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="Ex: Pães" />
+            </div>
+          </div>
+          <div className="inv-form-row">
+            <div className="inv-form-group">
+              <label>Unidade *</label>
+              <select value={form.unit} onChange={e => setForm(f => ({ ...f, unit: e.target.value }))}>
+                <option value="un">un (unidade)</option>
+                <option value="kg">kg</option>
+                <option value="L">L (litro)</option>
+                <option value="g">g (grama)</option>
+                <option value="ml">ml</option>
+              </select>
+            </div>
+            <div className="inv-form-group">
+              <label>Fornecedor</label>
+              <input value={form.supplier} onChange={e => setForm(f => ({ ...f, supplier: e.target.value }))} placeholder="Ex: Padaria Artesanal" />
+            </div>
+          </div>
+          <div className="inv-form-row">
+            <div className="inv-form-group">
+              <label>Qtd. Atual *</label>
+              <input type="number" min="0" required value={form.qty} onChange={e => setForm(f => ({ ...f, qty: e.target.value }))} />
+            </div>
+            <div className="inv-form-group">
+              <label>Qtd. Mínima *</label>
+              <input type="number" min="0" required value={form.minQty} onChange={e => setForm(f => ({ ...f, minQty: e.target.value }))} />
+            </div>
+            <div className="inv-form-group">
+              <label>Custo Unit. (R$)</label>
+              <input type="number" min="0" step="0.01" value={form.cost} onChange={e => setForm(f => ({ ...f, cost: e.target.value }))} />
+            </div>
+          </div>
+          <div className="inv-form-row">
+            <div className="inv-form-group">
+              <label>Data de Validade</label>
+              <input type="date" value={form.expiry} onChange={e => setForm(f => ({ ...f, expiry: e.target.value }))} />
+            </div>
+          </div>
+        </form>
+      </Modal>
     </div>
   );
 }

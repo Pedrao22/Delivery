@@ -27,12 +27,17 @@ export default function CouponsPage() {
 
   return (
     <div className="page-container" style={{ padding: 'var(--space-6)' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-6)' }}>
-        <div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+        <div style={{ flex: 1 }}>
           <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800 }}>Cupons de Desconto</h2>
-          <p style={{ color: 'var(--text-tertiary)' }}>Crie códigos promocionais para seus clientes</p>
+          <p style={{ color: 'var(--text-tertiary)', marginTop: 2 }}>Crie códigos promocionais para seus clientes</p>
         </div>
-        <Button onClick={() => { setFormData({ code: '', type: 'percentage', value: '', minOrder: '' }); setEditingCoupon(null); setIsModalOpen(true); }} icon={<Plus size={18} />}>
+        <Button
+          size="sm"
+          onClick={() => { setFormData({ code: '', type: 'percentage', value: '', minOrder: '' }); setEditingCoupon(null); setIsModalOpen(true); }}
+          icon={<Plus size={14} />}
+          style={{ flexShrink: 0 }}
+        >
           Novo Cupom
         </Button>
       </div>

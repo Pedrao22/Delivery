@@ -2,8 +2,6 @@
 .menu-mgmt-container {
   padding: 40px;
   animation: fadeIn 0.4s ease-out;
-  background-color: var(--bg-main);
-  min-height: 100vh;
 }
 
 .menu-header {

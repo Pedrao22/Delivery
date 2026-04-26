@@ -25,22 +25,34 @@ export default function LoyaltyPage() {
 
   return (
     <div className="page-container" style={{ padding: 'var(--space-6)' }}>
-      <div className="dashboard-stats" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'var(--accent-lighter)', color: 'var(--accent)' }}><Star size={20} /></div>
-          <div className="stat-value">1.428</div>
-          <div className="stat-label">Clientes Ativos</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'var(--success-light)', color: 'var(--success-dark)' }}><TrendingUp size={20} /></div>
-          <div className="stat-value">124k</div>
-          <div className="stat-label">Pontos Distribuidos</div>
-        </div>
-        <div className="stat-card">
-          <div className="stat-icon" style={{ background: 'var(--warning-light)', color: 'var(--warning-dark)' }}><Gift size={20} /></div>
-          <div className="stat-value">84</div>
-          <div className="stat-label">Prêmios Resgatados</div>
-        </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
+        {[
+          { icon: <Star size={20} />, value: '1.428', label: 'Clientes Ativos',     bg: 'var(--accent-lighter)',  color: 'var(--accent-dark)' },
+          { icon: <TrendingUp size={20} />, value: '124k',  label: 'Pontos Distribuídos', bg: 'var(--success-light)', color: 'var(--success-dark)' },
+          { icon: <Gift size={20} />, value: '84',    label: 'Prêmios Resgatados',  bg: 'var(--warning-light)', color: 'var(--warning-dark)' },
+        ].map((s, i) => (
+          <div key={i} style={{
+            background: 'var(--surface)',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid var(--border-light)',
+            padding: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '16px',
+            boxShadow: 'var(--shadow-xs)',
+          }}>
+            <div style={{
+              width: 44, height: 44, borderRadius: 12,
+              background: s.bg, color: s.color,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              flexShrink: 0,
+            }}>{s.icon}</div>
+            <div>
+              <div style={{ fontSize: '1.5rem', fontWeight: 900, lineHeight: 1.1, color: 'var(--text-primary)' }}>{s.value}</div>
+              <div style={{ fontSize: '0.75rem', fontWeight: 700, color: 'var(--text-tertiary)', textTransform: 'uppercase', letterSpacing: '0.05em', marginTop: 2 }}>{s.label}</div>
+            </div>
+          </div>
+        ))}
       </div>
 
       <div className="loyalty-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: 'var(--space-6)' }}>

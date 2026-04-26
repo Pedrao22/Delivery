@@ -5,11 +5,25 @@
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Pedi&Recebe — A solução definitiva para gestão de delivery e restaurantes." />
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <meta name="theme-color" content="#FFC400" />
     <title>Pedi&amp;Recebe | Gestão Operacional de Elite</title>
+    <!-- Inline script: if a JS/CSS chunk fails to load (stale cache after deploy),
+         force a hard reload with cache-busting once. Runs before main bundle. -->
+    <script>
+      window.addEventListener('error', function(e) {
+        var t = e && e.target;
+        if (t && (t.tagName === 'SCRIPT' || t.tagName === 'LINK') && !sessionStorage.getItem('_cr')) {
+          sessionStorage.setItem('_cr', '1');
+          location.replace(location.pathname + '?_=' + Date.now());
+        }
+      }, true);
+    </script>
   </head>
   <body>
     <div id="root"></div>

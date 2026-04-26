@@ -1,11 +1,14 @@
 import React, { useState } from 'react';
-import { 
-  Building2, CreditCard, Palette, Clock, 
+import {
+  Building2, CreditCard, Palette, Clock,
   Save, Globe, Phone, MapPin, Check,
   Camera, Briefcase, Bell, QrCode, Wallet, Info,
-  Sparkles, ShieldCheck, Zap, DollarSign
+  Sparkles, ShieldCheck, Zap, DollarSign,
+  Lock, Eye, EyeOff, KeyRound
 } from 'lucide-react';
 import { useOrdersContext } from '../context/OrdersContext';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 import Button from '../components/shared/Button';
 import './SettingsPage.css';
 
@@ -14,13 +17,22 @@ const tabs = [
   { id: 'payments', label: 'Pagamentos', icon: CreditCard },
   { id: 'branding', label: 'Identidade Visual', icon: Palette },
   { id: 'ops', label: 'Operacional', icon: Clock },
+  { id: 'security', label: 'Segurança', icon: Lock },
 ];
 
 export default function SettingsPage() {
   const { restaurantSettings, updateSettings } = useOrdersContext();
+  const { profile } = useAuth();
   const [activeTab, setActiveTab] = useState('general');
   const [formData, setFormData] = useState(restaurantSettings);
   const [saveStatus, setSaveStatus] = useState(null);
+
+  // Password change state
+  const [pwForm, setPwForm] = useState({ newPassword: '', confirmPassword: '' });
+  const [pwStatus, setPwStatus] = useState(null); // null | 'loading' | 'success' | 'error'
+  const [pwError, setPwError] = useState('');
+  const [showNew, setShowNew] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   // Sync locally when settings change in context
   React.useEffect(() => {
@@ -36,6 +48,30 @@ export default function SettingsPage() {
     } catch (err) {
       setSaveStatus('error');
       setTimeout(() => setSaveStatus(null), 3000);
+    }
+  };
+
+  const handlePasswordChange = async () => {
+    setPwError('');
+    if (pwForm.newPassword.length < 6) {
+      setPwError('A senha deve ter pelo menos 6 caracteres.');
+      return;
+    }
+    if (pwForm.newPassword !== pwForm.confirmPassword) {
+      setPwError('As senhas não coincidem.');
+      return;
+    }
+    setPwStatus('loading');
+    try {
+      const { error } = await supabase.auth.updateUser({ password: pwForm.newPassword });
+      if (error) throw error;
+      setPwStatus('success');
+      setPwForm({ newPassword: '', confirmPassword: '' });
+      setTimeout(() => setPwStatus(null), 4000);
+    } catch (err) {
+      setPwError(err.message || 'Erro ao alterar senha.');
+      setPwStatus('error');
+      setTimeout(() => setPwStatus(null), 4000);
     }
   };
 
@@ -303,6 +339,110 @@ export default function SettingsPage() {
               <div style={{ marginTop: 'var(--space-8)', padding: 'var(--space-4)', borderRadius: 'var(--radius-lg)', background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', display: 'flex', alignItems: 'center', gap: 'var(--space-3)' }}>
                 <ShieldCheck size={20} color="var(--success)" />
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>As alterações de status são aplicadas instantaneamente em todos os canais de venda.</span>
+              </div>
+            </div>
+          )}
+          {activeTab === 'security' && (
+            <div style={{ animation: 'fadeIn 0.3s ease' }}>
+              <h3 className="settings-section-title"><Lock size={20} /> Segurança da Conta</h3>
+
+              <div style={{ marginBottom: 'var(--space-6)', padding: 'var(--space-4)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-lg)', border: '1px solid var(--border-light)' }}>
+                <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)' }}>
+                  Conta: <strong>{profile?.email || '—'}</strong>
+                </p>
+              </div>
+
+              <h4 style={{ fontWeight: 700, marginBottom: 'var(--space-4)', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <KeyRound size={18} color="var(--accent)" /> Alterar Senha
+              </h4>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)', maxWidth: '420px' }}>
+                <div className="settings-form-group">
+                  <label>Nova Senha</label>
+                  <div className="settings-input-wrapper" style={{ position: 'relative' }}>
+                    <Lock size={18} className="settings-input-icon" />
+                    <input
+                      type={showNew ? 'text' : 'password'}
+                      className="settings-input"
+                      placeholder="Mínimo 6 caracteres"
+                      value={pwForm.newPassword}
+                      onChange={e => setPwForm(p => ({ ...p, newPassword: e.target.value }))}
+                      style={{ paddingRight: '44px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNew(v => !v)}
+                      style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', display: 'flex' }}
+                    >
+                      {showNew ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="settings-form-group">
+                  <label>Confirmar Nova Senha</label>
+                  <div className="settings-input-wrapper" style={{ position: 'relative' }}>
+                    <Lock size={18} className="settings-input-icon" />
+                    <input
+                      type={showConfirm ? 'text' : 'password'}
+                      className="settings-input"
+                      placeholder="Repita a nova senha"
+                      value={pwForm.confirmPassword}
+                      onChange={e => setPwForm(p => ({ ...p, confirmPassword: e.target.value }))}
+                      style={{ paddingRight: '44px' }}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirm(v => !v)}
+                      style={{ position: 'absolute', right: '14px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', display: 'flex' }}
+                    >
+                      {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+
+                {pwError && (
+                  <p style={{ fontSize: '0.85rem', color: 'var(--danger)', fontWeight: 600 }}>{pwError}</p>
+                )}
+
+                {pwStatus === 'success' && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--success)', fontWeight: 700, fontSize: '0.9rem' }}>
+                    <Check size={18} /> Senha alterada com sucesso!
+                  </div>
+                )}
+
+                <button
+                  onClick={handlePasswordChange}
+                  disabled={pwStatus === 'loading' || !pwForm.newPassword}
+                  style={{
+                    padding: '14px 28px',
+                    background: pwStatus === 'success' ? 'var(--success)' : 'var(--accent)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 'var(--radius-lg)',
+                    fontWeight: 800,
+                    fontSize: '0.95rem',
+                    cursor: pwStatus === 'loading' ? 'wait' : 'pointer',
+                    opacity: (!pwForm.newPassword || pwStatus === 'loading') ? 0.6 : 1,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s',
+                    boxShadow: 'var(--shadow-md)',
+                    alignSelf: 'flex-start',
+                  }}
+                >
+                  {pwStatus === 'loading' ? (
+                    <>
+                      <span style={{ width: '16px', height: '16px', border: '2px solid rgba(255,255,255,0.4)', borderTopColor: 'white', borderRadius: '50%', animation: 'spin 0.7s linear infinite', display: 'inline-block' }} />
+                      Salvando...
+                    </>
+                  ) : pwStatus === 'success' ? (
+                    <><Check size={18} /> Salvo!</>
+                  ) : (
+                    <><Lock size={18} /> Alterar Senha</>
+                  )}
+                </button>
               </div>
             </div>
           )}
