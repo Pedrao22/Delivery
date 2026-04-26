@@ -41,6 +41,7 @@ export const AuthProvider = ({ children }) => {
   const [restaurant, setRestaurant] = useState(null);
   const [loading, setLoading] = useState(true);
   const [impersonatedId, setImpersonatedId] = useState(null);
+  const [maintenance, setMaintenance] = useState(false);
 
   const getFullProfile = async (authUser) => {
     // Race the API call against a hard timeout so the app never blocks forever.
@@ -54,6 +55,7 @@ export const AuthProvider = ({ children }) => {
       if (result.success) {
         setUser(authUser);
         setProfile(result.data);
+        setMaintenance(!!result.data.maintenanceMode);
         if (result.data.restaurantes) {
           setRestaurant(result.data.restaurantes);
         }
@@ -99,6 +101,7 @@ export const AuthProvider = ({ children }) => {
         setProfile(null);
         setRestaurant(null);
         setImpersonatedId(null);
+        setMaintenance(false);
         localStorage.removeItem('pedirecebe_impersonate_id');
       }
 
@@ -150,6 +153,7 @@ export const AuthProvider = ({ children }) => {
     impersonatedId,
     impersonate,
     stopImpersonating,
+    maintenance,
     isAdmin: profile?.role === 'admin',
     isSuperAdmin: profile?.role === 'super_admin',
   };
