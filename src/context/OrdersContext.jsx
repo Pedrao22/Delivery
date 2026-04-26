@@ -1,19 +1,15 @@
 import { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { initialOrders } from '../data/orders';
-import { menuCategories as initialCategories, menuItems as initialProducts } from '../data/menuItems';
-import { inventoryItems as initialInventory } from '../data/inventory';
-import { drivers as initialDrivers } from '../data/drivers';
+import { useAuth } from './AuthContext';
 
 const OrdersContext = createContext();
 
-const STORAGE_KEY = 'foodflow_orders';
-
 const DEFAULT_RESTAURANT_SETTINGS = {
-  name: 'Pedi&Recebe',
-  logo: '🍔',
+  name: 'Meu Restaurante',
+  logo: '🍽️',
   primaryColor: '#e74c3c',
   isOpen: true,
-  deliveryTime: '40 a 60 min',
+  deliveryTime: '30 a 45 min',
+  minOrder: 0,
   payments: { pix: true, card: true, cash: true, pix_counter: true },
 };
 
@@ -26,116 +22,65 @@ const DEFAULT_LOYALTY = {
   ],
 };
 
-const DEFAULT_COUPONS = [
-  { id: 1, code: 'BEMVINDO10', type: 'percentage', value: '10', minOrder: '30', active: true },
-  { id: 2, code: 'FRETE0', type: 'shipping', value: '0', minOrder: '50', active: true },
+const DEFAULT_TABLES = [
+  { id: 1, numero: 1, seats: 4, status: 'free' },
+  { id: 2, numero: 2, seats: 2, status: 'free' },
+  { id: 3, numero: 3, seats: 6, status: 'free' },
+  { id: 4, numero: 4, seats: 4, status: 'free' },
+  { id: 5, numero: 5, seats: 6, status: 'free' },
+  { id: 6, numero: 6, seats: 4, status: 'free' },
 ];
 
+function readStorage(key, fallback) {
+  try {
+    const stored = localStorage.getItem(key);
+    if (stored) return JSON.parse(stored);
+  } catch {}
+  return fallback;
+}
+
 export function OrdersProvider({ children }) {
-  const [orders, setOrders] = useState(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    if (saved) {
-      try { return JSON.parse(saved); }
-      catch { return initialOrders; }
-    }
-    return initialOrders;
-  });
+  const { user, profile } = useAuth();
 
-  const [products, setProducts] = useState(() => {
-    try {
-      const saved = localStorage.getItem('foodflow_products');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Validate new format — old cache has 'name', new has 'nome'
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].nome) return parsed;
-      }
-    } catch {}
-    localStorage.removeItem('foodflow_products');
-    return initialProducts;
-  });
+  // Isolate all data by restaurant/user — prevents cross-user data leakage
+  const tenantId = profile?.restaurante_id || user?.id || 'default';
+  const k = (name) => `pedirecebe_${name}_${tenantId}`;
 
-  const [categories, setCategories] = useState(() => {
-    try {
-      const saved = localStorage.getItem('foodflow_categories');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Validate new format — old cache has 'name', new has 'nome'
-        if (Array.isArray(parsed) && parsed.length > 0 && parsed[0].nome) return parsed;
-      }
-    } catch {}
-    localStorage.removeItem('foodflow_categories');
-    return initialCategories;
-  });
+  const [orders, setOrders]                   = useState(() => readStorage(k('orders'), []));
+  const [products, setProducts]               = useState(() => readStorage(k('products'), []));
+  const [categories, setCategories]           = useState(() => readStorage(k('categories'), []));
+  const [inventory, setInventory]             = useState(() => readStorage(k('inventory'), []));
+  const [tables, setTables]                   = useState(() => readStorage(k('tables'), DEFAULT_TABLES));
+  const [leads, setLeads]                     = useState(() => readStorage(k('leads'), []));
+  const [drivers, setDrivers]                 = useState(() => readStorage(k('drivers'), []));
+  const [coupons, setCoupons]                 = useState(() => readStorage(k('coupons'), []));
+  const [loyaltySettings, setLoyaltySettings] = useState(() => readStorage(k('loyalty'), DEFAULT_LOYALTY));
+  const [restaurantSettings, setRestaurantSettings] = useState(() =>
+    readStorage(k('settings'), DEFAULT_RESTAURANT_SETTINGS)
+  );
 
-  const [inventory, setInventory] = useState(() => {
-    const saved = localStorage.getItem('foodflow_inventory');
-    return saved ? JSON.parse(saved) : initialInventory;
-  });
+  // Persist — tenant-scoped keys
+  useEffect(() => { localStorage.setItem(k('orders'),    JSON.stringify(orders));    }, [orders,    tenantId]); // eslint-disable-line
+  useEffect(() => { localStorage.setItem(k('products'),  JSON.stringify(products));  }, [products,  tenantId]); // eslint-disable-line
+  useEffect(() => { localStorage.setItem(k('categories'),JSON.stringify(categories));}, [categories,tenantId]); // eslint-disable-line
+  useEffect(() => { localStorage.setItem(k('inventory'), JSON.stringify(inventory)); }, [inventory, tenantId]); // eslint-disable-line
+  useEffect(() => { localStorage.setItem(k('tables'),    JSON.stringify(tables));    }, [tables,    tenantId]); // eslint-disable-line
+  useEffect(() => { localStorage.setItem(k('leads'),     JSON.stringify(leads));     }, [leads,     tenantId]); // eslint-disable-line
+  useEffect(() => { localStorage.setItem(k('drivers'),   JSON.stringify(drivers));   }, [drivers,   tenantId]); // eslint-disable-line
+  useEffect(() => { localStorage.setItem(k('coupons'),   JSON.stringify(coupons));   }, [coupons,   tenantId]); // eslint-disable-line
+  useEffect(() => { localStorage.setItem(k('loyalty'),   JSON.stringify(loyaltySettings)); }, [loyaltySettings, tenantId]); // eslint-disable-line
+  useEffect(() => { localStorage.setItem(k('settings'),  JSON.stringify(restaurantSettings)); }, [restaurantSettings, tenantId]); // eslint-disable-line
 
-  const [tables, setTables] = useState(() => {
-    const saved = localStorage.getItem('foodflow_tables');
-    return saved ? JSON.parse(saved) : [
-      { id: 1, numero: 1, seats: 4, status: 'free' },
-      { id: 2, numero: 2, seats: 2, status: 'free' },
-      { id: 3, numero: 3, seats: 6, status: 'free' },
-      { id: 4, numero: 4, seats: 4, status: 'free' },
-      { id: 5, numero: 5, seats: 6, status: 'free' },
-      { id: 6, numero: 6, seats: 4, status: 'free' },
-    ];
-  });
-
-  const [leads, setLeads] = useState(() => {
-    const saved = localStorage.getItem('foodflow_leads');
-    return saved ? JSON.parse(saved) : [];
-  });
-
-  const [restaurantSettings, setRestaurantSettings] = useState(() => {
-    try {
-      const saved = localStorage.getItem('foodflow_settings');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        // Discard cache with old brand name
-        if (parsed.name && parsed.name !== 'FoodFlow' && parsed.name !== 'Admin Silva') return parsed;
-      }
-    } catch {}
-    localStorage.removeItem('foodflow_settings');
-    return DEFAULT_RESTAURANT_SETTINGS;
-  });
-
-  const [loyaltySettings, setLoyaltySettings] = useState(() => {
-    const saved = localStorage.getItem('foodflow_loyalty');
-    return saved ? JSON.parse(saved) : DEFAULT_LOYALTY;
-  });
-
-  const [coupons, setCoupons] = useState(() => {
-    const saved = localStorage.getItem('foodflow_coupons');
-    return saved ? JSON.parse(saved) : DEFAULT_COUPONS;
-  });
-
-  const [drivers, setDrivers] = useState(() => {
-    const saved = localStorage.getItem('foodflow_drivers');
-    return saved ? JSON.parse(saved) : initialDrivers;
-  });
-
-  // Persist all state
-  useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify(orders)); }, [orders]);
-  useEffect(() => { localStorage.setItem('foodflow_products', JSON.stringify(products)); }, [products]);
-  useEffect(() => { localStorage.setItem('foodflow_categories', JSON.stringify(categories)); }, [categories]);
-  useEffect(() => { localStorage.setItem('foodflow_inventory', JSON.stringify(inventory)); }, [inventory]);
-  useEffect(() => { localStorage.setItem('foodflow_tables', JSON.stringify(tables)); }, [tables]);
-  useEffect(() => { localStorage.setItem('foodflow_leads', JSON.stringify(leads)); }, [leads]);
-  useEffect(() => { localStorage.setItem('foodflow_settings', JSON.stringify(restaurantSettings)); }, [restaurantSettings]);
-  useEffect(() => { localStorage.setItem('foodflow_loyalty', JSON.stringify(loyaltySettings)); }, [loyaltySettings]);
-  useEffect(() => { localStorage.setItem('foodflow_coupons', JSON.stringify(coupons)); }, [coupons]);
-  useEffect(() => { localStorage.setItem('foodflow_drivers', JSON.stringify(drivers)); }, [drivers]);
-
+  // Cross-tab sync for orders
   useEffect(() => {
-    const handleStorageChange = (e) => {
-      if (e.key === STORAGE_KEY && e.newValue) setOrders(JSON.parse(e.newValue));
+    const onStorage = (e) => {
+      if (e.key === k('orders') && e.newValue) {
+        try { setOrders(JSON.parse(e.newValue)); } catch {}
+      }
     };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, [tenantId]); // eslint-disable-line
 
   // Orders
   const moveOrder = useCallback((orderId, newStatus) => {
@@ -186,8 +131,8 @@ export function OrdersProvider({ children }) {
     }));
   }, []);
 
-  // Products — updateProduct accepts (id, data) OR (item) signature
-  const addProduct = useCallback((data) => setProducts(prev => [...prev, { ...data, id: Date.now(), ativo: true }]), []);
+  // Products
+  const addProduct    = useCallback((data) => setProducts(prev => [...prev, { ...data, id: Date.now(), ativo: true }]), []);
   const updateProduct = useCallback((idOrItem, data) => {
     if (data !== undefined) {
       setProducts(prev => prev.map(x => x.id === idOrItem ? { ...x, ...data } : x));
@@ -197,8 +142,8 @@ export function OrdersProvider({ children }) {
   }, []);
   const deleteProduct = useCallback((id) => setProducts(prev => prev.filter(x => x.id !== id)), []);
 
-  // Categories — updateCategory accepts (id, data) OR (item) signature
-  const addCategory = useCallback((c) => setCategories(prev => [...prev, { ...c, id: c.id || Date.now() }]), []);
+  // Categories
+  const addCategory    = useCallback((c) => setCategories(prev => [...prev, { ...c, id: c.id || Date.now() }]), []);
   const updateCategory = useCallback((idOrItem, data) => {
     if (data !== undefined) {
       setCategories(prev => prev.map(x => x.id === idOrItem ? { ...x, ...data } : x));
@@ -209,20 +154,20 @@ export function OrdersProvider({ children }) {
   const deleteCategory = useCallback((id) => setCategories(prev => prev.filter(x => x.id !== id)), []);
 
   // Drivers
-  const addDriver = useCallback((d) => setDrivers(prev => [...prev, { ...d, id: Date.now() }]), []);
+  const addDriver    = useCallback((d) => setDrivers(prev => [...prev, { ...d, id: Date.now() }]), []);
   const removeDriver = useCallback((id) => setDrivers(prev => prev.filter(d => d.id !== id)), []);
 
   // Inventory
-  const addInventoryItem = useCallback((item) => setInventory(prev => [...prev, { ...item, id: Date.now() }]), []);
+  const addInventoryItem    = useCallback((item) => setInventory(prev => [...prev, { ...item, id: Date.now() }]), []);
   const updateInventoryItem = useCallback((item) => setInventory(prev => prev.map(i => i.id === item.id ? item : i)), []);
   const deleteInventoryItem = useCallback((id) => setInventory(prev => prev.filter(i => i.id !== id)), []);
 
   // Tables
-  const addTable = useCallback((t) => setTables(prev => [...prev, { ...t, id: Date.now() }]), []);
+  const addTable    = useCallback((t) => setTables(prev => [...prev, { ...t, id: Date.now() }]), []);
   const updateTable = useCallback((id, data) => setTables(prev => prev.map(t => t.id === id ? { ...t, ...data } : t)), []);
   const deleteTable = useCallback((id) => setTables(prev => prev.filter(t => t.id !== id)), []);
 
-  // Leads / Chat
+  // Leads
   const addLeadMessage = useCallback((leadId, text, sender = 'admin') => {
     setLeads(prev => prev.map(l => {
       if (l.id !== leadId) return l;
@@ -235,9 +180,13 @@ export function OrdersProvider({ children }) {
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, unread: false } : l));
   }, []);
 
-  // Restaurant Settings
+  // Settings
   const updateSettings = useCallback((data) => {
-    setRestaurantSettings(prev => ({ ...prev, ...data, payments: data.payments || prev.payments }));
+    setRestaurantSettings(prev => ({
+      ...prev,
+      ...data,
+      payments: data.payments || prev.payments,
+    }));
   }, []);
 
   const value = {

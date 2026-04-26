@@ -16,8 +16,9 @@ import SettingsPage from './pages/SettingsPage';
 import LoyaltyPage from './pages/LoyaltyPage';
 import CouponsPage from './pages/CouponsPage';
 import LoginPage from './pages/LoginPage';
+import OnboardingPage from './pages/OnboardingPage';
 import { OrdersProvider, useOrdersContext } from './context/OrdersContext';
-import { AuthProvider } from './context/AuthContext';
+import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/shared/ProtectedRoute';
 import { useTheme } from './hooks/useTheme';
 import './App.css';
@@ -35,9 +36,25 @@ function PageWrapper({ title, subtitle, onMenuToggle, children }) {
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { analyzing } = useOrdersContext();
+  const { analyzing, updateSettings } = useOrdersContext();
   const { toggleTheme, isDark } = useTheme();
   const [toast, setToast] = useState(null);
+  const { user, profile } = useAuth();
+
+  // Onboarding — check per-user flag so each new tenant goes through the wizard
+  const tenantId = profile?.restaurante_id || user?.id || 'default';
+  const obKey = `pedirecebe_onboarding_${tenantId}`;
+  const [onboardingDone, setOnboardingDone] = useState(() => !!localStorage.getItem(obKey));
+
+  const handleOnboardingComplete = (settings) => {
+    updateSettings(settings);
+    localStorage.setItem(obKey, '1');
+    setOnboardingDone(true);
+  };
+
+  if (!onboardingDone) {
+    return <OnboardingPage onComplete={handleOnboardingComplete} />;
+  }
 
   const toggleSidebar = () => setSidebarOpen(prev => !prev);
 
