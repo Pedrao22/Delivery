@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
 import OrdersPage from './pages/OrdersPage';
@@ -18,6 +18,14 @@ import CouponsPage from './pages/CouponsPage';
 import LoginPage from './pages/LoginPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import OnboardingPage from './pages/OnboardingPage';
+import SuperLoginPage from './pages/super/SuperLoginPage';
+import SuperAdminLayout from './pages/super/SuperAdminLayout';
+import SuperDashboard from './pages/super/SuperDashboard';
+import RestaurantsManagement from './pages/super/RestaurantsManagement';
+import PlansManager from './pages/super/PlansManager';
+import AuditHistory from './pages/super/AuditHistory';
+import GlobalSettings from './pages/super/GlobalSettings';
+import SuperPasswordReset from './pages/super/SuperPasswordReset';
 import { OrdersProvider, useOrdersContext } from './context/OrdersContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/shared/ProtectedRoute';
@@ -139,10 +147,19 @@ function AppContent() {
   );
 }
 
+function SuperProtectedRoute({ children }) {
+  const { user, profile, loading } = useAuth();
+  if (loading) return null;
+  if (!user) return <Navigate to="/super/login" replace />;
+  if (profile && profile.role !== 'super_admin') return <Navigate to="/super/login" replace />;
+  return children;
+}
+
 function App() {
   return (
     <AuthProvider>
       <Routes>
+        {/* Public */}
         <Route path="/login" element={<LoginPage />} />
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/cliente" element={
@@ -150,6 +167,23 @@ function App() {
             <CustomerView />
           </OrdersProvider>
         } />
+
+        {/* Super Admin */}
+        <Route path="/super/login" element={<SuperLoginPage />} />
+        <Route path="/super/password-reset" element={<SuperPasswordReset />} />
+        <Route path="/super" element={
+          <SuperProtectedRoute>
+            <SuperAdminLayout />
+          </SuperProtectedRoute>
+        }>
+          <Route index element={<SuperDashboard />} />
+          <Route path="restaurantes" element={<RestaurantsManagement />} />
+          <Route path="planos" element={<PlansManager />} />
+          <Route path="audit" element={<AuditHistory />} />
+          <Route path="config" element={<GlobalSettings />} />
+        </Route>
+
+        {/* App principal */}
         <Route path="*" element={
           <ProtectedRoute>
             <OrdersProvider>
