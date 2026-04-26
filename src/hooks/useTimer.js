@@ -17,8 +17,8 @@ export function useTimer(createdAt) {
   }, [createdAt]);
 
   const getColor = () => {
-    if (elapsed <= 10) return 'var(--success)';
-    if (elapsed <= 20) return 'var(--warning)';
+    if (elapsed <= 15) return 'var(--success)';
+    if (elapsed <= 30) return 'var(--warning)';
     return 'var(--danger)';
   };
 
@@ -27,8 +27,10 @@ export function useTimer(createdAt) {
     if (elapsed < 60) return `${elapsed} min`;
     const hours = Math.floor(elapsed / 60);
     const mins = elapsed % 60;
-    return `${hours}h${mins > 0 ? ` ${mins}m` : ''}`;
+    return `${hours}h ${mins > 0 ? `${mins}m` : ''}`;
   };
 
-  return { elapsed, color: getColor(), label: getLabel() };
+  const isUrgent = elapsed > 30;
+
+  return { elapsed, color: getColor(), label: getLabel(), isUrgent };
 }

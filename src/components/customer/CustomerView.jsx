@@ -248,61 +248,62 @@ export default function CustomerView() {
   // 3. Menu Step
   return (
     <div className="customer-wrapper menu-step">
-      {/* Dynamic Header */}
-      <header className="menu-header" style={{ borderTop: `4px solid ${primaryColor}` }}>
-        <div className="header-top">
-          <div className="brand-box">
-             <div className="brand-logo">{restaurantSettings.logo}</div>
-             <div className="brand-meta">
-               <h1>{brandName}</h1>
-               <div className="brand-status">
-                 {restaurantSettings.isOpen ? (
-                   <span className="status-tag open">Aberto</span>
-                 ) : (
-                   <span className="status-tag closed">Fechado</span>
-                 )}
-                 <span className="status-info"><Clock size={12} /> {restaurantSettings.deliveryTime}</span>
-               </div>
-             </div>
+      {/* Sticky Header */}
+      <header className="menu-header" style={{ borderTop: `3px solid ${primaryColor}` }}>
+        <div className="menu-header-inner">
+          <div className="header-top">
+            <div className="brand-box">
+              <div className="brand-logo">{restaurantSettings.logo || '🍽️'}</div>
+              <div className="brand-meta">
+                <h1>{brandName}</h1>
+                <div className="brand-status">
+                  {restaurantSettings.isOpen ? (
+                    <span className="status-tag open">Aberto</span>
+                  ) : (
+                    <span className="status-tag closed">Fechado</span>
+                  )}
+                  <span className="status-info"><Clock size={12} /> {restaurantSettings.deliveryTime}</span>
+                </div>
+              </div>
+            </div>
+            <button className="user-points">
+              <div className="points-label">Meus Pontos</div>
+              <div className="points-val">★ {customer?.points || 0}</div>
+            </button>
           </div>
-          <button className="user-points">
-            <div className="points-label">Meus Pontos</div>
-            <div className="points-val">★ {customer?.points || 0}</div>
-          </button>
+
+          <div className="search-bar" style={{ '--focus-color': primaryColor }}>
+            <Search size={17} />
+            <input
+              type="text"
+              placeholder="O que você quer comer hoje?"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
         </div>
 
-        {/* Floating Search */}
-        <div className="search-bar">
-          <Search size={18} />
-          <input 
-            type="text" 
-            placeholder="O que você quer comer hoje?" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </header>
-
-      {/* Sticky Categories */}
-      <nav className="categories-nav sticky">
-        <button 
-          className={`cat-pill ${activeCategory === 'all' ? 'active' : ''}`}
-          onClick={() => setActiveCategory('all')}
-          style={activeCategory === 'all' ? { backgroundColor: primaryColor } : {}}
-        >
-          Todos
-        </button>
-        {displayCategories.map(cat => (
+        {/* Categories — inside header so they stick together */}
+        <nav className="categories-nav">
           <button
-            key={cat.id}
-            className={`cat-pill ${activeCategory === cat.id ? 'active' : ''}`}
-            onClick={() => setActiveCategory(cat.id)}
-            style={activeCategory === cat.id ? { backgroundColor: primaryColor } : {}}
+            className={`cat-pill ${activeCategory === 'all' ? 'active' : ''}`}
+            onClick={() => setActiveCategory('all')}
+            style={activeCategory === 'all' ? { backgroundColor: primaryColor } : {}}
           >
-            {cat.icone} {cat.nome}
+            Todos
           </button>
-        ))}
-      </nav>
+          {displayCategories.map(cat => (
+            <button
+              key={cat.id}
+              className={`cat-pill ${activeCategory === cat.id ? 'active' : ''}`}
+              onClick={() => setActiveCategory(cat.id)}
+              style={activeCategory === cat.id ? { backgroundColor: primaryColor } : {}}
+            >
+              {cat.icone} {cat.nome}
+            </button>
+          ))}
+        </nav>
+      </header>
 
       <main className="menu-inner">
         {/* Bestsellers Section */}

@@ -1,74 +1,64 @@
-import { useState } from 'react';
-import { DollarSign, ShoppingBag, TrendingUp, Clock, ArrowUpRight, ArrowDownRight, Star, Flame, Users, Zap } from 'lucide-react';
+import { useState, useMemo } from 'react';
+import { 
+  DollarSign, ShoppingBag, TrendingUp, Clock, 
+  ArrowUpRight, ArrowDownRight, Star, Flame, Users, Zap,
+  BarChart3, PieChart, Info, CreditCard
+} from 'lucide-react';
+import { useOrdersContext } from '../../context/OrdersContext';
 import FilterTabs from '../shared/FilterTabs';
 import './DashboardPage.css';
 
 const periodTabs = [
+  { value: '1', label: 'Hoje' },
   { value: '7', label: '7 dias' },
-  { value: '15', label: '15 dias' },
   { value: '30', label: '30 dias' },
 ];
 
-const chartData = {
-  '7': [
-    { label: 'Seg', value: 1820 },
-    { label: 'Ter', value: 2540 },
-    { label: 'Qua', value: 1950 },
-    { label: 'Qui', value: 2850 },
-    { label: 'Sex', value: 3420 },
-    { label: 'Sáb', value: 4100 },
-    { label: 'Dom', value: 3680 },
-  ],
-  '15': [
-    { label: 'S1', value: 8200 },
-    { label: 'S2', value: 9400 },
-    { label: 'S3', value: 7800 },
-    { label: 'S4', value: 10200 },
-  ],
-  '30': [
-    { label: 'Sem 1', value: 15400 },
-    { label: 'Sem 2', value: 18200 },
-    { label: 'Sem 3', value: 16800 },
-    { label: 'Sem 4', value: 21500 },
-  ],
-};
-
-const kpis = {
-  '7': { revenue: 20360, orders: 187, ticket: 108.88, pending: 12, avgTime: 18, satisfaction: 4.8, returning: 72 },
-  '15': { revenue: 38600, orders: 342, ticket: 112.87, pending: 18, avgTime: 17, satisfaction: 4.7, returning: 68 },
-  '30': { revenue: 71900, orders: 658, ticket: 109.27, pending: 25, avgTime: 19, satisfaction: 4.8, returning: 74 },
-};
-
-const topProducts = [
-  { name: 'Smash Burger Clássico', orders: 87, revenue: 2862, trend: '+15%' },
-  { name: 'Pepperoni Premium', orders: 64, revenue: 3129, trend: '+22%' },
-  { name: 'Burger BBQ Supremo', orders: 52, revenue: 2022, trend: '+8%' },
-  { name: 'Batata Frita Crocante', orders: 48, revenue: 811, trend: '+5%' },
-  { name: 'Brownie com Sorvete', orders: 41, revenue: 938, trend: '+12%' },
-];
-
-const typeDistribution = [
-  { label: 'Delivery', value: 52, color: 'var(--info)', icon: '🛵' },
-  { label: 'Retirada', value: 28, color: 'var(--warning)', icon: '🏪' },
-  { label: 'Local', value: 20, color: 'var(--success)', icon: '🍽️' },
-];
-
-const hourlyData = [
-  { hour: '10h', value: 4 }, { hour: '11h', value: 12 },
-  { hour: '12h', value: 28 }, { hour: '13h', value: 22 },
-  { hour: '14h', value: 8 }, { hour: '15h', value: 5 },
-  { hour: '16h', value: 3 }, { hour: '17h', value: 6 },
-  { hour: '18h', value: 18 }, { hour: '19h', value: 32 },
-  { hour: '20h', value: 38 }, { hour: '21h', value: 25 },
-  { hour: '22h', value: 14 }, { hour: '23h', value: 6 },
-];
-
 export default function DashboardPage() {
+  const { orders, getStatsForPeriod } = useOrdersContext();
   const [period, setPeriod] = useState('7');
-  const data = chartData[period];
-  const kpi = kpis[period];
-  const maxValue = Math.max(...data.map(d => d.value));
-  const maxHourly = Math.max(...hourlyData.map(d => d.value));
+
+  const stats = useMemo(() => getStatsForPeriod(period), [getStatsForPeriod, period, orders]);
+
+  // Derived stats from real orders
+  const topProducts = useMemo(() => {
+    const counts = {};
+    orders.forEach(order => {
+      order.items.forEach(item => {
+        counts[item.name] = (counts[item.name] || 0) + item.qty;
+      });
+    });
+    return Object.entries(counts)
+      .map(([name, count]) => ({ name, orders: count, revenue: count * 35 })) // Estimated price for demo
+      .sort((a, b) => b.orders - a.orders)
+      .slice(0, 5);
+  }, [orders]);
+
+  const typeDistribution = useMemo(() => {
+    const counts = { delivery: 0, local: 0, pickup: 0 };
+    orders.forEach(o => counts[o.type]++);
+    const total = orders.length || 1;
+    return [
+      { label: 'Delivery', value: Math.round((counts.delivery / total) * 100), color: 'var(--info)', icon: '🛵' },
+      { label: 'Retirada', value: Math.round((counts.pickup / total) * 100), color: 'var(--warning)', icon: '🏪' },
+      { label: 'Local', value: Math.round((counts.local / total) * 100), color: 'var(--success)', icon: '🍽️' },
+    ];
+  }, [orders]);
+
+  if (orders.length === 0) {
+    return (
+      <div className="dashboard-page empty">
+        <div className="dashboard-empty-state">
+          <BarChart3 size={64} style={{ opacity: 0.1, marginBottom: 20 }} />
+          <h3>Nenhum dado disponível</h3>
+          <p>Você ainda não possui pedidos registrados para gerar estatísticas.</p>
+          <p style={{ fontSize: 'var(--font-xs)', marginTop: 8 }}>Vá para o Caixa (PDV) e crie seu primeiro pedido!</p>
+        </div>
+      </div>
+    );
+  }
+
+  const maxValue = Math.max(...stats.dailyData.map(d => d.value)) || 1;
 
   return (
     <div className="dashboard-page">
@@ -78,7 +68,7 @@ export default function DashboardPage() {
             Meu Desempenho
           </h2>
           <p style={{ fontSize: 'var(--font-sm)', color: 'var(--text-tertiary)' }}>
-            Acompanhe os resultados do seu negócio em tempo real
+            Acompanhe os resultados baseados em {orders.length} pedidos reais
           </p>
         </div>
         <FilterTabs tabs={periodTabs} active={period} onChange={setPeriod} />
@@ -87,26 +77,22 @@ export default function DashboardPage() {
       {/* Hero KPI */}
       <div className="dashboard-hero-kpi animate-fadeInUp">
         <div className="dashboard-hero-left">
-          <div className="dashboard-hero-label">Faturamento Total</div>
-          <div className="dashboard-hero-value">R$ {kpi.revenue.toLocaleString('pt-BR')}</div>
-          <div className="dashboard-hero-change">
-            <ArrowUpRight size={16} /> +12.5% em relação ao período anterior
+          <div className="dashboard-hero-label">Faturamento no Período</div>
+          <div className="dashboard-hero-value">R$ {stats.revenue.toLocaleString('pt-BR')}</div>
+          <div className={`dashboard-hero-change ${stats.growth >= 0 ? 'positive' : 'negative'}`}>
+            {stats.growth >= 0 ? <ArrowUpRight size={16} /> : <ArrowDownRight size={16} />}
+            {Math.abs(stats.growth).toFixed(1)}% em relação ao período anterior
           </div>
         </div>
         <div className="dashboard-hero-right">
           <div className="dashboard-hero-mini">
-            <div className="dashboard-hero-mini-value">{kpi.orders}</div>
+            <div className="dashboard-hero-mini-value">{stats.ordersCount}</div>
             <div className="dashboard-hero-mini-label">Pedidos</div>
           </div>
           <div className="dashboard-hero-mini-divider" />
           <div className="dashboard-hero-mini">
-            <div className="dashboard-hero-mini-value">R$ {kpi.ticket.toFixed(0)}</div>
+            <div className="dashboard-hero-mini-value">R$ {stats.ticket.toFixed(0)}</div>
             <div className="dashboard-hero-mini-label">Ticket Médio</div>
-          </div>
-          <div className="dashboard-hero-mini-divider" />
-          <div className="dashboard-hero-mini">
-            <div className="dashboard-hero-mini-value">{kpi.avgTime}min</div>
-            <div className="dashboard-hero-mini-label">Tempo Médio</div>
           </div>
         </div>
       </div>
@@ -118,9 +104,8 @@ export default function DashboardPage() {
             <ShoppingBag size={22} />
           </div>
           <div className="kpi-content">
-            <div className="kpi-label">Total de Pedidos</div>
-            <div className="kpi-value">{kpi.orders}</div>
-            <div className="kpi-change positive"><ArrowUpRight size={12} /> +8.3%</div>
+            <div className="kpi-label">Volume de Pedidos</div>
+            <div className="kpi-value">{stats.ordersCount}</div>
           </div>
         </div>
         <div className="kpi-card" style={{ animationDelay: '60ms' }}>
@@ -128,29 +113,17 @@ export default function DashboardPage() {
             <TrendingUp size={22} />
           </div>
           <div className="kpi-content">
-            <div className="kpi-label">Ticket Médio</div>
-            <div className="kpi-value">R$ {kpi.ticket.toFixed(2).replace('.', ',')}</div>
-            <div className="kpi-change negative"><ArrowDownRight size={12} /> -2.1%</div>
+            <div className="kpi-label">Ticket Médio Real</div>
+            <div className="kpi-value">R$ {stats.ticket.toFixed(2).replace('.', ',')}</div>
           </div>
         </div>
         <div className="kpi-card" style={{ animationDelay: '120ms' }}>
-          <div className="kpi-icon" style={{ background: 'var(--warning-light)', color: 'var(--warning-dark)' }}>
-            <Star size={22} />
-          </div>
-          <div className="kpi-content">
-            <div className="kpi-label">Satisfação</div>
-            <div className="kpi-value">⭐ {kpi.satisfaction}</div>
-            <div className="kpi-change positive"><ArrowUpRight size={12} /> +0.2</div>
-          </div>
-        </div>
-        <div className="kpi-card" style={{ animationDelay: '180ms' }}>
           <div className="kpi-icon" style={{ background: 'var(--info-light)', color: 'var(--info-dark)' }}>
-            <Users size={22} />
+            <CreditCard size={22} />
           </div>
           <div className="kpi-content">
-            <div className="kpi-label">Clientes Recorrentes</div>
-            <div className="kpi-value">{kpi.returning}%</div>
-            <div className="kpi-change positive"><ArrowUpRight size={12} /> +5%</div>
+            <div className="kpi-label">Maior Canal</div>
+            <div className="kpi-value">{typeDistribution.reduce((a, b) => a.value > b.value ? a : b).label}</div>
           </div>
         </div>
       </div>
@@ -159,13 +132,10 @@ export default function DashboardPage() {
       <div className="dashboard-charts">
         <div className="dashboard-chart-card" style={{ animationDelay: '200ms' }}>
           <div className="dashboard-chart-header">
-            <div className="dashboard-chart-title">Faturamento por Período</div>
-            <div style={{ fontSize: 'var(--font-xs)', color: 'var(--success)', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
-              <ArrowUpRight size={12} /> +12.5%
-            </div>
+            <div className="dashboard-chart-title">Faturamento por Dia</div>
           </div>
           <div className="bar-chart">
-            {data.map((item, i) => (
+            {stats.dailyData.map((item, i) => (
               <div key={i} className="bar-chart-item">
                 <div className="bar-chart-value">
                   {item.value >= 1000 ? `${(item.value / 1000).toFixed(1)}k` : item.value}
@@ -181,111 +151,73 @@ export default function DashboardPage() {
         </div>
 
         <div className="dashboard-chart-card" style={{ animationDelay: '260ms' }}>
-          <div className="dashboard-chart-title">Pedidos por Tipo</div>
+          <div className="dashboard-chart-title">Pagamentos (Mix)</div>
           <div className="donut-chart">
             <div
               className="donut-visual"
               style={{
                 background: `conic-gradient(
-                  var(--info) 0% 52%,
-                  var(--warning) 52% 80%,
-                  var(--success) 80% 100%
+                  #27ae60 0% ${(stats.payments.pix / (stats.revenue || 1)) * 100}%,
+                  #2980b9 ${(stats.payments.pix / (stats.revenue || 1)) * 100}% ${((stats.payments.pix + stats.payments.card) / (stats.revenue || 1)) * 100}%,
+                  #f39c12 ${((stats.payments.pix + stats.payments.card) / (stats.revenue || 1)) * 100}% 100%
                 )`,
               }}
             >
               <div className="donut-center">
-                <div className="donut-center-value">{kpi.orders}</div>
-                <div className="donut-center-label">pedidos</div>
+                <div className="donut-center-valueSmall">R$</div>
+                <div className="donut-center-value">{Math.round(stats.revenue)}</div>
               </div>
             </div>
             <div className="donut-legend">
-              {typeDistribution.map(item => (
-                <div key={item.label} className="donut-legend-item">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                    <div className="donut-legend-color" style={{ background: item.color }} />
-                    <span>{item.icon}</span>
-                    <span className="donut-legend-label">{item.label}</span>
-                  </div>
-                  <span className="donut-legend-value">{item.value}%</span>
+              <div className="donut-legend-item">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div className="donut-legend-color" style={{ background: '#27ae60' }} />
+                  <span className="donut-legend-label">Pix</span>
                 </div>
-              ))}
+                <span className="donut-legend-value">R$ {Math.round(stats.payments.pix)}</span>
+              </div>
+              <div className="donut-legend-item">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div className="donut-legend-color" style={{ background: '#2980b9' }} />
+                  <span className="donut-legend-label">Cartão</span>
+                </div>
+                <span className="donut-legend-value">R$ {Math.round(stats.payments.card)}</span>
+              </div>
+              <div className="donut-legend-item">
+                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  <div className="donut-legend-color" style={{ background: '#f39c12' }} />
+                  <span className="donut-legend-label">Dinheiro</span>
+                </div>
+                <span className="donut-legend-value">R$ {Math.round(stats.payments.cash)}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Second Charts Row: Hourly + Top Products */}
-      <div className="dashboard-charts">
-        <div className="dashboard-chart-card" style={{ animationDelay: '300ms' }}>
-          <div className="dashboard-chart-header">
-            <div className="dashboard-chart-title">Horário de Pico</div>
-            <div style={{ fontSize: 'var(--font-xs)', color: 'var(--text-tertiary)' }}>
-              Pedidos por hora
-            </div>
-          </div>
-          <div className="bar-chart hourly">
-            {hourlyData.map((item, i) => (
-              <div key={i} className="bar-chart-item">
-                <div
-                  className="bar-chart-bar"
-                  style={{
-                    height: `${(item.value / maxHourly) * 100}%`,
-                    background: item.value >= maxHourly * 0.8 ? 'var(--danger)' : item.value >= maxHourly * 0.5 ? 'var(--warning)' : 'var(--accent-gradient)',
-                  }}
-                />
-                <div className="bar-chart-label">{item.hour}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
+      {/* Mais Vendidos */}
+      <div className="dashboard-charts solo">
         <div className="dashboard-chart-card" style={{ animationDelay: '360ms' }}>
           <div className="dashboard-chart-header">
-            <div className="dashboard-chart-title">🔥 Mais Vendidos</div>
+            <div className="dashboard-chart-title">🔥 Itens com Mais Saída</div>
           </div>
           <div className="top-products-list">
-            {topProducts.map((prod, i) => (
+            {topProducts.length > 0 ? topProducts.map((prod, i) => (
               <div key={i} className="top-product-row">
                 <div className="top-product-rank">#{i + 1}</div>
                 <div className="top-product-info">
                   <div className="top-product-name">{prod.name}</div>
-                  <div className="top-product-stats">{prod.orders} pedidos • R$ {prod.revenue.toLocaleString('pt-BR')}</div>
+                  <div className="top-product-stats">{prod.orders} und vendidas</div>
                 </div>
                 <div className="top-product-trend">
-                  <ArrowUpRight size={12} /> {prod.trend}
+                  <TrendingUp size={12} /> Alta
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Quality */}
-      <div className="dashboard-quality" style={{ animationDelay: '400ms' }}>
-        <div className="dashboard-chart-header">
-          <div className="dashboard-chart-title">📋 Qualidade do Cardápio</div>
-          <span style={{ fontSize: 'var(--font-sm)', fontWeight: 600, color: 'var(--success)', background: 'var(--success-light)', padding: '4px 12px', borderRadius: 'var(--radius-full)' }}>87% Otimizado</span>
-        </div>
-        <div className="quality-grid">
-          <div className="quality-item">
-            <div className="quality-value" style={{ color: 'var(--success)' }}>87%</div>
-            <div className="quality-label">Otimização Geral</div>
-            <div className="quality-bar"><div className="quality-bar-fill" style={{ width: '87%', background: 'var(--success)' }} /></div>
-          </div>
-          <div className="quality-item">
-            <div className="quality-value" style={{ color: 'var(--accent)' }}>94%</div>
-            <div className="quality-label">Fotos Cadastradas</div>
-            <div className="quality-bar"><div className="quality-bar-fill" style={{ width: '94%', background: 'var(--accent)' }} /></div>
-          </div>
-          <div className="quality-item">
-            <div className="quality-value" style={{ color: 'var(--info-dark)' }}>78%</div>
-            <div className="quality-label">Descrições Completas</div>
-            <div className="quality-bar"><div className="quality-bar-fill" style={{ width: '78%', background: 'var(--info)' }} /></div>
-          </div>
-          <div className="quality-item">
-            <div className="quality-value" style={{ color: 'var(--warning-dark)' }}>65%</div>
-            <div className="quality-label">Variações Cadastradas</div>
-            <div className="quality-bar"><div className="quality-bar-fill" style={{ width: '65%', background: 'var(--warning)' }} /></div>
+            )) : (
+              <div style={{ textAlign: 'center', padding: '20px', color: 'var(--text-tertiary)' }}>
+                Dados de venda pendentes...
+              </div>
+            )}
           </div>
         </div>
       </div>

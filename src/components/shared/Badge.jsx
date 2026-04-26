@@ -6,9 +6,9 @@ export default function Badge({ children, variant = 'default', dot = false, size
     danger: { bg: 'var(--danger-light)', text: 'var(--danger-dark)' },
     info: { bg: 'var(--info-light)', text: 'var(--info-dark)' },
     accent: { bg: 'var(--accent-lighter)', text: 'var(--accent-dark)' },
-    delivery: { bg: '#EBF5FF', text: '#2E86DE' },
-    pickup: { bg: '#FFF3E0', text: '#E67E22' },
-    local: { bg: '#E8F5E9', text: '#27AE60' },
+    delivery: { bg: 'var(--info-light)', text: 'var(--info-dark)' },
+    pickup: { bg: 'var(--warning-light)', text: 'var(--warning-dark)' },
+    local: { bg: 'var(--success-light)', text: 'var(--success-dark)' },
   };
 
   const c = colors[variant] || colors.default;
