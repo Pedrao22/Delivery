@@ -9,7 +9,7 @@ export default function SuperLoginPage() {
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { login } = useAuth();
+  const { login, logout } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
@@ -24,7 +24,7 @@ export default function SuperLoginPage() {
       const result = await login(safeEmail, safePassword);
       if (result?.profileData?.role !== 'super_admin') {
         setError('Acesso negado. Esta área é restrita ao Super Admin.');
-        await import('../../lib/supabase').then(m => m.supabase.auth.signOut());
+        await logout();
         return;
       }
       navigate('/super', { replace: true });
