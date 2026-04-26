@@ -70,7 +70,7 @@ export default function OrdersPage({ onMenuToggle }) {
           placeholder="Buscar por cliente ou código..."
         />
         <FilterTabs tabs={filterTabs} active={filter} onChange={setFilter} />
-        <Button onClick={() => setShowNewOrder(true)} icon={loadingOrders ? <Loader2 className="animate-spin" size={16} /> : <Plus size={16} />}>
+        <Button size="sm" onClick={() => setShowNewOrder(true)} icon={loadingOrders ? <Loader2 className="animate-spin" size={14} /> : <Plus size={14} />}>
           Novo Pedido
         </Button>
       </TopBar>
