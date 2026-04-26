@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { 
-  Phone, ShoppingCart, ArrowLeft, Check, 
+import {
+  Phone, ShoppingCart, ArrowLeft, Check,
   MapPin, CreditCard, QrCode, Wallet, Info,
-  Star, Clock, ChevronRight, Search, 
+  Star, Clock, ChevronRight, Search,
   ChevronDown, MessageCircle, Heart
 } from 'lucide-react';
 import Modal from '../shared/Modal';
@@ -12,13 +12,36 @@ import ProductCard from '../menu/ProductCard';
 import ProductModal from '../menu/ProductModal';
 import Button from '../shared/Button';
 import { useOrdersContext } from '../../context/OrdersContext';
+import { useAuth } from '../../context/AuthContext';
 import Badge from '../shared/Badge';
 import './CustomerView.css';
 
 export default function CustomerView() {
   const { orders, addOrder, coupons, restaurantSettings, products, categories } = useOrdersContext();
-  
-  const [step, setStep] = useState(() => localStorage.getItem('pedirecebe_customer_step') || 'login'); 
+  const { profile } = useAuth();
+
+  const [publicData, setPublicData] = useState(null);
+  const [loadingPublic, setLoadingPublic] = useState(false);
+
+  useEffect(() => {
+    // Tenta carregar dados do restaurante via API pública
+    // Usa restaurante_id do perfil se disponível, ou de searchParams
+    const params = new URLSearchParams(window.location.search);
+    const rid = params.get('rid') || profile?.restaurante_id;
+    if (!rid) return;
+
+    setLoadingPublic(true);
+    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
+    fetch(`${API_URL}/public/menu/${rid}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) setPublicData(data.data);
+      })
+      .catch(() => {})
+      .finally(() => setLoadingPublic(false));
+  }, [profile?.restaurante_id]);
+
+  const [step, setStep] = useState(() => localStorage.getItem('pedirecebe_customer_step') || 'login');
   const [phone, setPhone] = useState('');
   const [customer, setCustomer] = useState(null);
   const [cart, setCart] = useState([]);
@@ -46,9 +69,9 @@ export default function CustomerView() {
   const brandName = restaurantSettings.name || 'Pedi&Recebe';
   const primaryColor = restaurantSettings.primaryColor || '#e74c3c';
 
-  // Catalog Data (Context version preferred)
-  const displayProducts = products?.length > 0 ? products : menuItems;
-  const displayCategories = categories?.length > 0 ? categories : menuCategories;
+  // Catalog Data — public API preferred, then context, then static fallback
+  const displayProducts = publicData?.produtos?.length > 0 ? publicData.produtos : (products?.length > 0 ? products : menuItems);
+  const displayCategories = publicData?.categorias?.length > 0 ? publicData.categorias : (categories?.length > 0 ? categories : menuCategories);
 
   // Pre-fill form when customer logs in
   useEffect(() => {

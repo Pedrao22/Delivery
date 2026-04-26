@@ -16,6 +16,7 @@ import SettingsPage from './pages/SettingsPage';
 import LoyaltyPage from './pages/LoyaltyPage';
 import CouponsPage from './pages/CouponsPage';
 import LoginPage from './pages/LoginPage';
+import ResetPasswordPage from './pages/ResetPasswordPage';
 import OnboardingPage from './pages/OnboardingPage';
 import { OrdersProvider, useOrdersContext } from './context/OrdersContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
@@ -143,6 +144,7 @@ function App() {
     <AuthProvider>
       <Routes>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/cliente" element={
           <OrdersProvider>
             <CustomerView />

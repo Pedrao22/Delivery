@@ -1,28 +1,32 @@
 import React, { useState } from 'react';
-import { Ticket, Plus, Trash2, Edit2, Search } from 'lucide-react';
+import { Ticket, Plus, Trash2, Edit2 } from 'lucide-react';
 import { useOrdersContext } from '../context/OrdersContext';
 import Button from '../components/shared/Button';
 import Badge from '../components/shared/Badge';
 import Modal from '../components/shared/Modal';
 
 export default function CouponsPage() {
-  const { coupons, setCoupons } = useOrdersContext();
+  const { coupons, addCoupon, updateCoupon, deleteCoupon } = useOrdersContext();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCoupon, setEditingCoupon] = useState(null);
   const [formData, setFormData] = useState({ code: '', type: 'percentage', value: '', minOrder: '' });
+  const [saving, setSaving] = useState(false);
 
-  const handleSave = () => {
-    if (editingCoupon) {
-      setCoupons(prev => prev.map(c => c.id === editingCoupon.id ? { ...c, ...formData } : c));
-    } else {
-      setCoupons(prev => [...prev, { ...formData, id: Date.now(), active: true }]);
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      if (editingCoupon) {
+        await updateCoupon(editingCoupon.id, formData);
+      } else {
+        await addCoupon(formData);
+      }
+      setIsModalOpen(false);
+      setEditingCoupon(null);
+    } catch (err) {
+      alert(err.message || 'Erro ao salvar cupom');
+    } finally {
+      setSaving(false);
     }
-    setIsModalOpen(false);
-    setEditingCoupon(null);
-  };
-
-  const deleteCoupon = (id) => {
-    setCoupons(prev => prev.filter(c => c.id !== id));
   };
 
   return (
@@ -32,12 +36,7 @@ export default function CouponsPage() {
           <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800 }}>Cupons de Desconto</h2>
           <p style={{ color: 'var(--text-tertiary)', marginTop: 2 }}>Crie códigos promocionais para seus clientes</p>
         </div>
-        <Button
-          size="sm"
-          onClick={() => { setFormData({ code: '', type: 'percentage', value: '', minOrder: '' }); setEditingCoupon(null); setIsModalOpen(true); }}
-          icon={<Plus size={14} />}
-          style={{ flexShrink: 0 }}
-        >
+        <Button size="sm" onClick={() => { setFormData({ code: '', type: 'percentage', value: '', minOrder: '' }); setEditingCoupon(null); setIsModalOpen(true); }} icon={<Plus size={14} />} style={{ flexShrink: 0 }}>
           Novo Cupom
         </Button>
       </div>
@@ -58,7 +57,7 @@ export default function CouponsPage() {
             {coupons.map(coupon => (
               <tr key={coupon.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
                 <td style={{ padding: '16px', fontWeight: 700, color: 'var(--accent)' }}>{coupon.code}</td>
-                <td style={{ padding: '16px', textTransform: 'capitalize' }}>{coupon.type === 'percentage' ? 'Porcentagem' : 'Fixo'}</td>
+                <td style={{ padding: '16px' }}>{coupon.type === 'percentage' ? 'Porcentagem' : 'Fixo'}</td>
                 <td style={{ padding: '16px' }}>{coupon.type === 'percentage' ? `${coupon.value}%` : `R$ ${coupon.value}`}</td>
                 <td style={{ padding: '16px' }}>R$ {coupon.minOrder}</td>
                 <td style={{ padding: '16px' }}><Badge variant="local">Ativo</Badge></td>
@@ -74,56 +73,30 @@ export default function CouponsPage() {
         </table>
       </div>
 
-      <Modal
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        title={editingCoupon ? "Editar Cupom" : "Novo Cupom"}
-      >
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingCoupon ? 'Editar Cupom' : 'Novo Cupom'}>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
           <div className="form-group">
             <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--font-sm)', fontWeight: 600 }}>Código do Cupom</label>
-            <input 
-              type="text" 
-              value={formData.code} 
-              onChange={e => setFormData({...formData, code: e.target.value.toUpperCase()})}
-              placeholder="Ex: QUERO10"
-              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
-            />
+            <input type="text" value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })} placeholder="Ex: QUERO10" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }} />
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
             <div className="form-group">
               <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--font-sm)', fontWeight: 600 }}>Tipo</label>
-              <select 
-                value={formData.type} 
-                onChange={e => setFormData({...formData, type: e.target.value})}
-                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
-              >
+              <select value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}>
                 <option value="percentage">Porcentagem (%)</option>
                 <option value="fixed">Valor Fixo (R$)</option>
               </select>
             </div>
             <div className="form-group">
               <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--font-sm)', fontWeight: 600 }}>Valor</label>
-              <input 
-                type="number" 
-                value={formData.value} 
-                onChange={e => setFormData({...formData, value: parseFloat(e.target.value)})}
-                placeholder="0.00"
-                style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
-              />
+              <input type="number" value={formData.value} onChange={e => setFormData({ ...formData, value: parseFloat(e.target.value) })} placeholder="0.00" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }} />
             </div>
           </div>
           <div className="form-group">
             <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--font-sm)', fontWeight: 600 }}>Pedido Mínimo (R$)</label>
-            <input 
-              type="number" 
-              value={formData.minOrder} 
-              onChange={e => setFormData({...formData, minOrder: parseFloat(e.target.value)})}
-              placeholder="0.00"
-              style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}
-            />
+            <input type="number" value={formData.minOrder} onChange={e => setFormData({ ...formData, minOrder: parseFloat(e.target.value) })} placeholder="0.00" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }} />
           </div>
-          <Button fullWidth onClick={handleSave}>Salvar Cupom</Button>
+          <Button fullWidth onClick={handleSave} disabled={saving}>{saving ? 'Salvando...' : 'Salvar Cupom'}</Button>
         </div>
       </Modal>
     </div>
