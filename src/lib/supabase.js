@@ -25,7 +25,9 @@ export const supabase = (supabaseUrl && supabaseAnonKey)
     })
   : createMockClient();
 
-export const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
+// Normalize: always ensure the URL ends with /api regardless of how env var is set
+const _raw = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
+export const API_URL = _raw.endsWith('/api') ? _raw : _raw.replace(/\/$/, '') + '/api';
 
 export async function apiFetch(path, options = {}) {
   const { data: { session } } = await supabase.auth.getSession();

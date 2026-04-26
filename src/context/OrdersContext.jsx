@@ -180,6 +180,39 @@ export function OrdersProvider({ children }) {
     setLeads(prev => prev.map(l => l.id === leadId ? { ...l, unread: false } : l));
   }, []);
 
+  // Stats por período — usado em Dashboard e Financeiro
+  const getStatsForPeriod = useCallback((days) => {
+    const cutoff = new Date();
+    cutoff.setDate(cutoff.getDate() - parseInt(days, 10));
+
+    const periodOrders = orders.filter(o => new Date(o.createdAt) >= cutoff);
+    const revenue = periodOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+    const prevCutoff = new Date(cutoff);
+    prevCutoff.setDate(prevCutoff.getDate() - parseInt(days, 10));
+    const prevOrders = orders.filter(o => {
+      const d = new Date(o.createdAt);
+      return d >= prevCutoff && d < cutoff;
+    });
+    const prevRevenue = prevOrders.reduce((sum, o) => sum + (o.total || 0), 0);
+
+    const payments = { cash: 0, card: 0, pix: 0, other: 0 };
+    periodOrders.forEach(o => {
+      const m = (o.payment || '').toLowerCase();
+      if (m.includes('dinheiro') || m.includes('cash'))                   payments.cash  += o.total || 0;
+      else if (m.includes('cart') || m.includes('card') || m.includes('cr') || m.includes('db')) payments.card  += o.total || 0;
+      else if (m.includes('pix'))                                          payments.pix   += o.total || 0;
+      else                                                                 payments.other += o.total || 0;
+    });
+
+    return {
+      orders:    periodOrders.length,
+      revenue,
+      avgTicket: periodOrders.length ? revenue / periodOrders.length : 0,
+      growth:    prevRevenue ? ((revenue - prevRevenue) / prevRevenue) * 100 : 0,
+      payments,
+    };
+  }, [orders]);
+
   // Settings
   const updateSettings = useCallback((data) => {
     setRestaurantSettings(prev => ({
@@ -231,6 +264,7 @@ export function OrdersProvider({ children }) {
     updateSettings,
     addDriver,
     removeDriver,
+    getStatsForPeriod,
   };
 
   return (
