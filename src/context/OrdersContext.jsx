@@ -230,9 +230,9 @@ export function OrdersProvider({ children }) {
       method: 'POST',
       body: JSON.stringify({
         items: orderData.items, total: orderData.total, subtotal: orderData.subtotal,
-        tipo: orderData.type, pagamento: orderData.payment, customer: orderData.customer,
-        obs: orderData.obs, table_id: orderData.table_id, descontos: orderData.discounts,
-        taxa_entrega: orderData.delivery_fee, cupom_usado: orderData.couponUsed,
+        type: orderData.type, payment: orderData.payment, customer: orderData.customer,
+        obs: orderData.obs, table_id: orderData.table_id, discounts: orderData.discounts,
+        delivery_fee: orderData.delivery_fee, coupon_used: orderData.couponUsed,
       }),
     });
     const newOrder = mapOrder(result.data);
