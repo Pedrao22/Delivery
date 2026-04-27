@@ -112,6 +112,7 @@ export const AuthProvider = ({ children }) => {
     const result = await apiFetch('/auth/login', {
       method: 'POST',
       body: JSON.stringify({ email, password }),
+      skipAuth: true,
     });
     if (!result.success) throw new Error(result.message);
 

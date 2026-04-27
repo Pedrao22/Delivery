@@ -51,11 +51,12 @@ async function getValidToken() {
 }
 
 export async function apiFetch(path, options = {}) {
-  const token = await getValidToken();
+  const { skipAuth, ...fetchOptions } = options;
+  const token = skipAuth ? null : await getValidToken();
   const impersonateId = localStorage.getItem('pedirecebe_impersonate_id');
 
   const response = await fetch(`${API_URL}${path}`, {
-    ...options,
+    ...fetchOptions,
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
