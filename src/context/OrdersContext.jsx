@@ -111,6 +111,8 @@ export function OrdersProvider({ children }) {
   leadsRef.current = leads;
   const ordersRef = useRef([]);
   ordersRef.current = orders;
+  const allOrdersRef = useRef([]);
+  const pendingFinalizeRef = useRef(new Set());
 
   useEffect(() => {
     if (!restauranteId) return;
@@ -123,9 +125,16 @@ export function OrdersProvider({ children }) {
     return () => clearInterval(interval);
   }, [restauranteId]); // eslint-disable-line
 
+  useEffect(() => {
+    if (!restauranteId) return;
+    const interval = setInterval(refreshAllOrders, 5 * 60_000);
+    return () => clearInterval(interval);
+  }, [restauranteId]); // eslint-disable-line
+
   async function loadAll() {
     await Promise.allSettled([
       refreshOrders(),
+      refreshAllOrders(),
       refreshMenu(),
       refreshTables(),
       refreshLeads(),
@@ -141,13 +150,22 @@ export function OrdersProvider({ children }) {
     setLoadingOrders(true);
     try {
       const result = await apiFetch('/orders');
-      const mapped = (result.data || []).map(mapOrder);
+      const mapped = (result.data || [])
+        .filter(o => !pendingFinalizeRef.current.has(o.id))
+        .map(mapOrder);
       const activeCount = mapped.filter(o => ['analyzing', 'production', 'ready'].includes(o.status)).length;
       if (prevOrderCountRef.current > 0 && activeCount > prevOrderCountRef.current) playBeep();
       prevOrderCountRef.current = activeCount;
       setOrders(mapped);
     } catch (err) { console.warn('Erro ao carregar pedidos:', err); }
     finally { setLoadingOrders(false); }
+  }
+
+  async function refreshAllOrders() {
+    try {
+      const result = await apiFetch('/orders?status=all');
+      allOrdersRef.current = (result.data || []).map(mapOrder);
+    } catch (err) { console.warn('Erro ao carregar histórico de pedidos:', err); }
   }
 
   async function refreshMenu() {
@@ -237,6 +255,7 @@ export function OrdersProvider({ children }) {
     });
     const newOrder = mapOrder(result.data);
     setOrders(prev => [newOrder, ...prev]);
+    allOrdersRef.current = [newOrder, ...allOrdersRef.current];
     return newOrder.id;
   }, []);
 
@@ -247,13 +266,22 @@ export function OrdersProvider({ children }) {
 
   const finalizeReady = useCallback(async () => {
     const ready = ordersRef.current.filter(o => o.status === 'ready');
+    ready.forEach(o => pendingFinalizeRef.current.add(o.id));
     setOrders(prev => prev.filter(o => o.status !== 'ready'));
+    const readyIds = new Set(ready.map(o => o.id));
+    allOrdersRef.current = allOrdersRef.current.map(o => readyIds.has(o.id) ? { ...o, status: 'completed' } : o);
     await Promise.allSettled(ready.map(o => apiFetch(`/orders/${o.id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'completed' }) })));
+    ready.forEach(o => setTimeout(() => pendingFinalizeRef.current.delete(o.id), 10_000));
   }, []);
 
   const finalizeSingleOrder = useCallback(async (orderId) => {
+    pendingFinalizeRef.current.add(orderId);
     setOrders(prev => prev.filter(o => o.id !== orderId));
-    try { await apiFetch(`/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'completed' }) }); } catch {}
+    allOrdersRef.current = allOrdersRef.current.map(o => o.id === orderId ? { ...o, status: 'completed' } : o);
+    try {
+      await apiFetch(`/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'completed' }) });
+    } catch {}
+    setTimeout(() => pendingFinalizeRef.current.delete(orderId), 10_000);
   }, []);
 
   const addChatMessage = useCallback(async (orderId, text, sender = 'admin') => {
@@ -432,7 +460,8 @@ export function OrdersProvider({ children }) {
   // STATS
   const getStatsForPeriod = useCallback((days) => {
     const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - parseInt(days, 10));
-    const all = ordersRef.current.filter(o => new Date(o.createdAt) >= cutoff);
+    const source = allOrdersRef.current.length > 0 ? allOrdersRef.current : ordersRef.current;
+    const all = source.filter(o => new Date(o.createdAt) >= cutoff);
     const revenue = all.reduce((s, o) => s + (o.total || 0), 0);
     const prevCutoff = new Date(cutoff); prevCutoff.setDate(prevCutoff.getDate() - parseInt(days, 10));
     const prev = ordersRef.current.filter(o => { const d = new Date(o.createdAt); return d >= prevCutoff && d < cutoff; });
