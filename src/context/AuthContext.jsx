@@ -66,7 +66,7 @@ export const AuthProvider = ({ children }) => {
       throw new Error(result.message || 'Falha ao carregar perfil');
     } catch (error) {
       const msg = error.message || '';
-      const isAuthError = msg.includes('401') || msg.includes('Unauthorized') || msg.includes('JWT');
+      const isAuthError = error.status === 401 || msg.includes('Unauthorized') || msg.includes('JWT') || msg.includes('não encontrado') || msg.includes('Sessão');
 
       if (isAuthError) {
         clearSession();

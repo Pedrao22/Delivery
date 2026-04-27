@@ -66,6 +66,10 @@ export async function apiFetch(path, options = {}) {
   });
 
   const data = await response.json();
-  if (!response.ok) throw new Error(data.message || 'Erro na requisição');
+  if (!response.ok) {
+    const err = new Error(data.message || 'Erro na requisição');
+    err.status = response.status;
+    throw err;
+  }
   return data;
 }
