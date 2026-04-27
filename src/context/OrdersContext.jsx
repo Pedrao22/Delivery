@@ -235,11 +235,15 @@ export function OrdersProvider({ children }) {
   const moveOrder = useCallback(async (orderId, newStatus) => {
     const prevOrder = ordersRef.current.find(o => o.id === orderId);
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+    allOrdersRef.current = allOrdersRef.current.map(o => o.id === orderId ? { ...o, status: newStatus } : o);
     try {
       await apiFetch(`/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status: newStatus }) });
     } catch {
       // Revert only this order — never wipe the whole list
-      if (prevOrder) setOrders(prev => prev.map(o => o.id === orderId ? prevOrder : o));
+      if (prevOrder) {
+        setOrders(prev => prev.map(o => o.id === orderId ? prevOrder : o));
+        allOrdersRef.current = allOrdersRef.current.map(o => o.id === orderId ? prevOrder : o);
+      }
     }
   }, []); // eslint-disable-line
 
@@ -266,22 +270,24 @@ export function OrdersProvider({ children }) {
 
   const finalizeReady = useCallback(async () => {
     const ready = ordersRef.current.filter(o => o.status === 'ready');
-    ready.forEach(o => pendingFinalizeRef.current.add(o.id));
-    setOrders(prev => prev.filter(o => o.status !== 'ready'));
     const readyIds = new Set(ready.map(o => o.id));
+    ready.forEach(o => pendingFinalizeRef.current.add(o.id));
+    // Mark as completed in state — kanban won't show completed orders
+    setOrders(prev => prev.map(o => readyIds.has(o.id) ? { ...o, status: 'completed' } : o));
     allOrdersRef.current = allOrdersRef.current.map(o => readyIds.has(o.id) ? { ...o, status: 'completed' } : o);
     await Promise.allSettled(ready.map(o => apiFetch(`/orders/${o.id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'completed' }) })));
-    ready.forEach(o => setTimeout(() => pendingFinalizeRef.current.delete(o.id), 10_000));
+    ready.forEach(o => setTimeout(() => pendingFinalizeRef.current.delete(o.id), 15_000));
   }, []);
 
   const finalizeSingleOrder = useCallback(async (orderId) => {
     pendingFinalizeRef.current.add(orderId);
-    setOrders(prev => prev.filter(o => o.id !== orderId));
+    // Mark as completed in state — kanban won't show completed orders
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'completed' } : o));
     allOrdersRef.current = allOrdersRef.current.map(o => o.id === orderId ? { ...o, status: 'completed' } : o);
     try {
       await apiFetch(`/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'completed' }) });
     } catch {}
-    setTimeout(() => pendingFinalizeRef.current.delete(orderId), 10_000);
+    setTimeout(() => pendingFinalizeRef.current.delete(orderId), 15_000);
   }, []);
 
   const addChatMessage = useCallback(async (orderId, text, sender = 'admin') => {
