@@ -186,10 +186,25 @@ export default function PosPage() {
           </div>
           <div className="pos-customer-form">
             <input type="text" placeholder="Nome do cliente" value={customerInfo.name} onChange={e => setCustomerInfo({...customerInfo, name: e.target.value})} />
-            <div className="pos-action-buttons">
-              <button onClick={() => setActiveModal('delivery')}>Entrega</button>
-              <button onClick={() => setActiveModal('payment')}>{paymentDetails.method.split(' ')[0]}</button>
+            <input type="tel" placeholder="Telefone" value={customerInfo.phone} onChange={e => setCustomerInfo({...customerInfo, phone: e.target.value})} />
+
+            <div className="pos-type-selector">
+              <button className={deliveryDetails.type === 'pickup' ? 'active' : ''} onClick={() => setDeliveryDetails(d => ({...d, type: 'pickup'}))}>🏃 Buscar</button>
+              <button className={deliveryDetails.type === 'delivery' ? 'active' : ''} onClick={() => setDeliveryDetails(d => ({...d, type: 'delivery'}))}>🛵 Levar</button>
+              <button className={deliveryDetails.type === 'local' ? 'active' : ''} onClick={() => setDeliveryDetails(d => ({...d, type: 'local'}))}>🍽️ Consumir</button>
             </div>
+
+            {deliveryDetails.type === 'delivery' && (
+              <input type="text" placeholder="Endereço de entrega" value={deliveryDetails.address} onChange={e => setDeliveryDetails(d => ({...d, address: e.target.value}))} />
+            )}
+
+            <select className="pos-payment-select" value={paymentDetails.method} onChange={e => setPaymentDetails({ method: e.target.value })}>
+              <option value="Pix Balcão">💠 Pix Balcão</option>
+              <option value="Pix Online">💠 Pix Online</option>
+              <option value="Cartão de Crédito">💳 Cartão Crédito</option>
+              <option value="Cartão de Débito">💳 Cartão Débito</option>
+              <option value="Dinheiro">💵 Dinheiro</option>
+            </select>
           </div>
           <button className="pos-generate-btn" onClick={handleGenerateOrder} disabled={items.length === 0}>
             [ ENTER ] Gerar e Imprimir

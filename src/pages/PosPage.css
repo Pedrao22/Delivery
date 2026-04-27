@@ -481,15 +481,15 @@
   outline: none;
 }
 
-.pos-action-buttons {
+.pos-type-selector {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
-  margin-bottom: 16px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 6px;
+  margin-bottom: 10px;
 }
 
-.pos-action-buttons button {
-  height: 38px;
+.pos-type-selector button {
+  height: 36px;
   background: var(--surface);
   border: 1px solid var(--border-light);
   border-radius: var(--radius-sm);
@@ -498,12 +498,27 @@
   color: var(--text-secondary);
   cursor: pointer;
   transition: all var(--transition-fast);
+  white-space: nowrap;
 }
 
-.pos-action-buttons button.active {
+.pos-type-selector button.active {
   background: var(--accent-lighter);
   border-color: var(--accent);
   color: var(--accent-dark);
+}
+
+.pos-payment-select {
+  width: 100%;
+  height: 38px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 0 10px;
+  font-size: var(--font-xs);
+  color: var(--text-primary);
+  margin-bottom: 10px;
+  cursor: pointer;
+  outline: none;
 }
 
 .pos-summary-row.discount {

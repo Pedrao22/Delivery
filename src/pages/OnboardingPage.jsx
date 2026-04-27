@@ -30,20 +30,7 @@ const DELIVERY_TIMES = [
   { id: '60+',    label: 'Mais de 1h',   desc: 'Pedidos especiais' },
 ];
 
-const COLORS = [
-  { id: '#e74c3c', label: 'Vermelho'  },
-  { id: '#e67e22', label: 'Laranja'   },
-  { id: '#f39c12', label: 'Âmbar'     },
-  { id: '#27ae60', label: 'Verde'     },
-  { id: '#16a085', label: 'Teal'      },
-  { id: '#2980b9', label: 'Azul'      },
-  { id: '#8e44ad', label: 'Roxo'      },
-  { id: '#e91e63', label: 'Rosa'      },
-  { id: '#2c3e50', label: 'Escuro'    },
-  { id: '#795548', label: 'Marrom'    },
-];
-
-const TOTAL_STEPS = 5;
+const TOTAL_STEPS = 4;
 
 export default function OnboardingPage({ onComplete }) {
   const [step, setStep] = useState(1);
@@ -53,7 +40,6 @@ export default function OnboardingPage({ onComplete }) {
   const [segment, setSegment]       = useState(null);
   const [services, setServices]     = useState(['delivery']);
   const [deliveryTime, setDeliveryTime] = useState('20-40');
-  const [color, setColor]           = useState('#e74c3c');
 
   const toggleService = (id) => {
     setServices(prev =>
@@ -82,7 +68,7 @@ export default function OnboardingPage({ onComplete }) {
     const settings = {
       name: name.trim(),
       logo: seg?.emoji || '🍽️',
-      primaryColor: color,
+      primaryColor: '#FFC400',
       segment: segment,
       serviceTypes: services,
       deliveryTime: timeMap[deliveryTime] || '30 a 45 min',
@@ -212,32 +198,6 @@ export default function OnboardingPage({ onComplete }) {
           </div>
         )}
 
-        {/* Step 5 — Cor */}
-        {step === 5 && (
-          <div className="ob-step" key="step5">
-            <div className="ob-step-icon">🎨</div>
-            <h2>Cor do seu sistema</h2>
-            <p>Escolha a cor principal que aparecerá nos botões e destaques</p>
-            <div className="ob-color-grid">
-              {COLORS.map(c => (
-                <button
-                  key={c.id}
-                  className={`ob-color-swatch ${color === c.id ? 'selected' : ''}`}
-                  style={{ background: c.id }}
-                  title={c.label}
-                  onClick={() => setColor(c.id)}
-                >
-                  {color === c.id && <Check size={18} color="#fff" strokeWidth={3} />}
-                </button>
-              ))}
-            </div>
-            <div className="ob-color-preview" style={{ borderColor: color }}>
-              <span style={{ color }}>Prévia da cor selecionada</span>
-              <button className="ob-color-btn" style={{ background: color }}>Botão exemplo</button>
-            </div>
-          </div>
-        )}
-
         {/* Navigation */}
         <div className="ob-nav">
           {step > 1 ? (
@@ -248,7 +208,6 @@ export default function OnboardingPage({ onComplete }) {
 
           <button
             className="ob-btn-next"
-            style={{ background: color }}
             onClick={handleNext}
             disabled={!canNext()}
           >

@@ -8,6 +8,9 @@ export default function Cart({ items, total, count, onUpdateQty, onRemove, onCle
   const [orderType, setOrderType] = useState('delivery');
   const [payment, setPayment] = useState('pix');
   const [cashGiven, setCashGiven] = useState('');
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+  const [address, setAddress] = useState('');
 
   if (!isOpen) return null;
 
@@ -27,13 +30,16 @@ export default function Cart({ items, total, count, onUpdateQty, onRemove, onCle
       payment: payment === 'pix' ? 'Pix Online' : payment === 'card' ? 'Cartão de Crédito' : payment === 'cash' ? 'Dinheiro' : 'Pix Balcão',
       cashPaid: payment === 'cash' ? parseFloat(cashGiven) || 0 : undefined,
       customer: {
-        name: 'Cliente Balcão',
-        phone: '(00) 00000-0000',
-        address: orderType === 'delivery' ? 'Endereço do cliente' : '',
+        name: customerName.trim() || 'Cliente Balcão',
+        phone: customerPhone.trim(),
+        address: orderType === 'delivery' ? address.trim() : '',
       },
       obs: payment === 'cash' && cashGiven ? `Troco para R$ ${cashGiven}` : '',
     });
     setCashGiven('');
+    setCustomerName('');
+    setCustomerPhone('');
+    setAddress('');
     onClear();
     onClose();
   };
@@ -79,7 +85,24 @@ export default function Cart({ items, total, count, onUpdateQty, onRemove, onCle
 
         {items.length > 0 && (
           <div className="cart-footer">
-            <div className="cart-order-type">
+            <div className="cart-customer-fields">
+            <input
+              className="cart-customer-input"
+              type="text"
+              placeholder="Nome do cliente"
+              value={customerName}
+              onChange={e => setCustomerName(e.target.value)}
+            />
+            <input
+              className="cart-customer-input"
+              type="tel"
+              placeholder="Telefone"
+              value={customerPhone}
+              onChange={e => setCustomerPhone(e.target.value)}
+            />
+          </div>
+
+          <div className="cart-order-type">
               <button className={`cart-order-type-btn ${orderType === 'delivery' ? 'active' : ''}`} onClick={() => setOrderType('delivery')}>
                 🛵 <span>Delivery</span>
               </button>
@@ -90,6 +113,17 @@ export default function Cart({ items, total, count, onUpdateQty, onRemove, onCle
                 🍽️ <span>Local</span>
               </button>
             </div>
+
+            {orderType === 'delivery' && (
+              <input
+                className="cart-customer-input"
+                type="text"
+                placeholder="Endereço de entrega"
+                value={address}
+                onChange={e => setAddress(e.target.value)}
+                style={{ marginBottom: 'var(--space-2)' }}
+              />
+            )}
 
             <select className="cart-payment-select" value={payment} onChange={(e) => setPayment(e.target.value)}>
               <option value="pix">💠 Pix Online</option>
