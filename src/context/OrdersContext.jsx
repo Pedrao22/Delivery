@@ -265,27 +265,25 @@ export function OrdersProvider({ children }) {
 
   const removeOrder = useCallback(async (orderId) => {
     setOrders(prev => prev.filter(o => o.id !== orderId));
-    try { await apiFetch(`/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'canceled' }) }); } catch {}
+    try { await apiFetch(`/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'cancelled' }) }); } catch {}
   }, []);
 
   const finalizeReady = useCallback(async () => {
     const ready = ordersRef.current.filter(o => o.status === 'ready');
     const readyIds = new Set(ready.map(o => o.id));
     ready.forEach(o => pendingFinalizeRef.current.add(o.id));
-    // Mark as completed in state — kanban won't show completed orders
-    setOrders(prev => prev.map(o => readyIds.has(o.id) ? { ...o, status: 'completed' } : o));
-    allOrdersRef.current = allOrdersRef.current.map(o => readyIds.has(o.id) ? { ...o, status: 'completed' } : o);
-    await Promise.allSettled(ready.map(o => apiFetch(`/orders/${o.id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'completed' }) })));
+    setOrders(prev => prev.map(o => readyIds.has(o.id) ? { ...o, status: 'delivered' } : o));
+    allOrdersRef.current = allOrdersRef.current.map(o => readyIds.has(o.id) ? { ...o, status: 'delivered' } : o);
+    await Promise.allSettled(ready.map(o => apiFetch(`/orders/${o.id}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'delivered' }) })));
     ready.forEach(o => setTimeout(() => pendingFinalizeRef.current.delete(o.id), 15_000));
   }, []);
 
   const finalizeSingleOrder = useCallback(async (orderId) => {
     pendingFinalizeRef.current.add(orderId);
-    // Mark as completed in state — kanban won't show completed orders
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'completed' } : o));
-    allOrdersRef.current = allOrdersRef.current.map(o => o.id === orderId ? { ...o, status: 'completed' } : o);
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: 'delivered' } : o));
+    allOrdersRef.current = allOrdersRef.current.map(o => o.id === orderId ? { ...o, status: 'delivered' } : o);
     try {
-      await apiFetch(`/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'completed' }) });
+      await apiFetch(`/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'delivered' }) });
     } catch {}
     setTimeout(() => pendingFinalizeRef.current.delete(orderId), 15_000);
   }, []);
