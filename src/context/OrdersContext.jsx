@@ -14,7 +14,7 @@ function mapOrder(o) {
     type: o.tipo || o.type,
     payment: o.pagamento || o.payment,
     discounts: o.descontos || o.discounts || 0,
-    items: o.items || [],
+    items: o.itens || o.items || [],
     chat: o.chat || [],
     confirmCode: o.codigo || o.confirmCode,
     customer: o.customer || { name: o.cliente_nome, phone: o.cliente_telefone, address: o.cliente_endereco },
@@ -445,7 +445,23 @@ export function OrdersProvider({ children }) {
       else if (m.includes('pix')) payments.pix += o.total || 0;
       else payments.other += o.total || 0;
     });
-    return { orders: all.length, revenue, avgTicket: all.length ? revenue / all.length : 0, growth: prevRev ? ((revenue - prevRev) / prevRev) * 100 : 0, payments };
+    const daysN = parseInt(days, 10);
+    const dailyData = [];
+    for (let i = daysN - 1; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dayStart = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      const dayEnd = new Date(dayStart); dayEnd.setDate(dayEnd.getDate() + 1);
+      const dayRevenue = all
+        .filter(o => { const od = new Date(o.createdAt); return od >= dayStart && od < dayEnd; })
+        .reduce((s, o) => s + (o.total || 0), 0);
+      const label = daysN <= 7
+        ? d.toLocaleDateString('pt-BR', { weekday: 'short' })
+        : d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+      dailyData.push({ label, value: dayRevenue });
+    }
+    const ticket = all.length ? revenue / all.length : 0;
+    return { orders: all.length, ordersCount: all.length, revenue, ticket, avgTicket: ticket, growth: prevRev ? ((revenue - prevRev) / prevRev) * 100 : 0, payments, dailyData };
   }, []);
 
   const value = {
