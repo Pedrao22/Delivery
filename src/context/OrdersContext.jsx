@@ -215,31 +215,29 @@ export function OrdersProvider({ children }) {
 
   // ORDERS
   const moveOrder = useCallback(async (orderId, newStatus) => {
+    const prevOrder = ordersRef.current.find(o => o.id === orderId);
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
-    try { await apiFetch(`/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status: newStatus }) }); }
-    catch { refreshOrders(); }
+    try {
+      await apiFetch(`/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status: newStatus }) });
+    } catch {
+      // Revert only this order — never wipe the whole list
+      if (prevOrder) setOrders(prev => prev.map(o => o.id === orderId ? prevOrder : o));
+    }
   }, []); // eslint-disable-line
 
   const addOrder = useCallback(async (orderData) => {
-    try {
-      const result = await apiFetch('/orders', {
-        method: 'POST',
-        body: JSON.stringify({
-          items: orderData.items, total: orderData.total, subtotal: orderData.subtotal,
-          tipo: orderData.type, pagamento: orderData.payment, customer: orderData.customer,
-          obs: orderData.obs, table_id: orderData.table_id, descontos: orderData.discounts,
-          taxa_entrega: orderData.delivery_fee, cupom_usado: orderData.couponUsed,
-        }),
-      });
-      const newOrder = mapOrder(result.data);
-      setOrders(prev => [newOrder, ...prev]);
-      return newOrder.id;
-    } catch {
-      const id = `PED-${String(Date.now()).slice(-4)}`;
-      const newOrder = { ...orderData, id, confirmCode: String(Math.floor(1000 + Math.random() * 9000)), status: 'analyzing', createdAt: new Date().toISOString(), chat: [] };
-      setOrders(prev => [newOrder, ...prev]);
-      return id;
-    }
+    const result = await apiFetch('/orders', {
+      method: 'POST',
+      body: JSON.stringify({
+        items: orderData.items, total: orderData.total, subtotal: orderData.subtotal,
+        tipo: orderData.type, pagamento: orderData.payment, customer: orderData.customer,
+        obs: orderData.obs, table_id: orderData.table_id, descontos: orderData.discounts,
+        taxa_entrega: orderData.delivery_fee, cupom_usado: orderData.couponUsed,
+      }),
+    });
+    const newOrder = mapOrder(result.data);
+    setOrders(prev => [newOrder, ...prev]);
+    return newOrder.id;
   }, []);
 
   const removeOrder = useCallback(async (orderId) => {
