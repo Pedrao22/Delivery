@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { apiFetch, storeSession, clearSession, getStoredToken } from '../lib/supabase';
+import { apiFetch, storeSession, clearSession, getStoredToken, API_URL } from '../lib/supabase';
 
 const AuthContext = createContext({});
 
@@ -90,6 +90,19 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     }
   }, []);
+
+  useEffect(() => {
+    if (!user) return;
+    const poll = async () => {
+      try {
+        const res = await fetch(`${API_URL}/public/status`);
+        const data = await res.json();
+        if (data.maintenance_mode !== undefined) setMaintenance(!!data.maintenance_mode);
+      } catch {}
+    };
+    const id = setInterval(poll, 10_000);
+    return () => clearInterval(id);
+  }, [user]);
 
   const refreshProfile = async () => {
     if (getStoredToken()) await getFullProfile();
