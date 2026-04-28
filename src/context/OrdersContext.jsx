@@ -320,6 +320,7 @@ export function OrdersProvider({ children }) {
         email: d.email || '',
         telefone: d.telefone || '',
         endereco: d.endereco || '',
+        slug: d.slug || null,
       });
     } catch (err) { console.warn('Erro ao carregar configurações:', err); }
   }

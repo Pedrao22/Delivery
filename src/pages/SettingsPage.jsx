@@ -4,7 +4,7 @@ import {
   Save, Globe, Phone, MapPin, Check,
   Camera, Briefcase, Bell, QrCode, Wallet, Info,
   Sparkles, ShieldCheck, Zap, DollarSign,
-  Lock, Eye, EyeOff, KeyRound
+  Lock, Eye, EyeOff, KeyRound, Copy, ExternalLink
 } from 'lucide-react';
 import { useOrdersContext } from '../context/OrdersContext';
 import { useAuth } from '../context/AuthContext';
@@ -33,6 +33,7 @@ export default function SettingsPage() {
   const [pwError, setPwError] = useState('');
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   // Sync locally when settings change in context
   React.useEffect(() => {
@@ -169,7 +170,7 @@ export default function SettingsPage() {
                 <label>Endereço Completo</label>
                 <div className="settings-input-wrapper">
                   <MapPin size={18} className="settings-input-icon" style={{ top: '16px', transform: 'none' }} />
-                  <textarea 
+                  <textarea
                     className="settings-input settings-textarea"
                     value={formData.address}
                     onChange={e => setFormData({...formData, address: e.target.value})}
@@ -177,6 +178,47 @@ export default function SettingsPage() {
                   />
                 </div>
               </div>
+
+              {formData.slug && (
+                <div style={{ marginTop: 'var(--space-6)', padding: 'var(--space-5)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-light)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--space-3)', color: 'var(--accent)', fontWeight: 700, fontSize: 'var(--font-sm)' }}>
+                    <Globe size={16} />
+                    Link do Cardápio Digital
+                  </div>
+                  <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 'var(--space-3)' }}>
+                    Compartilhe este link com seus clientes para que eles façam pedidos diretamente.
+                  </p>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                    <div className="settings-input-wrapper" style={{ flex: 1 }}>
+                      <Globe size={18} className="settings-input-icon" />
+                      <input
+                        readOnly
+                        className="settings-input"
+                        value={`${window.location.origin}/m/${formData.slug}`}
+                        style={{ cursor: 'default', background: 'var(--bg-primary)' }}
+                      />
+                    </div>
+                    <button
+                      onClick={() => {
+                        navigator.clipboard.writeText(`${window.location.origin}/m/${formData.slug}`);
+                        setLinkCopied(true);
+                        setTimeout(() => setLinkCopied(false), 2000);
+                      }}
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 16px', background: linkCopied ? 'var(--success)' : 'var(--accent)', color: 'white', border: 'none', borderRadius: 'var(--radius-lg)', fontWeight: 700, fontSize: '0.8rem', cursor: 'pointer', whiteSpace: 'nowrap', transition: 'background 0.2s' }}
+                    >
+                      {linkCopied ? <><Check size={14} /> Copiado!</> : <><Copy size={14} /> Copiar</>}
+                    </button>
+                    <a
+                      href={`/m/${formData.slug}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '10px 14px', background: 'var(--bg-primary)', color: 'var(--text-secondary)', border: '1px solid var(--border-light)', borderRadius: 'var(--radius-lg)', fontWeight: 600, fontSize: '0.8rem', textDecoration: 'none', transition: 'all 0.2s' }}
+                    >
+                      <ExternalLink size={14} />
+                    </a>
+                  </div>
+                </div>
+              )}
             </div>
           )}
 

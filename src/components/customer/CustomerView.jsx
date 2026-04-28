@@ -16,7 +16,7 @@ import { useAuth } from '../../context/AuthContext';
 import Badge from '../shared/Badge';
 import './CustomerView.css';
 
-export default function CustomerView() {
+export default function CustomerView({ ridOverride } = {}) {
   const { orders, addOrder, coupons, restaurantSettings, products, categories } = useOrdersContext();
   const { profile } = useAuth();
 
@@ -24,10 +24,8 @@ export default function CustomerView() {
   const [loadingPublic, setLoadingPublic] = useState(false);
 
   useEffect(() => {
-    // Apenas carrega via API pública quando acessado com ?rid= (URL pública do cliente)
-    // Na visualização admin (sem ?rid=) usa os dados do contexto diretamente
     const params = new URLSearchParams(window.location.search);
-    const rid = params.get('rid');
+    const rid = ridOverride || params.get('rid');
     if (!rid) return;
 
     setLoadingPublic(true);
@@ -39,7 +37,7 @@ export default function CustomerView() {
       })
       .catch(() => {})
       .finally(() => setLoadingPublic(false));
-  }, []);
+  }, [ridOverride]); // eslint-disable-line
 
   const [step, setStep] = useState(() => localStorage.getItem('pedirecebe_customer_step') || 'login');
   const [phone, setPhone] = useState('');

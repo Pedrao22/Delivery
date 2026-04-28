@@ -26,6 +26,7 @@ import PlansManager from './pages/super/PlansManager';
 import AuditHistory from './pages/super/AuditHistory';
 import GlobalSettings from './pages/super/GlobalSettings';
 import SuperPasswordReset from './pages/super/SuperPasswordReset';
+import MenuPublico from './pages/MenuPublico';
 import { OrdersProvider, useOrdersContext } from './context/OrdersContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/shared/ProtectedRoute';
@@ -167,6 +168,7 @@ function App() {
             <CustomerView />
           </OrdersProvider>
         } />
+        <Route path="/m/:slug" element={<MenuPublico />} />
 
         {/* Super Admin */}
         <Route path="/super/login" element={<SuperLoginPage />} />
