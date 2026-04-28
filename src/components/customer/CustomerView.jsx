@@ -13,6 +13,7 @@ import ProductModal from '../menu/ProductModal';
 import Button from '../shared/Button';
 import { useOrdersContext } from '../../context/OrdersContext';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '../../lib/supabase';
 import Badge from '../shared/Badge';
 import './CustomerView.css';
 
@@ -29,7 +30,6 @@ export default function CustomerView({ ridOverride } = {}) {
 
   useEffect(() => {
     if (!rid) { setLoadingPublic(false); return; }
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
     fetch(`${API_URL}/public/menu/${rid}`)
       .then(r => r.ok ? r.json() : null)
       .then(data => { if (data?.success) setPublicData(data.data); })
@@ -169,7 +169,6 @@ export default function CustomerView({ ridOverride } = {}) {
 
     try {
       if (isPublic) {
-        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
         const res = await fetch(`${API_URL}/public/orders`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
