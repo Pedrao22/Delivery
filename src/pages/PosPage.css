@@ -370,20 +370,27 @@
   display: flex;
   flex-direction: column;
   padding: 16px;
-  gap: 16px;
-  overflow-y: auto;
+  gap: 12px;
+  overflow: hidden;
+  min-height: 0;
 }
 
 .pos-cart-title {
   font-weight: var(--fw-bold);
   font-size: var(--font-md);
   color: var(--text-primary);
+  flex-shrink: 0;
 }
 
 .pos-cart-list {
   flex: 1;
-  min-height: 100px;
+  overflow-y: auto;
+  min-height: 0;
 }
+
+.pos-summary { flex-shrink: 0; }
+.pos-customer-form { flex-shrink: 0; }
+.pos-generate-btn { flex-shrink: 0; }
 
 .pos-cart-empty {
   text-align: center;

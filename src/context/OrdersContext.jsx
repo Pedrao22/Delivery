@@ -59,9 +59,25 @@ function mapLoyalty(config, premios) {
   };
 }
 
-function playBeep() {
+// AudioContext singleton — browsers require user gesture to unlock
+let _audioCtx = null;
+function getAudioCtx() {
+  if (!_audioCtx) {
+    try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
+  }
+  return _audioCtx;
+}
+// Call on any user click/key to ensure audio is unlocked
+function unlockAudio() {
+  const ctx = getAudioCtx();
+  if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
+}
+
+async function playBeep() {
   try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const ctx = getAudioCtx();
+    if (!ctx) return;
+    if (ctx.state === 'suspended') await ctx.resume();
     const tone = (freq, startAt, dur) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -75,8 +91,8 @@ function playBeep() {
       osc.start(ctx.currentTime + startAt);
       osc.stop(ctx.currentTime + startAt + dur);
     };
-    tone(1047, 0, 0.18);   // C6 — primeiro "pim"
-    tone(784, 0.22, 0.28); // G5 — segundo "m"
+    tone(1047, 0, 0.18);
+    tone(784, 0.22, 0.28);
   } catch {}
 }
 
@@ -123,6 +139,17 @@ export function OrdersProvider({ children }) {
   ordersRef.current = orders;
   const allOrdersRef = useRef([]);
   const pendingFinalizeRef = useRef(new Set());
+
+  // Unlock AudioContext on first user interaction (browser autoplay policy)
+  useEffect(() => {
+    const handler = () => unlockAudio();
+    document.addEventListener('click', handler, { once: true });
+    document.addEventListener('keydown', handler, { once: true });
+    return () => {
+      document.removeEventListener('click', handler);
+      document.removeEventListener('keydown', handler);
+    };
+  }, []);
 
   useEffect(() => {
     if (!restauranteId) return;
