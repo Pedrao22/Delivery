@@ -61,23 +61,34 @@ function mapLoyalty(config, premios) {
 
 // AudioContext singleton — browsers require user gesture to unlock
 let _audioCtx = null;
+let _audioUnlocked = false;
+
 function getAudioCtx() {
   if (!_audioCtx) {
     try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch {}
   }
   return _audioCtx;
 }
-// Call on any user click/key to ensure audio is unlocked
-function unlockAudio() {
-  const ctx = getAudioCtx();
-  if (ctx && ctx.state === 'suspended') ctx.resume().catch(() => {});
-}
 
-async function playBeep() {
+function unlockAudio() {
+  if (_audioUnlocked) return;
   try {
     const ctx = getAudioCtx();
     if (!ctx) return;
-    if (ctx.state === 'suspended') await ctx.resume();
+    // Play a silent 1-frame buffer — the most reliable way to unlock audio
+    const buf = ctx.createBuffer(1, 1, 22050);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+    ctx.resume().then(() => { _audioUnlocked = true; }).catch(() => {});
+  } catch {}
+}
+
+function playBeep() {
+  try {
+    const ctx = getAudioCtx();
+    if (!ctx || !_audioUnlocked) return;
     const tone = (freq, startAt, dur) => {
       const osc = ctx.createOscillator();
       const gain = ctx.createGain();
@@ -348,6 +359,8 @@ export function OrdersProvider({ children }) {
       }),
     });
     const newOrder = mapOrder(result.data);
+    // Mark as seen so polling doesn't re-notify for orders we created ourselves
+    seenOrderIdsRef.current.add(newOrder.id);
     setOrders(prev => [newOrder, ...prev]);
     allOrdersRef.current = [newOrder, ...allOrdersRef.current];
     return newOrder.id;

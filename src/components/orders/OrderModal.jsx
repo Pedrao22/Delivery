@@ -54,7 +54,7 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
     <Modal
       isOpen={isOpen}
       onClose={onClose}
-      title={`Pedido ${order.id}`}
+      title={`Pedido ${order.confirmCode || order.codigo || order.id}`}
       headerActions={
         <button 
           className={`sidebar-theme-toggle ${isChatOpen ? 'active' : ''}`} 
@@ -157,26 +157,31 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
       {/* Items */}
       <div className="order-modal-section">
         <div className="order-modal-section-title">Itens do Pedido</div>
-        {order.items.map((item, index) => (
-          <div key={index} className="order-modal-item-row">
-            <div style={{ flex: 1 }}>
-              <div className="order-modal-item-name">
-                {item.qty}x {item.name}
-              </div>
-              <div className="order-modal-item-detail">
-                {[item.variation, ...(item.complements || [])].filter(Boolean).join(' • ')}
-              </div>
-              {item.obs && (
-                <div className="order-modal-item-detail" style={{ color: 'var(--warning-dark)', fontStyle: 'italic' }}>
-                  "{item.obs}"
+        {order.items.map((item, index) => {
+          const itemName  = item.nome  || item.name     || '—';
+          const itemQty   = item.qty   || item.quantity || item.qtd || 1;
+          const itemPrice = item.price || item.preco    || item.valor || 0;
+          return (
+            <div key={index} className="order-modal-item-row">
+              <div style={{ flex: 1 }}>
+                <div className="order-modal-item-name">
+                  {itemQty}x {itemName}
                 </div>
-              )}
+                <div className="order-modal-item-detail">
+                  {[item.variation, ...(item.complements || [])].filter(Boolean).join(' • ')}
+                </div>
+                {item.obs && (
+                  <div className="order-modal-item-detail" style={{ color: 'var(--warning-dark)', fontStyle: 'italic' }}>
+                    "{item.obs}"
+                  </div>
+                )}
+              </div>
+              <div className="order-modal-item-price">
+                R$ {(itemPrice * itemQty).toFixed(2).replace('.', ',')}
+              </div>
             </div>
-            <div className="order-modal-item-price">
-              R$ {(item.price * item.qty).toFixed(2).replace('.', ',')}
-            </div>
-          </div>
-        ))}
+          );
+        })}
         <div className="order-modal-total">
           <span className="order-modal-total-label">Total</span>
           <span className="order-modal-total-value">
