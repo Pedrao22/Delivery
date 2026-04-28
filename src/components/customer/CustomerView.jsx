@@ -173,7 +173,7 @@ export default function CustomerView({ ridOverride } = {}) {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            restaurante_id: publicRestaurant?.id,
+            restaurante_id: publicRestaurant?.id || restaurantSettings?.id,
             cliente_nome: checkoutForm.customerName,
             cliente_telefone: checkoutForm.customerPhone,
             tipo: checkoutForm.type,

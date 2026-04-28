@@ -179,15 +179,33 @@ export default function SettingsPage() {
                 </div>
               </div>
 
-              {formData.slug && (
-                <div style={{ marginTop: 'var(--space-6)', padding: 'var(--space-5)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-light)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--space-3)', color: 'var(--accent)', fontWeight: 700, fontSize: 'var(--font-sm)' }}>
-                    <Globe size={16} />
-                    Link do Cardápio Digital
+              <div style={{ marginTop: 'var(--space-6)', padding: 'var(--space-5)', background: 'var(--bg-secondary)', borderRadius: 'var(--radius-xl)', border: '1px solid var(--border-light)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: 'var(--space-3)', color: 'var(--accent)', fontWeight: 700, fontSize: 'var(--font-sm)' }}>
+                  <Globe size={16} />
+                  Link do Cardápio Digital
+                </div>
+                <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 'var(--space-3)' }}>
+                  Personalize o endereço do seu cardápio e compartilhe com seus clientes.
+                </p>
+                <div className="settings-form-group" style={{ marginBottom: 'var(--space-3)' }}>
+                  <label style={{ fontSize: '0.75rem' }}>Endereço personalizado (slug)</label>
+                  <div className="settings-input-wrapper">
+                    <Globe size={18} className="settings-input-icon" />
+                    <input
+                      type="text"
+                      className="settings-input"
+                      value={formData.slug || ''}
+                      placeholder="meu-restaurante"
+                      onChange={e => setFormData({ ...formData, slug: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/-+/g, '-') })}
+                    />
                   </div>
-                  <p style={{ fontSize: '0.75rem', color: 'var(--text-tertiary)', marginBottom: 'var(--space-3)' }}>
-                    Compartilhe este link com seus clientes para que eles façam pedidos diretamente.
-                  </p>
+                  {formData.slug && (
+                    <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', marginTop: 4, display: 'block' }}>
+                      {window.location.origin}/m/<strong>{formData.slug}</strong>
+                    </span>
+                  )}
+                </div>
+                {formData.slug && (
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <div className="settings-input-wrapper" style={{ flex: 1 }}>
                       <Globe size={18} className="settings-input-icon" />
@@ -217,8 +235,8 @@ export default function SettingsPage() {
                       <ExternalLink size={14} />
                     </a>
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           )}
 

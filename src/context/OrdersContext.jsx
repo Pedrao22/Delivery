@@ -308,6 +308,7 @@ export function OrdersProvider({ children }) {
       const r = await apiFetch('/restaurants/me');
       const d = r.data;
       setRestaurantSettings({
+        id: d.id || null,
         name: d.nome || 'Meu Restaurante',
         logo: d.logo_url || '🍽️',
         primaryColor: d.cor_primaria || '#e74c3c',
