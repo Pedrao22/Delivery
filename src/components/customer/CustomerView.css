@@ -207,7 +207,7 @@
 }
 
 .status-tag.open  { background: #ECFDF5; color: #059669; }
-.status-tag.closed { background: #FEF2F2; color: #DC2626; }
+.status-tag.closed { background: #FFEBEE; color: #E53935; }
 
 .status-info {
   color: #999;
@@ -231,7 +231,7 @@
 .user-points:hover { background: #EFEFEF; }
 
 .points-label { font-size: 0.6rem; color: #AAA; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-.points-val   { font-size: 0.9rem; font-weight: 800; color: #F59E0B; margin-top: 1px; }
+.points-val   { font-size: 0.9rem; font-weight: 800; color: #FFC107; margin-top: 1px; }
 
 /* Search bar */
 .search-bar {
@@ -323,6 +323,8 @@
   letter-spacing: -0.01em;
 }
 
+.section-title svg { color: #FFC107; }
+
 /* Bestsellers horizontal scroll */
 .products-scroll {
   display: flex;
@@ -399,8 +401,8 @@
   position: absolute;
   top: 8px;
   left: 8px;
-  background: #FEFCE8;
-  color: #854D0E;
+  background: #FFF8E1;
+  color: #E65100;
   padding: 3px 8px;
   border-radius: 100px;
   font-size: 0.58rem;
@@ -410,7 +412,7 @@
   display: flex;
   align-items: center;
   gap: 3px;
-  border: 1px solid #FDE68A;
+  border: 1px solid #FFE082;
 }
 
 .customer-wrapper .card-content-section {
@@ -807,7 +809,7 @@
 }
 
 .timeline-step.completed .step-marker { background: #ECFDF5; color: #059669; }
-.timeline-step.active    .step-marker { background: #FEFCE8; color: #D97706; animation: pulse-soft 2s infinite; }
+.timeline-step.active    .step-marker { background: #FFF8E1; color: #FF8F00; animation: pulse-soft 2s infinite; }
 .timeline-step.pending   .step-marker { background: #F0F0F3; color: #CCC; }
 
 .step-line {

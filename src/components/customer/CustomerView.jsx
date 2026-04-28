@@ -24,22 +24,22 @@ export default function CustomerView() {
   const [loadingPublic, setLoadingPublic] = useState(false);
 
   useEffect(() => {
-    // Tenta carregar dados do restaurante via API pública
-    // Usa restaurante_id do perfil se disponível, ou de searchParams
+    // Apenas carrega via API pública quando acessado com ?rid= (URL pública do cliente)
+    // Na visualização admin (sem ?rid=) usa os dados do contexto diretamente
     const params = new URLSearchParams(window.location.search);
-    const rid = params.get('rid') || profile?.restaurante_id;
+    const rid = params.get('rid');
     if (!rid) return;
 
     setLoadingPublic(true);
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
     fetch(`${API_URL}/public/menu/${rid}`)
-      .then(r => r.json())
+      .then(r => r.ok ? r.json() : null)
       .then(data => {
-        if (data.success) setPublicData(data.data);
+        if (data?.success) setPublicData(data.data);
       })
       .catch(() => {})
       .finally(() => setLoadingPublic(false));
-  }, [profile?.restaurante_id]);
+  }, []);
 
   const [step, setStep] = useState(() => localStorage.getItem('pedirecebe_customer_step') || 'login');
   const [phone, setPhone] = useState('');
@@ -67,7 +67,7 @@ export default function CustomerView() {
 
   // Effective Brand Data
   const brandName = restaurantSettings.name || 'Pedi&Recebe';
-  const primaryColor = restaurantSettings.primaryColor || '#e74c3c';
+  const primaryColor = restaurantSettings.primaryColor || '#E53935';
 
   // Catalog Data — public API preferred, then context, then static fallback
   const displayProducts = publicData?.produtos?.length > 0 ? publicData.produtos : (products?.length > 0 ? products : menuItems);
