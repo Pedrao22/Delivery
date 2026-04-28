@@ -74,15 +74,23 @@ export default function CustomerView({ ridOverride } = {}) {
   const deliveryTime = publicRestaurant?.delivery_time || restaurantSettings.deliveryTime || '30-45 min';
   const isOpen       = publicRestaurant?.is_open ?? restaurantSettings.isOpen ?? true;
 
-  // Payment options from restaurant config
-  const paymentsConfig = publicRestaurant?.payments_config || restaurantSettings.payments || {};
+  // Payment options — normalize legacy keys (pix→pix_online, card→card_credit, pix_counter→pix_balcao)
+  const rawPayments = publicRestaurant?.payments_config || restaurantSettings.payments || {};
+  const pc = {
+    pix_online:  rawPayments.pix_online  ?? rawPayments.pix   ?? false,
+    pix_balcao:  rawPayments.pix_balcao  ?? rawPayments.pix_counter ?? false,
+    card_credit: rawPayments.card_credit ?? rawPayments.card  ?? false,
+    card_debit:  rawPayments.card_debit  ?? false,
+    cash:        rawPayments.cash        ?? false,
+  };
+  const hasAny = Object.values(pc).some(Boolean);
   const paymentOptions = [
-    { id: 'pix_online', label: 'Pix', icon: <QrCode size={18} /> },
-    { id: 'pix_balcao', label: 'Pix Balcão', icon: <QrCode size={18} /> },
-    { id: 'card_credit', label: 'Crédito', icon: <CreditCard size={18} /> },
-    { id: 'card_debit', label: 'Débito', icon: <CreditCard size={18} /> },
-    { id: 'cash', label: 'Dinheiro', icon: <Wallet size={18} /> },
-  ].filter(m => paymentsConfig[m.id] !== false && (Object.keys(paymentsConfig).length === 0 || paymentsConfig[m.id]));
+    { id: 'pix_online',  label: 'Pix',       icon: <QrCode size={18} /> },
+    { id: 'pix_balcao',  label: 'Pix Balcão', icon: <QrCode size={18} /> },
+    { id: 'card_credit', label: 'Crédito',    icon: <CreditCard size={18} /> },
+    { id: 'card_debit',  label: 'Débito',     icon: <CreditCard size={18} /> },
+    { id: 'cash',        label: 'Dinheiro',   icon: <Wallet size={18} /> },
+  ].filter(m => !hasAny || pc[m.id]);
 
   // Catalog Data — public API preferred, then context, then static fallback
   const displayProducts = publicData?.produtos?.length > 0 ? publicData.produtos : (products?.length > 0 ? products : menuItems);
@@ -147,8 +155,8 @@ export default function CustomerView({ ridOverride } = {}) {
   };
 
   const handleFinalConfirm = async () => {
-    if (!checkoutForm.customerName?.trim() || !checkoutForm.customerPhone?.trim()) {
-      setOrderError('Preencha seu nome e telefone para continuar.');
+    if (!checkoutForm.customerPhone?.trim()) {
+      setOrderError('Informe seu WhatsApp ou telefone para continuar.');
       return;
     }
     if (checkoutForm.type === 'delivery' && !checkoutForm.address?.trim()) {
@@ -449,8 +457,8 @@ export default function CustomerView({ ridOverride } = {}) {
         </section>
       </main>
 
-      {/* Premium Floating Cart */}
-      {cartCount > 0 && (
+      {/* Premium Floating Cart — hidden when checkout modal is open */}
+      {cartCount > 0 && !isCheckoutOpen && (
         <div className="floating-cart-bar">
           <div className="cart-content" onClick={handleOrder} style={{ backgroundColor: primaryColor }}>
             <div className="cart-left">
@@ -486,15 +494,16 @@ export default function CustomerView({ ridOverride } = {}) {
             <h4>Seus Dados</h4>
             <div className="animated-fields">
               <input
-                placeholder="Seu Nome *"
-                value={checkoutForm.customerName}
-                onChange={e => setCheckoutForm({...checkoutForm, customerName: e.target.value})}
-              />
-              <input
                 type="tel"
                 placeholder="WhatsApp / Telefone *"
                 value={checkoutForm.customerPhone}
                 onChange={e => setCheckoutForm({...checkoutForm, customerPhone: e.target.value})}
+                autoFocus
+              />
+              <input
+                placeholder="Seu Nome (Opcional)"
+                value={checkoutForm.customerName}
+                onChange={e => setCheckoutForm({...checkoutForm, customerName: e.target.value})}
               />
             </div>
           </div>
