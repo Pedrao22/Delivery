@@ -287,6 +287,28 @@
   color: var(--text-tertiary);
 }
 
+.sidebar-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  width: 100%;
+  padding: var(--space-2) var(--space-3);
+  margin-top: var(--space-1);
+  border-radius: var(--radius-md);
+  font-size: var(--font-sm);
+  font-weight: var(--fw-medium);
+  color: var(--danger);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.sidebar-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.08);
+}
+
 /* mobile overlay */
 .sidebar-mobile-overlay {
   display: none;

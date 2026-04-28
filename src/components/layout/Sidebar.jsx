@@ -1,9 +1,10 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import {
   ClipboardList, LayoutDashboard, UtensilsCrossed, Package,
   Truck, DollarSign, User, Menu, X, Moon, Sun,
-  Monitor, Map, MessageSquare, Gift, Ticket, Settings
+  Monitor, Map, MessageSquare, Gift, Ticket, Settings, LogOut
 } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 
 const navItems = [
@@ -23,6 +24,18 @@ const navItems = [
 ];
 
 export default function Sidebar({ isOpen, onToggle, orderCount, isDark, onToggleTheme }) {
+  const { profile, restaurant, logout } = useAuth();
+  const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/login');
+  };
+
+  const restaurantName = restaurant?.nome || profile?.nome || 'Meu Restaurante';
+  const initials = restaurantName.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase();
+  const roleLabel = profile?.role === 'super_admin' ? 'Super Admin' : 'Administrador';
+
   const renderLinks = (section) =>
     navItems
       .filter(item => item.section === section)
@@ -79,12 +92,16 @@ export default function Sidebar({ isOpen, onToggle, orderCount, isDark, onToggle
             <span>{isDark ? 'Modo Claro' : 'Modo Escuro'}</span>
           </button>
           <div className="sidebar-user">
-            <div className="sidebar-avatar">PR</div>
+            <div className="sidebar-avatar">{initials}</div>
             <div className="sidebar-user-info">
-              <div className="sidebar-user-name">Pedi&amp;Recebe</div>
-              <div className="sidebar-user-role">Administrador</div>
+              <div className="sidebar-user-name">{restaurantName}</div>
+              <div className="sidebar-user-role">{roleLabel}</div>
             </div>
           </div>
+          <button className="sidebar-logout-btn" onClick={handleLogout}>
+            <LogOut size={16} />
+            <span>Sair da conta</span>
+          </button>
         </div>
       </aside>
 
