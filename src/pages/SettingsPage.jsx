@@ -367,6 +367,7 @@ export default function SettingsPage() {
               <div className="settings-form-grid">
                 {renderInput("Valor Mínimo (R$)", DollarSign, formData.minOrder, "minOrder", "number")}
                 {renderInput("Tempo de Entrega", Clock, formData.deliveryTime, "deliveryTime", "text", "Ex: 40-50 min")}
+                {renderInput("Próximo número do pedido", Zap, formData.pedidoProximoNumero ?? 1, "pedidoProximoNumero", "number", "Ex: 100")}
               </div>
 
               <div className={`ops-status-card ${formData.isOpen ? 'open' : 'closed'}`}>
