@@ -65,8 +65,10 @@ const AuditHistory = () => {
 
       const res = await apiFetch(`/audit?${params}`);
       if (res?.data) {
-        setLogs(res.data);
-        setTotal(res.total || res.data.length);
+        const list  = Array.isArray(res.data) ? res.data : (res.data.data ?? []);
+        const count = res.data.total ?? res.total ?? list.length;
+        setLogs(list);
+        setTotal(count);
       }
     } catch (err) {
       console.error('Erro ao buscar logs:', err);
