@@ -21,25 +21,26 @@ export default function CustomerView({ ridOverride } = {}) {
   const { profile } = useAuth();
 
   const [publicData, setPublicData] = useState(null);
-  const [loadingPublic, setLoadingPublic] = useState(false);
+  const [loadingPublic, setLoadingPublic] = useState(true);
+
+  // Is this a public customer-facing view (via /m/:slug or ?rid=)?
+  const rid = ridOverride || new URLSearchParams(window.location.search).get('rid');
+  const isPublic = !!rid;
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const rid = ridOverride || params.get('rid');
-    if (!rid) return;
-
-    setLoadingPublic(true);
+    if (!rid) { setLoadingPublic(false); return; }
     const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
     fetch(`${API_URL}/public/menu/${rid}`)
       .then(r => r.ok ? r.json() : null)
-      .then(data => {
-        if (data?.success) setPublicData(data.data);
-      })
+      .then(data => { if (data?.success) setPublicData(data.data); })
       .catch(() => {})
       .finally(() => setLoadingPublic(false));
-  }, [ridOverride]); // eslint-disable-line
+  }, [rid]); // eslint-disable-line
 
-  const [step, setStep] = useState(() => localStorage.getItem('pedirecebe_customer_step') || 'login');
+  const [step, setStep] = useState(() => {
+    if (ridOverride || new URLSearchParams(window.location.search).get('rid')) return 'menu';
+    return localStorage.getItem('pedirecebe_customer_step') || 'login';
+  });
   const [phone, setPhone] = useState('');
   const [customer, setCustomer] = useState(null);
   const [cart, setCart] = useState([]);
@@ -48,7 +49,9 @@ export default function CustomerView({ ridOverride } = {}) {
   const [activeOrderId, setActiveOrderId] = useState(() => localStorage.getItem('pedirecebe_active_order_id'));
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  
+  const [submitting, setSubmitting] = useState(false);
+  const [orderError, setOrderError] = useState('');
+
   const [checkoutForm, setCheckoutForm] = useState({
     customerName: '',
     customerPhone: '',
@@ -63,9 +66,23 @@ export default function CustomerView({ ridOverride } = {}) {
     couponDiscount: 0
   });
 
-  // Effective Brand Data
-  const brandName = restaurantSettings.name || 'Pedi&Recebe';
-  const primaryColor = restaurantSettings.primaryColor || '#E53935';
+  // Effective Brand Data — public API takes priority over context (which needs auth)
+  const publicRestaurant = publicData?.restaurante;
+  const brandName    = publicRestaurant?.nome        || restaurantSettings.name         || 'Pedi&Recebe';
+  const primaryColor = publicRestaurant?.cor_primaria || restaurantSettings.primaryColor || '#E53935';
+  const brandLogo    = publicRestaurant?.logo_url     || restaurantSettings.logo         || '🍽️';
+  const deliveryTime = publicRestaurant?.delivery_time || restaurantSettings.deliveryTime || '30-45 min';
+  const isOpen       = publicRestaurant?.is_open ?? restaurantSettings.isOpen ?? true;
+
+  // Payment options from restaurant config
+  const paymentsConfig = publicRestaurant?.payments_config || restaurantSettings.payments || {};
+  const paymentOptions = [
+    { id: 'pix_online', label: 'Pix', icon: <QrCode size={18} /> },
+    { id: 'pix_balcao', label: 'Pix Balcão', icon: <QrCode size={18} /> },
+    { id: 'card_credit', label: 'Crédito', icon: <CreditCard size={18} /> },
+    { id: 'card_debit', label: 'Débito', icon: <CreditCard size={18} /> },
+    { id: 'cash', label: 'Dinheiro', icon: <Wallet size={18} /> },
+  ].filter(m => paymentsConfig[m.id] !== false && (Object.keys(paymentsConfig).length === 0 || paymentsConfig[m.id]));
 
   // Catalog Data — public API preferred, then context, then static fallback
   const displayProducts = publicData?.produtos?.length > 0 ? publicData.produtos : (products?.length > 0 ? products : menuItems);
@@ -120,39 +137,77 @@ export default function CustomerView({ ridOverride } = {}) {
   const cartCount = cart.reduce((sum, i) => sum + i.qty, 0);
 
   const handleOrder = () => {
-    if (cartTotal < restaurantSettings.minOrder) {
-      // alert used for simplicity, but could be a nice toast
+    const minOrder = publicRestaurant?.min_order ?? restaurantSettings.minOrder ?? 0;
+    if (minOrder > 0 && cartTotal < minOrder) {
+      setOrderError(`Pedido mínimo: R$ ${minOrder.toFixed(2).replace('.', ',')}`);
+      setTimeout(() => setOrderError(''), 3000);
       return;
     }
     setIsCheckoutOpen(true);
   };
 
-  const handleFinalConfirm = () => {
-    const finalTotal = cartTotal - checkoutForm.couponDiscount;
+  const handleFinalConfirm = async () => {
+    if (!checkoutForm.customerName?.trim() || !checkoutForm.customerPhone?.trim()) {
+      setOrderError('Preencha seu nome e telefone para continuar.');
+      return;
+    }
+    if (checkoutForm.type === 'delivery' && !checkoutForm.address?.trim()) {
+      setOrderError('Informe o endereço de entrega.');
+      return;
+    }
+    setOrderError('');
+    setSubmitting(true);
+    const finalTotal = cartTotal - (checkoutForm.couponDiscount || 0);
 
-    const orderId = addOrder({
-      customer: {
-        name: checkoutForm.customerName || customer?.name || 'Cliente',
-        phone: checkoutForm.customerPhone || customer?.phone || phone,
-        address: checkoutForm.type === 'delivery' ? checkoutForm.address : (checkoutForm.type === 'pickup' ? 'Retirada no Local' : 'Consumo no Local'),
-        reference: checkoutForm.reference,
-      },
-      items: cart,
-      total: finalTotal,
-      subtotal: cartTotal,
-      type: checkoutForm.type,
-      payment: checkoutForm.paymentMethod.replace('_', ' ').toUpperCase(),
-      cashPaid: checkoutForm.paymentMethod === 'cash' && checkoutForm.needsChange ? parseFloat(checkoutForm.cashAmount) : null,
-      taxId: checkoutForm.taxId,
-      couponUsed: checkoutForm.couponCode,
-      discounts: checkoutForm.couponDiscount
-    });
-    
-    setActiveOrderId(orderId);
-    setCart([]);
-    setIsCheckoutOpen(false);
-    setCheckoutForm(prev => ({ ...prev, couponCode: '', couponDiscount: 0, taxId: '' }));
-    setStep('tracking');
+    try {
+      if (isPublic) {
+        const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3333/api';
+        const res = await fetch(`${API_URL}/public/orders`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            restaurante_id: publicRestaurant?.id,
+            cliente_nome: checkoutForm.customerName,
+            cliente_telefone: checkoutForm.customerPhone,
+            tipo: checkoutForm.type,
+            endereco: checkoutForm.type === 'delivery' ? checkoutForm.address : null,
+            pagamento: checkoutForm.paymentMethod,
+            itens: cart,
+            total: finalTotal,
+            subtotal: cartTotal,
+          }),
+        });
+        const result = await res.json();
+        if (result.success) {
+          setCart([]);
+          setIsCheckoutOpen(false);
+          setStep('success');
+        } else {
+          setOrderError(result.message || 'Erro ao enviar pedido. Tente novamente.');
+        }
+      } else {
+        const orderId = await addOrder({
+          customer: {
+            name: checkoutForm.customerName || customer?.name || 'Cliente',
+            phone: checkoutForm.customerPhone || customer?.phone || phone,
+            address: checkoutForm.type === 'delivery' ? checkoutForm.address : (checkoutForm.type === 'pickup' ? 'Retirada no Local' : 'Consumo no Local'),
+            reference: checkoutForm.reference,
+          },
+          items: cart, total: finalTotal, subtotal: cartTotal, type: checkoutForm.type,
+          payment: checkoutForm.paymentMethod.replace('_', ' ').toUpperCase(),
+          couponUsed: checkoutForm.couponCode, discounts: checkoutForm.couponDiscount,
+        });
+        setActiveOrderId(orderId);
+        setCart([]);
+        setIsCheckoutOpen(false);
+        setCheckoutForm(prev => ({ ...prev, couponCode: '', couponDiscount: 0, taxId: '' }));
+        setStep('tracking');
+      }
+    } catch {
+      setOrderError('Erro de conexão. Verifique sua internet e tente novamente.');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const filtered = useMemo(() => {
@@ -164,18 +219,52 @@ export default function CustomerView({ ridOverride } = {}) {
     });
   }, [activeCategory, searchQuery, displayProducts]);
 
-  // 1. Login Step
+  // Loading screen for public menu
+  if (isPublic && loadingPublic) {
+    return (
+      <div className="customer-wrapper" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh' }}>
+        <div style={{ textAlign: 'center' }}>
+          <div className="cv-spinner" />
+          <p style={{ color: '#AAA', fontSize: '0.9rem', marginTop: 16 }}>Carregando cardápio...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Success step (after public order)
+  if (step === 'success') {
+    return (
+      <div className="customer-wrapper success-step" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: 24 }}>
+        <div style={{ textAlign: 'center', maxWidth: 400, width: '100%' }}>
+          <div style={{ fontSize: '5rem', marginBottom: 24, animation: 'successPop 0.5s cubic-bezier(0.16,1,0.3,1)' }}>🎉</div>
+          <h2 style={{ fontSize: '1.6rem', fontWeight: 900, marginBottom: 12, letterSpacing: '-0.03em' }}>Pedido enviado!</h2>
+          <p style={{ color: '#666', lineHeight: 1.6, marginBottom: 8 }}>Recebemos seu pedido e em breve entraremos em contato.</p>
+          <p style={{ color: '#AAA', fontSize: '0.85rem', marginBottom: 36 }}>⏱ Previsão: {deliveryTime}</p>
+          <button
+            onClick={() => setStep('menu')}
+            style={{ width: '100%', padding: '16px', background: primaryColor, color: '#fff', border: 'none', borderRadius: 16, fontWeight: 800, fontSize: '1rem', cursor: 'pointer', fontFamily: 'inherit' }}
+          >
+            Fazer outro pedido
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // 1. Login Step (admin preview only — public menu skips this)
   if (step === 'login') {
     return (
       <div className="customer-wrapper login-step">
         <div className="login-card">
           <div className="login-branding">
-            {restaurantSettings.logo ? (
-               <div className="login-logo-emoji" style={{ background: `${primaryColor}15` }}>{restaurantSettings.logo}</div>
+            {brandLogo && brandLogo !== '🍽️' ? (
+              brandLogo.startsWith('http') ? (
+                <div className="login-logo-image"><img src={brandLogo} alt={brandName} /></div>
+              ) : (
+                <div className="login-logo-emoji" style={{ background: `${primaryColor}15` }}>{brandLogo}</div>
+              )
             ) : (
-               <div className="login-logo-image">
-                 <img src="/logo_wide.png" alt={brandName} />
-               </div>
+              <div className="login-logo-emoji" style={{ background: `${primaryColor}15` }}>🍽️</div>
             )}
             <h1>{brandName}</h1>
             <p>Seja bem-vindo de volta! 👋</p>
@@ -227,7 +316,7 @@ export default function CustomerView({ ridOverride } = {}) {
           <div className="status-hero">
             <div className="status-animation">🚚</div>
             <h3>{trackingOrder.status === 'ready' ? 'Seu pedido está pronto!' : 'Estamos cuidando de tudo'}</h3>
-            <p>Previsão: {restaurantSettings.deliveryTime}</p>
+            <p>Previsão: {deliveryTime}</p>
           </div>
 
           <div className="timeline">
@@ -274,16 +363,20 @@ export default function CustomerView({ ridOverride } = {}) {
         <div className="menu-header-inner">
           <div className="header-top">
             <div className="brand-box">
-              <div className="brand-logo">{restaurantSettings.logo || '🍽️'}</div>
+              <div className="brand-logo">
+                {brandLogo?.startsWith('http') ? (
+                  <img src={brandLogo} alt={brandName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }} />
+                ) : (brandLogo || '🍽️')}
+              </div>
               <div className="brand-meta">
                 <h1>{brandName}</h1>
                 <div className="brand-status">
-                  {restaurantSettings.isOpen ? (
+                  {isOpen ? (
                     <span className="status-tag open">Aberto</span>
                   ) : (
                     <span className="status-tag closed">Fechado</span>
                   )}
-                  <span className="status-info"><Clock size={12} /> {restaurantSettings.deliveryTime}</span>
+                  <span className="status-info"><Clock size={12} /> {deliveryTime}</span>
                 </div>
               </div>
             </div>
@@ -328,7 +421,7 @@ export default function CustomerView({ ridOverride } = {}) {
 
       <main className="menu-inner">
         {/* Bestsellers Section */}
-        {activeCategory === 'all' && !searchQuery && (
+        {activeCategory === 'all' && !searchQuery && displayProducts.some(p => p.bestseller) && (
           <section className="menu-section">
             <h2 className="section-title"><Star size={18} fill="currentColor" /> Os mais pedidos</h2>
             <div className="products-scroll">
@@ -384,21 +477,38 @@ export default function CustomerView({ ridOverride } = {}) {
 
       <Modal
         isOpen={isCheckoutOpen}
-        onClose={() => setIsCheckoutOpen(false)}
+        onClose={() => !submitting && setIsCheckoutOpen(false)}
         title="Finalizar Pedido"
         size="large"
       >
         <div className="checkout-revamp">
           <div className="revamp-section">
-             <h4>Dados de Entrega</h4>
+            <h4>Seus Dados</h4>
+            <div className="animated-fields">
+              <input
+                placeholder="Seu Nome *"
+                value={checkoutForm.customerName}
+                onChange={e => setCheckoutForm({...checkoutForm, customerName: e.target.value})}
+              />
+              <input
+                type="tel"
+                placeholder="WhatsApp / Telefone *"
+                value={checkoutForm.customerPhone}
+                onChange={e => setCheckoutForm({...checkoutForm, customerPhone: e.target.value})}
+              />
+            </div>
+          </div>
+
+          <div className="revamp-section">
+             <h4>Tipo de Pedido</h4>
              <div className="revamp-toggle">
                 <button className={checkoutForm.type === 'delivery' ? 'active' : ''} onClick={() => setCheckoutForm({...checkoutForm, type: 'delivery'})}>Entrega</button>
                 <button className={checkoutForm.type === 'pickup' ? 'active' : ''} onClick={() => setCheckoutForm({...checkoutForm, type: 'pickup'})}>Retirada</button>
              </div>
-             
+
              {checkoutForm.type === 'delivery' && (
                <div className="animated-fields">
-                  <input placeholder="Endereço Completo" value={checkoutForm.address} onChange={e => setCheckoutForm({...checkoutForm, address: e.target.value})} />
+                  <input placeholder="Endereço Completo *" value={checkoutForm.address} onChange={e => setCheckoutForm({...checkoutForm, address: e.target.value})} />
                   <input placeholder="Referência (Opcional)" value={checkoutForm.reference} onChange={e => setCheckoutForm({...checkoutForm, reference: e.target.value})} />
                </div>
              )}
@@ -406,14 +516,14 @@ export default function CustomerView({ ridOverride } = {}) {
 
           <div className="revamp-section">
              <h4>Forma de Pagamento</h4>
-             <div className="payment-grid-modern">
-                {[
+             <div className={`payment-grid-modern cols-${Math.min((paymentOptions.length || 3), 3)}`}>
+                {(paymentOptions.length > 0 ? paymentOptions : [
                   { id: 'pix_online', label: 'Pix', icon: <QrCode size={18} /> },
                   { id: 'card_credit', label: 'Cartão', icon: <CreditCard size={18} /> },
                   { id: 'cash', label: 'Dinheiro', icon: <Wallet size={18} /> },
-                ].map(m => (
-                  <button 
-                    key={m.id} 
+                ]).map(m => (
+                  <button
+                    key={m.id}
                     className={`pay-btn ${checkoutForm.paymentMethod === m.id ? 'active' : ''}`}
                     onClick={() => setCheckoutForm({...checkoutForm, paymentMethod: m.id})}
                     style={checkoutForm.paymentMethod === m.id ? { borderColor: primaryColor, color: primaryColor } : {}}
@@ -425,13 +535,24 @@ export default function CustomerView({ ridOverride } = {}) {
              </div>
           </div>
 
+          {orderError && (
+            <div style={{ background: '#FFF3F3', border: '1px solid #FFCDD2', borderRadius: 12, padding: '12px 16px', color: '#C62828', fontSize: '0.85rem', fontWeight: 600 }}>
+              {orderError}
+            </div>
+          )}
+
           <div className="checkout-footer-sticky">
              <div className="final-sum">
                 <span>Total a pagar</span>
-                <strong>R$ {cartTotal.toFixed(2)}</strong>
+                <strong>R$ {(cartTotal - (checkoutForm.couponDiscount || 0)).toFixed(2).replace('.', ',')}</strong>
              </div>
-             <button className="confirm-btn" style={{ backgroundColor: primaryColor }} onClick={handleFinalConfirm}>
-                Confirmar agora
+             <button
+               className="confirm-btn"
+               style={{ backgroundColor: submitting ? '#CCC' : primaryColor, cursor: submitting ? 'not-allowed' : 'pointer' }}
+               onClick={handleFinalConfirm}
+               disabled={submitting}
+             >
+               {submitting ? 'Enviando...' : 'Confirmar agora'}
              </button>
           </div>
         </div>
