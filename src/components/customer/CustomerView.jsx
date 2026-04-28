@@ -344,13 +344,13 @@ export default function CustomerView({ ridOverride } = {}) {
                 {trackingOrder.items.map((item, idx) => (
                   <div key={idx} className="summary-item">
                     <span>{item.qty}x {item.name}</span>
-                    <span>R$ {item.price.toFixed(2)}</span>
+                    <span>R$ {(item.price ?? (item.unitPrice ?? 0) * (item.qty ?? 1)).toFixed(2)}</span>
                   </div>
                 ))}
              </div>
              <div className="summary-total">
                <span>Total Pago</span>
-               <strong>R$ {trackingOrder.total.toFixed(2)}</strong>
+               <strong>R$ {(trackingOrder.total ?? 0).toFixed(2)}</strong>
              </div>
           </div>
           
