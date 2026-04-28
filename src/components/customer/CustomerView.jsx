@@ -490,6 +490,23 @@ export default function CustomerView({ ridOverride } = {}) {
       >
         <div className="checkout-revamp">
           <div className="revamp-section">
+            <h4>Seu Pedido</h4>
+            <div className="checkout-items-list">
+              {cart.map((item, idx) => (
+                <div key={idx} className="checkout-item-row">
+                  <span className="checkout-item-qty">{item.qty}x</span>
+                  <span className="checkout-item-name">{item.name}{item.variation ? ` (${item.variation})` : ''}</span>
+                  <span className="checkout-item-price">R$ {(item.price ?? item.unitPrice * item.qty).toFixed(2).replace('.', ',')}</span>
+                </div>
+              ))}
+              <div className="checkout-items-total">
+                <span>Subtotal</span>
+                <strong>R$ {cartTotal.toFixed(2).replace('.', ',')}</strong>
+              </div>
+            </div>
+          </div>
+
+          <div className="revamp-section">
             <h4>Seus Dados</h4>
             <div className="animated-fields">
               <input

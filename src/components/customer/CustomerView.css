@@ -609,6 +609,55 @@
   gap: 24px;
 }
 
+.checkout-items-list {
+  background: #F8F8FB;
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.checkout-item-row {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  font-size: 0.88rem;
+}
+
+.checkout-item-qty {
+  font-weight: 800;
+  color: #555;
+  min-width: 24px;
+}
+
+.checkout-item-name {
+  flex: 1;
+  color: #1A1A1A;
+  font-weight: 500;
+}
+
+.checkout-item-price {
+  font-weight: 700;
+  color: #1A1A1A;
+  white-space: nowrap;
+}
+
+.checkout-items-total {
+  display: flex;
+  justify-content: space-between;
+  padding-top: 10px;
+  margin-top: 4px;
+  border-top: 1px solid #E8E8EE;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.checkout-items-total strong {
+  color: #1A1A1A;
+  font-weight: 800;
+}
+
 .revamp-section h4 {
   font-size: 0.7rem;
   font-weight: 800;
