@@ -1,7 +1,24 @@
-import { Bell, Menu } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
+import { Bell, Menu, ShoppingBag, Package, X, CheckCheck } from 'lucide-react';
+import { useOrdersContext } from '../../context/OrdersContext';
 import './TopBar.css';
 
 export default function TopBar({ title, subtitle, onMenuClick, children }) {
+  const { notifications, dismissNotification, clearAllNotifications } = useOrdersContext();
+  const [bellOpen, setBellOpen] = useState(false);
+  const bellRef = useRef(null);
+  const count = notifications.length;
+
+  useEffect(() => {
+    const handler = (e) => {
+      if (bellRef.current && !bellRef.current.contains(e.target)) {
+        setBellOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
+
   return (
     <div className="topbar">
       <div className="topbar-left">
@@ -15,10 +32,53 @@ export default function TopBar({ title, subtitle, onMenuClick, children }) {
       </div>
       <div className="topbar-right">
         {children}
-        <button className="topbar-notification">
-          <Bell size={20} />
-          <span className="topbar-notification-dot" />
-        </button>
+        <div className="topbar-bell-wrapper" ref={bellRef}>
+          <button
+            className={`topbar-notification ${count > 0 ? 'has-notifications' : ''}`}
+            onClick={() => setBellOpen(o => !o)}
+          >
+            <Bell size={20} />
+            {count > 0 && (
+              <span className="topbar-notification-badge">{count > 9 ? '9+' : count}</span>
+            )}
+          </button>
+
+          {bellOpen && (
+            <div className="topbar-notif-dropdown">
+              <div className="topbar-notif-header">
+                <span>Notificações{count > 0 ? ` (${count})` : ''}</span>
+                {count > 0 && (
+                  <button className="topbar-notif-clear" onClick={() => { clearAllNotifications(); setBellOpen(false); }}>
+                    <CheckCheck size={13} /> Limpar
+                  </button>
+                )}
+              </div>
+              {count === 0 ? (
+                <div className="topbar-notif-empty">Tudo em dia por aqui</div>
+              ) : (
+                <div className="topbar-notif-list">
+                  {notifications.map(n => (
+                    <div key={n.id} className={`topbar-notif-item topbar-notif-${n.type}`}>
+                      <div className="topbar-notif-icon">
+                        {n.type === 'order' ? <ShoppingBag size={15} /> : <Package size={15} />}
+                      </div>
+                      <div className="topbar-notif-body">
+                        <div className="topbar-notif-title">{n.title}</div>
+                        <div className="topbar-notif-msg">{n.message}</div>
+                        <div className="topbar-notif-time">
+                          {n.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                      <button className="topbar-notif-dismiss" onClick={() => dismissNotification(n.id)}>
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

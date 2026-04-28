@@ -6,9 +6,27 @@ import {
 } from 'lucide-react';
 import { apiFetch } from '../../lib/supabase';
 
+const PLAN_FEATURES = [
+  { key: 'pdv',          label: 'PDV / Caixa',      icon: '🏪' },
+  { key: 'pedidos',      label: 'Pedidos',           icon: '📦' },
+  { key: 'cardapio',     label: 'Cardápio',          icon: '🍽️' },
+  { key: 'mesas',        label: 'Mesas',             icon: '🪑' },
+  { key: 'estoque',      label: 'Estoque',           icon: '📊' },
+  { key: 'entregadores', label: 'Entregadores',      icon: '🛵' },
+  { key: 'cupons',       label: 'Cupons',            icon: '🎫' },
+  { key: 'fidelidade',   label: 'Fidelidade',        icon: '⭐' },
+  { key: 'relatorios',   label: 'Relatórios',        icon: '📈' },
+  { key: 'financeiro',   label: 'Financeiro',        icon: '💰' },
+  { key: 'pipeline',     label: 'Pipeline Operac.',  icon: '🔄' },
+  { key: 'chat',         label: 'Chat com Clientes', icon: '💬' },
+];
+
+const DEFAULT_FEATURES = Object.fromEntries(PLAN_FEATURES.map(f => [f.key, true]));
+
 const EMPTY_PLAN = {
   nome: '', descricao: '', preco: '', intervalo: 'mensal',
-  limite_pedidos: '', limite_produtos: ''
+  limite_pedidos: '', limite_produtos: '',
+  features: { ...DEFAULT_FEATURES },
 };
 
 const INTERVAL_LABELS = { mensal: 'Mensal', anual: 'Anual', semanal: 'Semanal' };
@@ -95,6 +113,7 @@ const PlansManager = () => {
       intervalo: plan.intervalo || 'mensal',
       limite_pedidos: plan.limite_pedidos || '',
       limite_produtos: plan.limite_produtos || '',
+      features: { ...DEFAULT_FEATURES, ...(plan.recursos?.features || {}) },
     });
     setIsModalOpen(true);
   };
@@ -103,11 +122,13 @@ const PlansManager = () => {
     e.preventDefault();
     setSaving(true);
     try {
+      const { features, ...rest } = planForm;
       const body = {
-        ...planForm,
+        ...rest,
         preco: parseFloat(planForm.preco),
         limite_pedidos: planForm.limite_pedidos ? parseInt(planForm.limite_pedidos) : null,
         limite_produtos: planForm.limite_produtos ? parseInt(planForm.limite_produtos) : null,
+        recursos: { features },
       };
       if (editingPlan) {
         await apiFetch(`/plans/${editingPlan.id}`, { method: 'PUT', body: JSON.stringify(body) });
@@ -287,6 +308,44 @@ const PlansManager = () => {
                   <input type="number" min="0" placeholder="Vazio = ilimitado"
                     value={planForm.limite_produtos} onChange={e => setPlanForm({ ...planForm, limite_produtos: e.target.value })}
                     style={inputStyle} />
+                </div>
+              </div>
+
+              {/* Feature flags */}
+              <div>
+                <label style={{ ...labelStyle, marginBottom: '10px' }}>Funcionalidades disponíveis</label>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px' }}>
+                  {PLAN_FEATURES.map(f => (
+                    <label
+                      key={f.key}
+                      style={{
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        padding: '8px 10px', borderRadius: '10px', cursor: 'pointer',
+                        background: planForm.features?.[f.key]
+                          ? 'rgba(168,85,247,0.1)'
+                          : 'rgba(255,255,255,0.03)',
+                        border: `1px solid ${planForm.features?.[f.key]
+                          ? 'rgba(168,85,247,0.35)'
+                          : 'rgba(255,255,255,0.06)'}`,
+                        transition: 'all 0.15s',
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={!!planForm.features?.[f.key]}
+                        onChange={e => setPlanForm(p => ({
+                          ...p,
+                          features: { ...p.features, [f.key]: e.target.checked },
+                        }))}
+                        style={{ accentColor: '#a855f7', width: '14px', height: '14px' }}
+                      />
+                      <span style={{ fontSize: '0.8rem' }}>{f.icon}</span>
+                      <span style={{
+                        fontSize: '0.78rem', fontWeight: 600,
+                        color: planForm.features?.[f.key] ? '#c084fc' : '#64748b',
+                      }}>{f.label}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
 

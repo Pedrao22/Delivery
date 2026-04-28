@@ -62,15 +62,21 @@ function mapLoyalty(config, premios) {
 function playBeep() {
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = 880;
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.5);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.5);
+    const tone = (freq, startAt, dur) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, ctx.currentTime + startAt);
+      gain.gain.linearRampToValueAtTime(0.45, ctx.currentTime + startAt + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + startAt + dur);
+      osc.start(ctx.currentTime + startAt);
+      osc.stop(ctx.currentTime + startAt + dur);
+    };
+    tone(1047, 0, 0.18);   // C6 — primeiro "pim"
+    tone(784, 0.22, 0.28); // G5 — segundo "m"
   } catch {}
 }
 
@@ -106,9 +112,13 @@ export function OrdersProvider({ children }) {
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [loadingMenu, setLoadingMenu] = useState(false);
 
-  const prevOrderCountRef = useRef(0);
+  const [notifications, setNotifications] = useState([]);
+  const seenOrderIdsRef = useRef(new Set());
+  const isFirstOrderLoadRef = useRef(true);
+  const knownLowStockRef = useRef(new Set());
+  const isFirstInventoryLoadRef = useRef(true);
+
   const leadsRef = useRef([]);
-  leadsRef.current = leads;
   const ordersRef = useRef([]);
   ordersRef.current = orders;
   const allOrdersRef = useRef([]);
@@ -153,9 +163,28 @@ export function OrdersProvider({ children }) {
       const mapped = (result.data || [])
         .filter(o => !pendingFinalizeRef.current.has(o.id))
         .map(mapOrder);
-      const activeCount = mapped.filter(o => ['analyzing', 'production', 'ready'].includes(o.status)).length;
-      if (prevOrderCountRef.current > 0 && activeCount > prevOrderCountRef.current) playBeep();
-      prevOrderCountRef.current = activeCount;
+
+      const newAnalyzing = mapped.filter(
+        o => o.status === 'analyzing' && !seenOrderIdsRef.current.has(o.id)
+      );
+
+      if (!isFirstOrderLoadRef.current && newAnalyzing.length > 0) {
+        playBeep();
+        setNotifications(prev => [
+          ...newAnalyzing.map(o => ({
+            id: `order-${o.id}`,
+            type: 'order',
+            title: 'Novo Pedido!',
+            message: `${o.confirmCode || 'Pedido'} · R$ ${(o.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`,
+            orderId: o.id,
+            timestamp: new Date(),
+          })),
+          ...prev,
+        ].slice(0, 15));
+      }
+
+      mapped.forEach(o => seenOrderIdsRef.current.add(o.id));
+      isFirstOrderLoadRef.current = false;
       setOrders(mapped);
     } catch (err) { console.warn('Erro ao carregar pedidos:', err); }
     finally { setLoadingOrders(false); }
@@ -189,8 +218,34 @@ export function OrdersProvider({ children }) {
   }
 
   async function refreshInventory() {
-    try { const r = await apiFetch('/inventory'); setInventory(r.data || []); }
-    catch (err) { console.warn('Erro ao carregar estoque:', err); }
+    try {
+      const r = await apiFetch('/inventory');
+      const items = r.data || [];
+
+      const lowStock = items.filter(
+        item => item.quantidade_minima > 0 && item.quantidade <= item.quantidade_minima
+      );
+
+      if (!isFirstInventoryLoadRef.current) {
+        const newLow = lowStock.filter(item => !knownLowStockRef.current.has(item.id));
+        if (newLow.length > 0) {
+          setNotifications(prev => [
+            ...newLow.map(item => ({
+              id: `stock-${item.id}`,
+              type: 'stock',
+              title: 'Estoque Baixo',
+              message: `${item.nome}: ${item.quantidade} ${item.unidade || 'un'} restantes`,
+              timestamp: new Date(),
+            })),
+            ...prev,
+          ].slice(0, 15));
+        }
+      }
+
+      knownLowStockRef.current = new Set(lowStock.map(i => i.id));
+      isFirstInventoryLoadRef.current = false;
+      setInventory(items);
+    } catch (err) { console.warn('Erro ao carregar estoque:', err); }
   }
 
   async function refreshDrivers() {
@@ -230,6 +285,14 @@ export function OrdersProvider({ children }) {
       });
     } catch (err) { console.warn('Erro ao carregar configurações:', err); }
   }
+
+  const dismissNotification = useCallback((id) => {
+    setNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+
+  const clearAllNotifications = useCallback(() => {
+    setNotifications([]);
+  }, []);
 
   // ORDERS
   const moveOrder = useCallback(async (orderId, newStatus) => {
@@ -498,6 +561,7 @@ export function OrdersProvider({ children }) {
   }, []);
 
   const value = {
+    notifications, dismissNotification, clearAllNotifications,
     orders, analyzing: orders.filter(o => o.status === 'analyzing'),
     production: orders.filter(o => o.status === 'production'),
     ready: orders.filter(o => o.status === 'ready'),

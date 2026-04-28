@@ -15,21 +15,27 @@
   /* Border */
   --border: #E9ECEF;
   --border-light: #F1F3F5;
-  --border-focus: #FFC400;
+  --border-focus: #FFC107;
 
   /* Text */
   --text-primary: #1A1A2E;
   --text-secondary: #6C757D;
   --text-tertiary: #ADB5BD;
   --text-inverse: #FFFFFF;
-  --text-link: #E5A800;
+  --text-link: #FF8F00;
 
-  /* Accent — Amarelo/Dourado */
-  --accent: #FFC400;
-  --accent-light: #FFD740;
-  --accent-lighter: #FFF8CC;
-  --accent-dark: #E5A800;
-  --accent-gradient: linear-gradient(135deg, #FFC400 0%, #FFD740 100%);
+  /* Accent — Amarelo */
+  --accent: #FFC107;
+  --accent-light: #FFD54F;
+  --accent-lighter: #FFFDE7;
+  --accent-dark: #FF8F00;
+  --accent-gradient: linear-gradient(135deg, #FFC107 0%, #FFD54F 100%);
+
+  /* Brand orange — promoções, destaque secundário */
+  --orange: #FF7043;
+  --orange-light: #FBE9E7;
+  --orange-dark: #D84315;
+  --orange-gradient: linear-gradient(135deg, #FF7043 0%, #FF8A65 100%);
 
   /* Status */
   --success: #00B894;
@@ -38,9 +44,9 @@
   --warning: #FDCB6E;
   --warning-light: #FFF8E7;
   --warning-dark: #E5A800;
-  --danger: #E17055;
-  --danger-light: #FDEEEA;
-  --danger-dark: #C0392B;
+  --danger: #E53935;
+  --danger-light: #FFEBEE;
+  --danger-dark: #C62828;
   --info: #74B9FF;
   --info-light: #EBF5FF;
   --info-dark: #2E86DE;
@@ -51,7 +57,9 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.08);
   --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.12);
   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.16);
-  --shadow-accent: 0 4px 14px rgba(255, 196, 0, 0.35);
+  --shadow-accent: 0 4px 14px rgba(255, 193, 7, 0.35);
+  --shadow-danger: 0 4px 14px rgba(229, 57, 53, 0.35);
+  --shadow-orange: 0 4px 14px rgba(255, 112, 67, 0.35);
 
   /* Radius */
   --radius-xs: 4px;

@@ -45,19 +45,6 @@ export default function DashboardPage() {
     ];
   }, [orders]);
 
-  if (orders.length === 0) {
-    return (
-      <div className="dashboard-page empty">
-        <div className="dashboard-empty-state">
-          <BarChart3 size={64} style={{ opacity: 0.1, marginBottom: 20 }} />
-          <h3>Nenhum dado disponível</h3>
-          <p>Você ainda não possui pedidos registrados para gerar estatísticas.</p>
-          <p style={{ fontSize: 'var(--font-xs)', marginTop: 8 }}>Vá para o Caixa (PDV) e crie seu primeiro pedido!</p>
-        </div>
-      </div>
-    );
-  }
-
   const maxValue = Math.max(...stats.dailyData.map(d => d.value)) || 1;
 
   return (
