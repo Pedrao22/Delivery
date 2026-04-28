@@ -88,7 +88,7 @@
   background: #F7F7FA;
   border: 2px solid transparent;
   border-radius: 16px;
-  font-size: 1.05rem;
+  font-size: 16px;
   font-weight: 600;
   color: #1A1A1A;
   outline: none;
@@ -257,7 +257,7 @@
 .search-bar input {
   background: transparent;
   border: none;
-  font-size: 0.95rem;
+  font-size: 16px;
   width: 100%;
   outline: none;
   color: #333;
@@ -659,7 +659,7 @@
   background: #F7F7FA;
   border: 1.5px solid transparent;
   border-radius: 14px;
-  font-size: 0.9rem;
+  font-size: 16px;
   font-family: inherit;
   outline: none;
   transition: all 0.2s;
