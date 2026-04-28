@@ -562,7 +562,7 @@ export function OrdersProvider({ children }) {
           is_open: data.isOpen, delivery_time: data.deliveryTime, min_order: data.minOrder,
           payments_config: data.payments, pix_key: data.pixKey,
           cnpj: data.cnpj, email: data.email, telefone: data.telefone, endereco: data.endereco,
-          slug: data.slug, pedido_proximo_numero: data.pedidoProximoNumero,
+          slug: data.slug, pedido_proximo_numero: data.pedidoProximoNumero ? parseInt(data.pedidoProximoNumero, 10) : undefined,
         }),
       });
     } catch { refreshSettings(); }
