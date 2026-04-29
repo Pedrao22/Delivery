@@ -10,6 +10,7 @@ import FilterTabs from '../components/shared/FilterTabs';
 import Button from '../components/shared/Button';
 import Modal from '../components/shared/Modal';
 import { useCart } from '../hooks/useCart';
+import './OrdersPage.css';
 
 const filterTabs = [
   { value: 'all', label: 'Todos' },
@@ -19,9 +20,9 @@ const filterTabs = [
 ];
 
 export default function OrdersPage({ onMenuToggle }) {
-  const { 
+  const {
     orders, loadingOrders, refreshOrders,
-    moveOrder, finalizeReady, finalizeSingleOrder, addOrder 
+    moveOrder, finalizeReady, finalizeSingleOrder, addOrder
   } = useOrdersContext();
 
   const [search, setSearch] = useState('');
@@ -64,16 +65,24 @@ export default function OrdersPage({ onMenuToggle }) {
         subtitle={loadingOrders ? 'Atualizando...' : `${orders.length} pedidos ativos`}
         onMenuClick={onMenuToggle}
       >
-        <SearchInput
-          value={search}
-          onChange={setSearch}
-          placeholder="Buscar por cliente ou código..."
-        />
-        <FilterTabs tabs={filterTabs} active={filter} onChange={setFilter} />
+        <div className="orders-topbar-search">
+          <SearchInput
+            value={search}
+            onChange={setSearch}
+            placeholder="Buscar por cliente ou código..."
+          />
+        </div>
         <Button size="sm" onClick={() => setShowNewOrder(true)} icon={loadingOrders ? <Loader2 className="animate-spin" size={14} /> : <Plus size={14} />}>
           Novo Pedido
         </Button>
       </TopBar>
+
+      <div className="orders-filter-bar">
+        <FilterTabs tabs={filterTabs} active={filter} onChange={setFilter} />
+        <span className="orders-count-label">
+          {filteredOrders.length} {filteredOrders.length === 1 ? 'pedido' : 'pedidos'}
+        </span>
+      </div>
 
       <KanbanBoard
         orders={filteredOrders}
