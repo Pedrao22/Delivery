@@ -84,8 +84,58 @@
 .tables-grid-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   flex-shrink: 0;
+}
+
+.tables-header-right {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.add-table-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1.5px solid var(--accent);
+  background: var(--accent-lighter, #fef9e0);
+  color: var(--accent);
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+
+.add-table-btn:hover {
+  background: var(--accent);
+  color: #1a1a2e;
+}
+
+.remove-table-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  border: 1.5px solid #fca5a5;
+  background: #fef2f2;
+  color: #dc2626;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: auto;
+}
+
+.remove-table-btn:hover {
+  background: #fca5a5;
+  color: #7f1d1d;
 }
 
 .tables-grid-header h3 {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Users, Calendar, CheckCircle2, AlertCircle, Coffee, MapPin
+  Users, Calendar, CheckCircle2, AlertCircle, Coffee, MapPin, Plus, Trash2
 } from 'lucide-react';
 import { useOrdersContext } from '../context/OrdersContext';
 import Badge from '../components/shared/Badge';
@@ -30,7 +30,7 @@ function buildDefaultPositions(tables, saved) {
 }
 
 export default function TablesPage() {
-  const { tables, updateTable, orders, restaurantSettings } = useOrdersContext();
+  const { tables, addTable, updateTable, deleteTable, orders, restaurantSettings } = useOrdersContext();
   const [selectedTable, setSelectedTable] = useState(null);
   const [positions, setPositions] = useState({});
   const [dragging, setDragging] = useState(null);
@@ -73,6 +73,27 @@ export default function TablesPage() {
   const handleStatusChange = async (newStatus) => {
     if (!selectedTable) return;
     await updateTable(selectedTable, { status: newStatus === 'dirty' ? 'maintenance' : newStatus });
+  };
+
+  const handleAddTable = async () => {
+    const nums = (tables || []).map(t => parseInt(t.numero, 10)).filter(n => !isNaN(n));
+    const next = nums.length > 0 ? Math.max(...nums) + 1 : 1;
+    const numero = String(next).padStart(2, '0');
+    try {
+      await addTable({ numero, capacidade: 4 });
+    } catch (e) {
+      alert('Erro ao adicionar mesa');
+    }
+  };
+
+  const handleDeleteTable = async () => {
+    if (!selectedTable) return;
+    if (!window.confirm('Remover esta mesa?')) return;
+    const newPos = { ...positions };
+    delete newPos[selectedTable];
+    savePositions(newPos);
+    setSelectedTable(null);
+    await deleteTable(selectedTable);
   };
 
   // Grid map: "col,row" → table
@@ -181,11 +202,16 @@ export default function TablesPage() {
               <h3>Mapa do Salão</h3>
               <span className="drag-hint">Arraste as mesas para reorganizar o salão</span>
             </div>
-            <div className="tables-legend">
-              <span className="legend-item"><span className="dot free"></span> Livre</span>
-              <span className="legend-item"><span className="dot occupied"></span> Ocupada</span>
-              <span className="legend-item"><span className="dot reserved"></span> Reservada</span>
-              <span className="legend-item"><span className="dot maintenance"></span> Limpeza</span>
+            <div className="tables-header-right">
+              <div className="tables-legend">
+                <span className="legend-item"><span className="dot free"></span> Livre</span>
+                <span className="legend-item"><span className="dot occupied"></span> Ocupada</span>
+                <span className="legend-item"><span className="dot reserved"></span> Reservada</span>
+                <span className="legend-item"><span className="dot maintenance"></span> Limpeza</span>
+              </div>
+              <button className="add-table-btn" onClick={handleAddTable}>
+                <Plus size={14} /> Adicionar Mesa
+              </button>
             </div>
           </div>
 
@@ -259,6 +285,9 @@ export default function TablesPage() {
                   <button onClick={() => handleStatusChange('reserved')} className="status-btn reserved">Reservar</button>
                   <button onClick={() => handleStatusChange('dirty')}    className="status-btn dirty">Limpar</button>
                 </div>
+                <button className="remove-table-btn" onClick={handleDeleteTable}>
+                  <Trash2 size={14} /> Remover Mesa
+                </button>
               </div>
             </div>
           ) : (

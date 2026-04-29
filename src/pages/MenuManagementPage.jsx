@@ -115,8 +115,10 @@ export default function MenuManagementPage() {
           <h1>Gestão de Cardápio</h1>
           <p>{products.length} itens no ecossistema</p>
         </div>
-        <div className="header-actions">
+        <div className="header-search">
           <SearchInput value={search} onChange={setSearch} placeholder="Buscar por nome..." />
+        </div>
+        <div className="header-buttons">
           <Button variant="secondary" onClick={() => setShowCategoryModal(true)} icon={<LayoutGrid size={16} />}>Categorias</Button>
           <Button onClick={() => handleEdit({ nome: '', descricao: '', preco: 0, categoria_id: categories[0]?.id || '', imagem_emoji: '🍔', bestseller: false })} icon={<Plus size={16} />}>Novo Item</Button>
         </div>
