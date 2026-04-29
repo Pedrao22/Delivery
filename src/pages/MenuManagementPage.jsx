@@ -36,6 +36,10 @@ export default function MenuManagementPage() {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [activeTab, setActiveTab] = useState('basic'); // basic, variations, combo, complements
   const [isSaving, setIsSaving] = useState(false);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatEmoji, setNewCatEmoji] = useState('📦');
+  const [editingCatId, setEditingCatId] = useState(null);
+  const [editCatData, setEditCatData] = useState({ nome: '', icone: '' });
 
   // Memoized Filtered List
   const filtered = useMemo(() => {
@@ -83,6 +87,24 @@ export default function MenuManagementPage() {
     if (window.confirm('Tem certeza que deseja excluir este produto?')) {
       await deleteProduct(id);
     }
+  };
+
+  const handleAddCategory = () => {
+    if (!newCatName.trim()) return;
+    addCategory({ nome: newCatName.trim(), icone: newCatEmoji || '📦' });
+    setNewCatName('');
+    setNewCatEmoji('📦');
+  };
+
+  const handleStartEditCat = (cat) => {
+    setEditingCatId(cat.id);
+    setEditCatData({ nome: cat.nome, icone: cat.icone || '📦' });
+  };
+
+  const handleSaveCat = () => {
+    if (!editCatData.nome.trim()) return;
+    updateCategory(editingCatId, editCatData);
+    setEditingCatId(null);
   };
 
   return (
@@ -309,31 +331,68 @@ export default function MenuManagementPage() {
         )}
       </Modal>
 
-      {/* Category Management Modal (Similar Logic) */}
+      {/* Category Management Modal */}
       <Modal
         isOpen={showCategoryModal}
-        onClose={() => setShowCategoryModal(false)}
+        onClose={() => { setShowCategoryModal(false); setEditingCatId(null); }}
         title="Gestão de Categorias"
       >
         <div className="category-manager">
-           <div className="add-cat-row">
-             <input placeholder="Nova categoria..." id="new-cat-input" />
-             <Button onClick={() => {
-               const val = document.getElementById('new-cat-input').value;
-               if (val) {
-                 addCategory({ nome: val, icone: '📦' });
-                 document.getElementById('new-cat-input').value = '';
-               }
-             }}>Adicionar</Button>
-           </div>
-           <div className="cat-list">
-             {categories.map(c => (
-               <div key={c.id} className="cat-list-item">
-                 <span>{c.icone} {c.nome}</span>
-                 <button onClick={() => deleteCategory(c.id)}><Trash2 size={14} /></button>
-               </div>
-             ))}
-           </div>
+          <div className="add-cat-form">
+            <input
+              className="emoji-picker-input"
+              value={newCatEmoji}
+              onChange={e => setNewCatEmoji(e.target.value)}
+              placeholder="📦"
+              maxLength={4}
+            />
+            <input
+              className="add-cat-name-input"
+              placeholder="Nome da categoria..."
+              value={newCatName}
+              onChange={e => setNewCatName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAddCategory()}
+            />
+            <Button onClick={handleAddCategory} icon={<Plus size={16} />}>Adicionar</Button>
+          </div>
+
+          <div className="cat-list">
+            {categories.length === 0 && (
+              <p className="cat-empty-hint">Nenhuma categoria criada ainda.</p>
+            )}
+            {categories.map(c => (
+              <div key={c.id} className="cat-list-item">
+                {editingCatId === c.id ? (
+                  <>
+                    <input
+                      className="cat-edit-emoji"
+                      value={editCatData.icone}
+                      onChange={e => setEditCatData({ ...editCatData, icone: e.target.value })}
+                      maxLength={4}
+                    />
+                    <input
+                      className="cat-edit-name"
+                      value={editCatData.nome}
+                      onChange={e => setEditCatData({ ...editCatData, nome: e.target.value })}
+                      onKeyDown={e => { if (e.key === 'Enter') handleSaveCat(); if (e.key === 'Escape') setEditingCatId(null); }}
+                      autoFocus
+                    />
+                    <button className="cat-action-btn save" onClick={handleSaveCat}><Save size={14} /></button>
+                    <button className="cat-action-btn cancel" onClick={() => setEditingCatId(null)}><X size={14} /></button>
+                  </>
+                ) : (
+                  <>
+                    <span className="cat-item-icon">{c.icone || '📦'}</span>
+                    <span className="cat-item-name">{c.nome}</span>
+                    <div className="cat-item-actions">
+                      <button onClick={() => handleStartEditCat(c)}><Edit3 size={13} /></button>
+                      <button className="danger" onClick={() => deleteCategory(c.id)}><Trash2 size={13} /></button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
       </Modal>
     </div>
