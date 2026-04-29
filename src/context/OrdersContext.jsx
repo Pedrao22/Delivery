@@ -570,11 +570,15 @@ export function OrdersProvider({ children }) {
 
   // STATS
   const getStatsForPeriod = useCallback((days) => {
-    const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - parseInt(days, 10));
+    const daysN = parseInt(days, 10);
+    // cutoff = midnight of (today - (daysN - 1)), so "Hoje" = midnight today, "7 dias" = midnight 6 days ago
+    const cutoff = new Date();
+    cutoff.setHours(0, 0, 0, 0);
+    cutoff.setDate(cutoff.getDate() - (daysN - 1));
     const source = allOrdersRef.current.length > 0 ? allOrdersRef.current : ordersRef.current;
     const all = source.filter(o => new Date(o.createdAt) >= cutoff);
     const revenue = all.reduce((s, o) => s + (o.total || 0), 0);
-    const prevCutoff = new Date(cutoff); prevCutoff.setDate(prevCutoff.getDate() - parseInt(days, 10));
+    const prevCutoff = new Date(cutoff); prevCutoff.setDate(prevCutoff.getDate() - daysN);
     const prev = ordersRef.current.filter(o => { const d = new Date(o.createdAt); return d >= prevCutoff && d < cutoff; });
     const prevRev = prev.reduce((s, o) => s + (o.total || 0), 0);
     const payments = { cash: 0, card: 0, pix: 0, other: 0 };
@@ -585,7 +589,6 @@ export function OrdersProvider({ children }) {
       else if (m.includes('pix')) payments.pix += o.total || 0;
       else payments.other += o.total || 0;
     });
-    const daysN = parseInt(days, 10);
     const dailyData = [];
     for (let i = daysN - 1; i >= 0; i--) {
       const d = new Date();
