@@ -235,3 +235,13 @@
   box-shadow: 0 0 0 3px rgba(255,196,0,0.12);
 }
 .inv-form-group select { cursor: pointer; }
+
+.inv-field-hint {
+  font-size: 0.72rem;
+  color: var(--warning-dark);
+  background: var(--warning-light);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  line-height: 1.4;
+  margin-top: 2px;
+}

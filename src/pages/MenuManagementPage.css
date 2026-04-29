@@ -96,6 +96,20 @@
   box-shadow: var(--shadow-accent);
 }
 
+.cat-tab-manage {
+  margin-left: auto;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+  border-style: dashed;
+  gap: 6px;
+}
+
+.cat-tab-manage:hover {
+  color: var(--text-primary);
+  border-color: var(--border);
+  border-style: solid;
+}
+
 /* Products Grid */
 .products-grid {
   display: grid;

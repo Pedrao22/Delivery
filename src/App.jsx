@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
@@ -46,21 +46,33 @@ function PageWrapper({ title, subtitle, onMenuToggle, children }) {
 
 function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const { analyzing, updateSettings } = useOrdersContext();
+  const { analyzing, updateSettings, restaurantSettings, settingsLoaded } = useOrdersContext();
   const { toggleTheme, isDark } = useTheme();
   const [toast, setToast] = useState(null);
   const { user, profile } = useAuth();
 
-  // Onboarding — check per-user flag so each new tenant goes through the wizard
+  // Onboarding — localStorage per device. If settings already loaded from
+  // server and restaurant has a real name, auto-skip so the wizard doesn't
+  // reappear when logging in from a different computer.
   const tenantId = profile?.restaurante_id || user?.id || 'default';
   const obKey = `pedirecebe_onboarding_${tenantId}`;
   const [onboardingDone, setOnboardingDone] = useState(() => !!localStorage.getItem(obKey));
+
+  useEffect(() => {
+    if (!onboardingDone && settingsLoaded && restaurantSettings.name && restaurantSettings.name !== 'Meu Restaurante') {
+      localStorage.setItem(obKey, '1');
+      setOnboardingDone(true);
+    }
+  }, [settingsLoaded, restaurantSettings.name]); // eslint-disable-line
 
   const handleOnboardingComplete = (settings) => {
     updateSettings(settings);
     localStorage.setItem(obKey, '1');
     setOnboardingDone(true);
   };
+
+  // Don't flash onboarding while settings are still loading
+  if (!onboardingDone && !settingsLoaded) return null;
 
   if (!onboardingDone) {
     return <OnboardingPage onComplete={handleOnboardingComplete} />;

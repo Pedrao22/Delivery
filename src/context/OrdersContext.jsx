@@ -138,6 +138,7 @@ export function OrdersProvider({ children }) {
   const [restaurantSettings, setRestaurantSettings] = useState(DEFAULT_SETTINGS);
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [loadingMenu, setLoadingMenu] = useState(false);
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   const [notifications, setNotifications] = useState([]);
   const seenOrderIdsRef = useRef(new Set());
@@ -255,13 +256,40 @@ export function OrdersProvider({ children }) {
     catch (err) { console.warn('Erro ao carregar leads:', err); }
   }
 
+  function mapInventoryItem(i) {
+    return {
+      id: i.id,
+      name: i.nome || '',
+      category: i.categoria || '',
+      unit: i.unidade || 'un',
+      qty: i.quantidade ?? 0,
+      minQty: i.quantidade_minima ?? 0,
+      cost: i.custo ?? 0,
+      expiry: i.validade || '',
+      supplier: i.fornecedor || '',
+    };
+  }
+
+  function inventoryToApi(item) {
+    return {
+      nome: item.name,
+      categoria: item.category,
+      unidade: item.unit,
+      quantidade: Number(item.qty),
+      quantidade_minima: Number(item.minQty),
+      custo: Number(item.cost),
+      validade: item.expiry || null,
+      fornecedor: item.supplier || null,
+    };
+  }
+
   async function refreshInventory() {
     try {
       const r = await apiFetch('/inventory');
-      const items = r.data || [];
+      const items = (r.data || []).map(mapInventoryItem);
 
       const lowStock = items.filter(
-        item => item.quantidade_minima > 0 && item.quantidade <= item.quantidade_minima
+        item => item.minQty > 0 && item.qty <= item.minQty
       );
 
       if (!isFirstInventoryLoadRef.current) {
@@ -272,7 +300,7 @@ export function OrdersProvider({ children }) {
               id: `stock-${item.id}`,
               type: 'stock',
               title: 'Estoque Baixo',
-              message: `${item.nome}: ${item.quantidade} ${item.unidade || 'un'} restantes`,
+              message: `${item.name}: ${item.qty} ${item.unit} restantes`,
               timestamp: new Date(),
             })),
             ...prev,
@@ -325,6 +353,7 @@ export function OrdersProvider({ children }) {
         pedidoProximoNumero: d.pedido_proximo_numero ?? 1,
       });
     } catch (err) { console.warn('Erro ao carregar configurações:', err); }
+    finally { setSettingsLoaded(true); }
   }
 
   const dismissNotification = useCallback((id) => {
@@ -444,13 +473,16 @@ export function OrdersProvider({ children }) {
 
   // INVENTORY
   const addInventoryItem = useCallback(async (item) => {
-    try { const r = await apiFetch('/inventory', { method: 'POST', body: JSON.stringify(item) }); setInventory(prev => [...prev, r.data]); }
+    try {
+      const r = await apiFetch('/inventory', { method: 'POST', body: JSON.stringify(inventoryToApi(item)) });
+      setInventory(prev => [...prev, mapInventoryItem(r.data)]);
+    }
     catch (err) { throw err; }
-  }, []);
+  }, []); // eslint-disable-line
 
   const updateInventoryItem = useCallback(async (item) => {
     setInventory(prev => prev.map(i => i.id === item.id ? { ...i, ...item } : i));
-    try { await apiFetch(`/inventory/${item.id}`, { method: 'PATCH', body: JSON.stringify(item) }); }
+    try { await apiFetch(`/inventory/${item.id}`, { method: 'PATCH', body: JSON.stringify(inventoryToApi(item)) }); }
     catch { refreshInventory(); }
   }, []); // eslint-disable-line
 
@@ -615,7 +647,7 @@ export function OrdersProvider({ children }) {
     loadingOrders, refreshOrders,
     products, categories, loadingMenu,
     inventory, tables, leads, drivers,
-    restaurantSettings, loyaltySettings, coupons,
+    restaurantSettings, settingsLoaded, loyaltySettings, coupons,
     setCoupons, setLoyaltySettings,
     moveOrder, addOrder, addChatMessage, removeOrder, finalizeSingleOrder, finalizeReady,
     addProduct, updateProduct, deleteProduct,

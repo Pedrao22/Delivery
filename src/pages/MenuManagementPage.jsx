@@ -126,15 +126,15 @@ export default function MenuManagementPage() {
 
       {/* Categories Bar */}
       <div className="categories-bar">
-        <button 
+        <button
           className={`cat-tab ${categoryFilter === 'all' ? 'active' : ''}`}
           onClick={() => setCategoryFilter('all')}
         >
           Todos
         </button>
         {categories.map(cat => (
-          <button 
-            key={cat.id} 
+          <button
+            key={cat.id}
             className={`cat-tab ${categoryFilter === cat.id ? 'active' : ''}`}
             onClick={() => setCategoryFilter(cat.id)}
           >
@@ -142,6 +142,14 @@ export default function MenuManagementPage() {
             {cat.nome}
           </button>
         ))}
+        <button
+          className="cat-tab cat-tab-manage"
+          onClick={() => setShowCategoryModal(true)}
+          title="Gerenciar categorias"
+        >
+          <Settings size={14} />
+          Gerenciar
+        </button>
       </div>
 
       {/* Main Grid/List */}

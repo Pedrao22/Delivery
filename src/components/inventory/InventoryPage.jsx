@@ -223,6 +223,7 @@ export default function InventoryPage() {
             <div className="inv-form-group">
               <label>Qtd. Mínima *</label>
               <input type="number" min="0" required value={form.minQty} onChange={e => setForm(f => ({ ...f, minQty: e.target.value }))} />
+              <p className="inv-field-hint">⚠️ Quando o estoque chegar nesse número, você recebe um alerta automático para repor o item.</p>
             </div>
             <div className="inv-form-group">
               <label>Custo Unit. (R$)</label>
