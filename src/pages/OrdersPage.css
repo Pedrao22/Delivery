@@ -9,7 +9,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  padding: 12px 24px;
+  padding: 10px 24px;
   background: var(--surface);
   border-bottom: 1px solid var(--border-light);
   flex-shrink: 0;
@@ -20,4 +20,20 @@
   font-weight: 600;
   color: var(--text-tertiary);
   white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .orders-topbar-search {
+    display: none;
+  }
+
+  .orders-filter-bar {
+    padding: 10px 16px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .orders-filter-bar > div {
+    flex: 1;
+  }
 }

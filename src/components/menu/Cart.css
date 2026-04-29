@@ -46,10 +46,25 @@
   border-radius: var(--radius-full);
 }
 
-.cart-body {
+/* Single scrollable container for items + form */
+.cart-scroll {
   flex: 1;
   overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  display: flex;
+  flex-direction: column;
+}
+
+.cart-body {
   padding: var(--space-4);
+  padding-bottom: 0;
+}
+
+.cart-form {
+  padding: var(--space-4) var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .cart-item {
@@ -119,17 +134,21 @@
   color: var(--text-primary);
 }
 
-.cart-footer {
+/* Sticky total + confirm button */
+.cart-actions {
   padding: var(--space-4) var(--space-5);
   border-top: 1px solid var(--border-light);
   flex-shrink: 0;
+  background: var(--surface);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
 }
 
 .cart-customer-fields {
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  margin-bottom: var(--space-3);
 }
 
 .cart-customer-input {
@@ -154,7 +173,6 @@
 .cart-order-type {
   display: flex;
   gap: var(--space-2);
-  margin-bottom: var(--space-3);
 }
 
 .cart-order-type-btn {
@@ -192,15 +210,49 @@
   font-family: inherit;
   cursor: pointer;
   outline: none;
-  margin-bottom: var(--space-3);
   appearance: none;
+}
+
+.cart-cash-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.cart-cash-row label {
+  font-size: var(--font-xs);
+  color: var(--text-tertiary);
+}
+
+.cart-cash-prefix-wrap {
+  position: relative;
+}
+
+.cart-cash-prefix {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: var(--font-sm);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.cart-cash-input {
+  width: 100%;
+  padding: 10px 10px 10px 35px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-family: inherit;
+  outline: none;
 }
 
 .cart-total-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: var(--space-4);
 }
 
 .cart-total-label {

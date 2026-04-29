@@ -3,7 +3,7 @@
   display: flex;
   gap: var(--space-4);
   padding: var(--space-4);
-  height: calc(100vh - var(--topbar-height));
+  height: calc(100vh - var(--topbar-height) - 61px); /* 61px = orders-filter-bar */
   overflow-x: auto;
   align-items: stretch;
   background: var(--bg-primary);
