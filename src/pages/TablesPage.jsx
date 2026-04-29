@@ -82,7 +82,7 @@ export default function TablesPage() {
     try {
       await addTable({ numero, capacidade: 4 });
     } catch (e) {
-      alert('Erro ao adicionar mesa');
+      alert('Erro ao adicionar mesa:\n' + (e?.message || JSON.stringify(e)));
     }
   };
 
