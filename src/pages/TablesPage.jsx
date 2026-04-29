@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
-  Users, Calendar, CheckCircle2, AlertCircle, Coffee, MapPin, Move, Lock
+  Users, Calendar, CheckCircle2, AlertCircle, Coffee, MapPin
 } from 'lucide-react';
 import { useOrdersContext } from '../context/OrdersContext';
 import Badge from '../components/shared/Badge';
@@ -9,7 +9,7 @@ import './TablesPage.css';
 const COLS = 8;
 const ROWS = 6;
 
-function getDefaultPositions(tables, saved) {
+function buildDefaultPositions(tables, saved) {
   const result = { ...(saved || {}) };
   const occupied = new Set(Object.values(result).map(p => `${p.col},${p.row}`));
   for (const table of tables) {
@@ -32,33 +32,37 @@ function getDefaultPositions(tables, saved) {
 export default function TablesPage() {
   const { tables, updateTable, orders, restaurantSettings } = useOrdersContext();
   const [selectedTable, setSelectedTable] = useState(null);
-  const [editMode, setEditMode] = useState(false);
   const [positions, setPositions] = useState({});
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const [loaded, setLoaded] = useState(false);
+  const dragStartPos = useRef(null);
 
   const storageKey = `mesa_layout_${restaurantSettings?.id || 'default'}`;
 
   useEffect(() => {
     if (!loaded && (tables || []).length > 0) {
-      const raw = localStorage.getItem(storageKey);
-      const saved = raw ? JSON.parse(raw) : null;
-      setPositions(getDefaultPositions(tables, saved));
+      try {
+        const raw = localStorage.getItem(storageKey);
+        const saved = raw ? JSON.parse(raw) : null;
+        setPositions(buildDefaultPositions(tables, saved));
+      } catch {
+        setPositions(buildDefaultPositions(tables, null));
+      }
       setLoaded(true);
     }
   }, [tables, storageKey, loaded]);
 
   const savePositions = (newPos) => {
-    localStorage.setItem(storageKey, JSON.stringify(newPos));
+    try { localStorage.setItem(storageKey, JSON.stringify(newPos)); } catch {}
     setPositions(newPos);
   };
 
   const stats = {
-    free: (tables || []).filter(t => t.status === 'free').length,
+    free:     (tables || []).filter(t => t.status === 'free').length,
     occupied: (tables || []).filter(t => t.status === 'occupied').length,
     reserved: (tables || []).filter(t => t.status === 'reserved').length,
-    dirty: (tables || []).filter(t => t.status === 'maintenance' || t.status === 'dirty').length,
+    dirty:    (tables || []).filter(t => t.status === 'maintenance' || t.status === 'dirty').length,
   };
 
   const activeTable = selectedTable ? (tables || []).find(t => t.id === selectedTable) : null;
@@ -68,11 +72,10 @@ export default function TablesPage() {
 
   const handleStatusChange = async (newStatus) => {
     if (!selectedTable) return;
-    const dbStatus = newStatus === 'dirty' ? 'maintenance' : newStatus;
-    await updateTable(selectedTable, { status: dbStatus });
+    await updateTable(selectedTable, { status: newStatus === 'dirty' ? 'maintenance' : newStatus });
   };
 
-  // Build cell → table map
+  // Grid map: "col,row" → table
   const gridMap = {};
   (tables || []).forEach(t => {
     const p = positions[t.id];
@@ -81,36 +84,49 @@ export default function TablesPage() {
 
   const handleDragStart = (e, tableId) => {
     setDragging(tableId);
+    dragStartPos.current = tableId;
     e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', tableId);
   };
 
   const handleDragOver = (e, col, row) => {
     e.preventDefault();
+    e.stopPropagation();
     e.dataTransfer.dropEffect = 'move';
     setDragOver(`${col},${row}`);
   };
 
   const handleDrop = (e, col, row) => {
     e.preventDefault();
-    if (dragging === null) return;
+    const tid = e.dataTransfer.getData('text/plain') || dragging;
+    if (!tid) return;
 
     const newPos = { ...positions };
+    // Swap if a table is already at the target cell
     const displaced = (tables || []).find(t => {
       const p = positions[t.id];
-      return p && p.col === col && p.row === row && t.id !== dragging;
+      return p && p.col === col && p.row === row && t.id !== tid;
     });
     if (displaced) {
-      newPos[displaced.id] = { ...positions[dragging] };
+      newPos[displaced.id] = { ...positions[tid] };
     }
-    newPos[dragging] = { col, row };
+    newPos[tid] = { col, row };
     savePositions(newPos);
     setDragging(null);
     setDragOver(null);
+    dragStartPos.current = null;
   };
 
   const handleDragEnd = () => {
     setDragging(null);
     setDragOver(null);
+    dragStartPos.current = null;
+  };
+
+  const handleTableClick = (tableId) => {
+    // Only treat as click if no drag happened
+    if (dragStartPos.current !== null) return;
+    setSelectedTable(prev => prev === tableId ? null : tableId);
   };
 
   const cells = [];
@@ -120,16 +136,12 @@ export default function TablesPage() {
     }
   }
 
-  const statusLabel = {
-    free: 'LIVRE',
-    occupied: 'OCUPADA',
-    reserved: 'RESERVADA',
-    maintenance: 'LIMPEZA',
-  };
+  const statusLabel = { free: 'LIVRE', occupied: 'OCUPADA', reserved: 'RESERVADA', maintenance: 'LIMPEZA' };
+  const badgeVariant = { free: 'success', occupied: 'danger', reserved: 'warning', maintenance: 'info' };
 
   return (
     <div className="tables-page">
-      {/* Stats Row */}
+      {/* Stats */}
       <div className="tables-stats-row">
         <div className="table-stat-card free">
           <div className="table-stat-icon"><CheckCircle2 size={20} /></div>
@@ -167,21 +179,13 @@ export default function TablesPage() {
           <div className="tables-grid-header">
             <div>
               <h3>Mapa do Salão</h3>
-              {editMode && <span className="edit-hint">Arraste as mesas para posicioná-las no salão</span>}
+              <span className="drag-hint">Arraste as mesas para reorganizar o salão</span>
             </div>
-            <div className="tables-header-right">
-              <div className="tables-legend">
-                <span className="legend-item"><span className="dot free"></span> Livre</span>
-                <span className="legend-item"><span className="dot occupied"></span> Ocupada</span>
-                <span className="legend-item"><span className="dot reserved"></span> Reservada</span>
-                <span className="legend-item"><span className="dot maintenance"></span> Limpeza</span>
-              </div>
-              <button
-                className={`edit-layout-btn ${editMode ? 'active' : ''}`}
-                onClick={() => { setEditMode(!editMode); setSelectedTable(null); }}
-              >
-                {editMode ? <><Lock size={13} /> Salvar Layout</> : <><Move size={13} /> Editar Layout</>}
-              </button>
+            <div className="tables-legend">
+              <span className="legend-item"><span className="dot free"></span> Livre</span>
+              <span className="legend-item"><span className="dot occupied"></span> Ocupada</span>
+              <span className="legend-item"><span className="dot reserved"></span> Reservada</span>
+              <span className="legend-item"><span className="dot maintenance"></span> Limpeza</span>
             </div>
           </div>
 
@@ -193,18 +197,22 @@ export default function TablesPage() {
               return (
                 <div
                   key={`${col},${row}`}
-                  className={`floor-cell ${(col + row) % 2 === 0 ? 'chess-a' : 'chess-b'} ${isOver ? 'drop-target' : ''}`}
-                  onDragOver={editMode ? (e) => handleDragOver(e, col, row) : undefined}
-                  onDrop={editMode ? (e) => handleDrop(e, col, row) : undefined}
-                  onDragLeave={() => setDragOver(null)}
+                  className={`floor-cell ${(col + row) % 2 === 0 ? 'chess-a' : 'chess-b'}${isOver ? ' drop-target' : ''}`}
+                  onDragOver={(e) => handleDragOver(e, col, row)}
+                  onDrop={(e) => handleDrop(e, col, row)}
+                  onDragLeave={(e) => {
+                    if (!e.currentTarget.contains(e.relatedTarget)) {
+                      setDragOver(null);
+                    }
+                  }}
                 >
                   {table && (
                     <div
-                      className={`table-node ${table.status} ${selectedTable === table.id ? 'active' : ''} ${isDraggingThis ? 'dragging' : ''} ${editMode ? 'can-drag' : ''}`}
-                      draggable={editMode}
-                      onDragStart={editMode ? (e) => handleDragStart(e, table.id) : undefined}
+                      className={`table-node ${table.status}${selectedTable === table.id ? ' active' : ''}${isDraggingThis ? ' dragging' : ''}`}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, table.id)}
                       onDragEnd={handleDragEnd}
-                      onClick={() => !editMode && setSelectedTable(table.id === selectedTable ? null : table.id)}
+                      onClick={() => handleTableClick(table.id)}
                     >
                       <div className="table-node-number">{table.numero}</div>
                       {table.status === 'occupied' && (
@@ -218,21 +226,16 @@ export default function TablesPage() {
           </div>
         </div>
 
-        {/* Sidebar Details */}
+        {/* Sidebar */}
         <div className="table-details-sidebar">
           {activeTable ? (
             <div className="table-detail-card">
               <div className={`table-detail-header ${activeTable.status === 'maintenance' ? 'dirty' : activeTable.status}`}>
                 <div className="table-detail-id">Mesa {activeTable.numero}</div>
-                <Badge variant={
-                  activeTable.status === 'free' ? 'success' :
-                  activeTable.status === 'occupied' ? 'danger' :
-                  activeTable.status === 'reserved' ? 'warning' : 'info'
-                }>
+                <Badge variant={badgeVariant[activeTable.status] || 'info'}>
                   {statusLabel[activeTable.status] || activeTable.status.toUpperCase()}
                 </Badge>
               </div>
-
               <div className="table-detail-body">
                 {currentOrder ? (
                   <div className="table-order-info">
@@ -249,20 +252,19 @@ export default function TablesPage() {
                     <p>Mesa {activeTable.status === 'free' ? 'disponível' : 'sem pedido ativo'}.</p>
                   </div>
                 )}
-
                 <div className="detail-section-title">Alterar Status</div>
                 <div className="status-action-grid">
-                  <button onClick={() => handleStatusChange('free')} className="status-btn free">Livre</button>
+                  <button onClick={() => handleStatusChange('free')}     className="status-btn free">Livre</button>
                   <button onClick={() => handleStatusChange('occupied')} className="status-btn occupied">Ocupar</button>
                   <button onClick={() => handleStatusChange('reserved')} className="status-btn reserved">Reservar</button>
-                  <button onClick={() => handleStatusChange('dirty')} className="status-btn dirty">Limpar</button>
+                  <button onClick={() => handleStatusChange('dirty')}    className="status-btn dirty">Limpar</button>
                 </div>
               </div>
             </div>
           ) : (
             <div className="table-selection-prompt">
               <MapPin size={40} />
-              <p>{editMode ? 'Arraste as mesas para montar o layout do seu salão.' : 'Selecione uma mesa para gerenciar.'}</p>
+              <p>Clique em uma mesa para ver detalhes ou arraste para reposicioná-la.</p>
             </div>
           )}
         </div>

@@ -95,16 +95,10 @@
   margin: 0 0 2px 0;
 }
 
-.edit-hint {
+.drag-hint {
   font-size: 12px;
-  color: var(--accent);
+  color: var(--text-tertiary);
   font-weight: 500;
-}
-
-.tables-header-right {
-  display: flex;
-  align-items: center;
-  gap: 16px;
 }
 
 .tables-legend {
@@ -132,32 +126,6 @@
 .dot.reserved    { background: var(--warning); }
 .dot.maintenance { background: var(--info); }
 
-.edit-layout-btn {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border-radius: 10px;
-  border: 1.5px solid var(--border-light);
-  background: var(--bg-secondary);
-  color: var(--text-secondary);
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.2s;
-}
-
-.edit-layout-btn:hover {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.edit-layout-btn.active {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #1a1a2e;
-}
 
 /* ============ CHESS FLOOR PLAN ============ */
 .floor-plan-grid {
@@ -220,8 +188,8 @@
   z-index: 3;
 }
 
-.table-node.can-drag { cursor: grab; }
-.table-node.can-drag:active { cursor: grabbing; }
+.table-node { cursor: grab; }
+.table-node:active { cursor: grabbing; }
 
 .table-node.dragging {
   opacity: 0.25;
