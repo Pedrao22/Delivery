@@ -184,6 +184,8 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   scroll-behavior: smooth;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 body {
@@ -193,6 +195,7 @@ body {
   color: var(--text-primary);
   background: var(--bg-secondary);
   overflow-x: hidden;
+  max-width: 100%;
   min-height: 100vh;
   transition: background-color 300ms ease, color 300ms ease;
 }

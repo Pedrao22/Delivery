@@ -11,6 +11,8 @@
   color: #1A1A1A;
   font-family: 'Outfit', 'Inter', system-ui, sans-serif;
   padding-bottom: 110px;
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
 /* ── Login ─────────────────────────────────────────────── */
@@ -132,6 +134,7 @@
   max-width: 960px;
   margin: 0 auto;
   width: 100%;
+  overflow-x: hidden;
 }
 
 /* ── Header ─────────────────────────────────────────────── */
@@ -141,6 +144,8 @@
   position: sticky;
   top: 0;
   z-index: 200;
+  overflow-x: hidden;
+  width: 100%;
 }
 
 .menu-header-inner {
@@ -306,6 +311,7 @@
   max-width: 960px;
   margin: 0 auto;
   padding: 24px 20px;
+  overflow-x: hidden;
 }
 
 .menu-section {
