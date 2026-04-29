@@ -3,19 +3,17 @@
 .premium-modal-content {
   display: flex;
   flex-direction: column;
-  height: calc(90vh - 100px);
-  max-height: 800px;
-  position: relative;
+  gap: 20px;
 }
 
 .modal-hero {
   position: relative;
-  margin-bottom: 24px;
+  margin-bottom: 8px;
 }
 
 .modal-image-bg {
   width: 100%;
-  height: 200px;
+  height: 160px;
   border-radius: 20px;
   display: flex;
   align-items: center;
@@ -71,16 +69,6 @@
   color: #AAA;
   text-transform: uppercase;
 }
-
-.modal-body-scroll {
-  flex: 1;
-  overflow-y: auto;
-  padding: 20px 4px;
-  margin-top: 10px;
-}
-
-.modal-body-scroll::-webkit-scrollbar { width: 4px; }
-.modal-body-scroll::-webkit-scrollbar-thumb { background: #EEE; border-radius: 10px; }
 
 .modal-desc-box {
   background: #F8F9FA;
@@ -202,13 +190,12 @@
   border-color: #DDD;
 }
 
-/* Modal Footer Lux */
+/* Modal Footer Lux — lives inside Modal's sticky footer prop */
 .modal-footer-lux {
-  padding: 20px 0;
-  border-top: 1px solid #F1F3F5;
   display: flex;
   gap: 16px;
   align-items: center;
+  width: 100%;
 }
 
 .qty-selector-lux {
@@ -253,3 +240,12 @@
 
 .lux-btn-left { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 0.95rem; }
 .lux-btn-right { font-weight: 900; font-size: 1.1rem; }
+
+@media (max-width: 480px) {
+  .modal-image-bg { height: 120px; border-radius: 14px; }
+  .modal-emoji-hero { font-size: 4rem; }
+  .modal-info-bar { bottom: -12px; }
+  .premium-modal-content { gap: 16px; }
+  .modal-desc-box { padding: 14px; }
+  .add-to-cart-lux { padding: 14px 16px; }
+}

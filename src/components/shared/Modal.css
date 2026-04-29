@@ -80,10 +80,16 @@
   display: flex;
   gap: var(--space-3);
   justify-content: flex-end;
+  align-items: center;
   position: sticky;
   bottom: 0;
   background: var(--surface);
   border-radius: 0 0 var(--radius-xl) var(--radius-xl);
+}
+
+/* When footer child needs to stretch full width (e.g. product modal, checkout) */
+.modal-footer > * {
+  min-width: 0;
 }
 
 @media (max-width: 768px) {
