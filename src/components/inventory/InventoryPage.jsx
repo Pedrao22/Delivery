@@ -276,19 +276,23 @@ export default function InventoryPage() {
             </div>
             <div className="inv-form-group">
               <label>Categoria *</label>
-              {allCategories.length > 0 ? (
-                <select
-                  value={form.category}
-                  onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
-                  required
-                >
-                  <option value="">Selecione...</option>
-                  {allCategories.map(c => (
-                    <option key={c.id} value={c.nome}>{c.icone} {c.nome}</option>
-                  ))}
-                </select>
-              ) : (
-                <input required value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="Ex: Pães" />
+              <select
+                value={form.category}
+                onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                required
+              >
+                <option value="">Selecione...</option>
+                {allCategories.map(c => (
+                  <option key={c.id} value={c.nome}>{c.icone} {c.nome}</option>
+                ))}
+              </select>
+              {allCategories.length === 0 && (
+                <p className="inv-field-hint" style={{ color: 'var(--text-tertiary)', background: 'var(--bg-secondary)' }}>
+                  Nenhuma categoria criada ainda.{' '}
+                  <button type="button" onClick={() => setShowCatModal(true)} style={{ background: 'none', border: 'none', color: 'var(--accent-dark)', fontWeight: 700, cursor: 'pointer', padding: 0, fontSize: 'inherit' }}>
+                    Criar agora →
+                  </button>
+                </p>
               )}
             </div>
           </div>
