@@ -487,6 +487,22 @@ export default function CustomerView({ ridOverride } = {}) {
         onClose={() => !submitting && setIsCheckoutOpen(false)}
         title="Finalizar Pedido"
         size="large"
+        footer={
+          <div className="checkout-footer-sticky">
+            <div className="final-sum">
+              <span>Total a pagar</span>
+              <strong>R$ {(cartTotal - (checkoutForm.couponDiscount || 0)).toFixed(2).replace('.', ',')}</strong>
+            </div>
+            <button
+              className="confirm-btn"
+              style={{ backgroundColor: submitting ? '#CCC' : primaryColor, cursor: submitting ? 'not-allowed' : 'pointer' }}
+              onClick={handleFinalConfirm}
+              disabled={submitting}
+            >
+              {submitting ? 'Enviando...' : 'Confirmar agora'}
+            </button>
+          </div>
+        }
       >
         <div className="checkout-revamp">
           <div className="revamp-section">
@@ -514,7 +530,6 @@ export default function CustomerView({ ridOverride } = {}) {
                 placeholder="WhatsApp / Telefone *"
                 value={checkoutForm.customerPhone}
                 onChange={e => setCheckoutForm({...checkoutForm, customerPhone: e.target.value})}
-                autoFocus
               />
               <input
                 placeholder="Seu Nome (Opcional)"
@@ -525,39 +540,38 @@ export default function CustomerView({ ridOverride } = {}) {
           </div>
 
           <div className="revamp-section">
-             <h4>Tipo de Pedido</h4>
-             <div className="revamp-toggle">
-                <button className={checkoutForm.type === 'delivery' ? 'active' : ''} onClick={() => setCheckoutForm({...checkoutForm, type: 'delivery'})}>Entrega</button>
-                <button className={checkoutForm.type === 'pickup' ? 'active' : ''} onClick={() => setCheckoutForm({...checkoutForm, type: 'pickup'})}>Retirada</button>
-             </div>
-
-             {checkoutForm.type === 'delivery' && (
-               <div className="animated-fields">
-                  <input placeholder="Endereço Completo *" value={checkoutForm.address} onChange={e => setCheckoutForm({...checkoutForm, address: e.target.value})} />
-                  <input placeholder="Referência (Opcional)" value={checkoutForm.reference} onChange={e => setCheckoutForm({...checkoutForm, reference: e.target.value})} />
-               </div>
-             )}
+            <h4>Tipo de Pedido</h4>
+            <div className="revamp-toggle">
+              <button className={checkoutForm.type === 'delivery' ? 'active' : ''} onClick={() => setCheckoutForm({...checkoutForm, type: 'delivery'})}>Entrega</button>
+              <button className={checkoutForm.type === 'pickup' ? 'active' : ''} onClick={() => setCheckoutForm({...checkoutForm, type: 'pickup'})}>Retirada</button>
+            </div>
+            {checkoutForm.type === 'delivery' && (
+              <div className="animated-fields">
+                <input placeholder="Endereço Completo *" value={checkoutForm.address} onChange={e => setCheckoutForm({...checkoutForm, address: e.target.value})} />
+                <input placeholder="Referência (Opcional)" value={checkoutForm.reference} onChange={e => setCheckoutForm({...checkoutForm, reference: e.target.value})} />
+              </div>
+            )}
           </div>
 
           <div className="revamp-section">
-             <h4>Forma de Pagamento</h4>
-             <div className={`payment-grid-modern cols-${Math.min((paymentOptions.length || 3), 3)}`}>
-                {(paymentOptions.length > 0 ? paymentOptions : [
-                  { id: 'pix_online', label: 'Pix', icon: <QrCode size={18} /> },
-                  { id: 'card_credit', label: 'Cartão', icon: <CreditCard size={18} /> },
-                  { id: 'cash', label: 'Dinheiro', icon: <Wallet size={18} /> },
-                ]).map(m => (
-                  <button
-                    key={m.id}
-                    className={`pay-btn ${checkoutForm.paymentMethod === m.id ? 'active' : ''}`}
-                    onClick={() => setCheckoutForm({...checkoutForm, paymentMethod: m.id})}
-                    style={checkoutForm.paymentMethod === m.id ? { borderColor: primaryColor, color: primaryColor } : {}}
-                  >
-                    {m.icon}
-                    <span>{m.label}</span>
-                  </button>
-                ))}
-             </div>
+            <h4>Forma de Pagamento</h4>
+            <div className={`payment-grid-modern cols-${Math.min((paymentOptions.length || 3), 3)}`}>
+              {(paymentOptions.length > 0 ? paymentOptions : [
+                { id: 'pix_online', label: 'Pix', icon: <QrCode size={18} /> },
+                { id: 'card_credit', label: 'Cartão', icon: <CreditCard size={18} /> },
+                { id: 'cash', label: 'Dinheiro', icon: <Wallet size={18} /> },
+              ]).map(m => (
+                <button
+                  key={m.id}
+                  className={`pay-btn ${checkoutForm.paymentMethod === m.id ? 'active' : ''}`}
+                  onClick={() => setCheckoutForm({...checkoutForm, paymentMethod: m.id})}
+                  style={checkoutForm.paymentMethod === m.id ? { borderColor: primaryColor, color: primaryColor } : {}}
+                >
+                  {m.icon}
+                  <span>{m.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
           {orderError && (
@@ -565,21 +579,6 @@ export default function CustomerView({ ridOverride } = {}) {
               {orderError}
             </div>
           )}
-
-          <div className="checkout-footer-sticky">
-             <div className="final-sum">
-                <span>Total a pagar</span>
-                <strong>R$ {(cartTotal - (checkoutForm.couponDiscount || 0)).toFixed(2).replace('.', ',')}</strong>
-             </div>
-             <button
-               className="confirm-btn"
-               style={{ backgroundColor: submitting ? '#CCC' : primaryColor, cursor: submitting ? 'not-allowed' : 'pointer' }}
-               onClick={handleFinalConfirm}
-               disabled={submitting}
-             >
-               {submitting ? 'Enviando...' : 'Confirmar agora'}
-             </button>
-          </div>
         </div>
       </Modal>
     </div>
