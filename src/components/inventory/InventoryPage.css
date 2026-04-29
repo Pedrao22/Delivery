@@ -18,7 +18,64 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 16px;
-  margin-bottom: 32px;
+  margin-bottom: 20px;
+}
+
+/* ============ CATEGORIES BAR ============ */
+.inv-categories-bar {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+  padding: 4px 0 10px;
+  scrollbar-width: none;
+}
+
+.inv-categories-bar::-webkit-scrollbar { display: none; }
+
+.inv-cat-tab {
+  padding: 8px 18px;
+  border-radius: 99px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  flex-shrink: 0;
+}
+
+.inv-cat-tab span { font-size: 1rem; line-height: 1; }
+
+.inv-cat-tab:hover {
+  background: var(--bg-secondary);
+  transform: translateY(-1px);
+}
+
+.inv-cat-tab.active {
+  background: var(--accent);
+  color: #1A1A2E;
+  border-color: var(--accent);
+  font-weight: 700;
+  box-shadow: var(--shadow-accent);
+}
+
+.inv-cat-manage {
+  margin-left: auto;
+  color: var(--text-tertiary);
+  border-style: dashed;
+  gap: 6px;
+}
+
+.inv-cat-manage:hover {
+  color: var(--text-primary);
+  border-color: var(--border);
+  border-style: solid;
 }
 
 .inventory-stat-card {
@@ -245,3 +302,141 @@
   line-height: 1.4;
   margin-top: 2px;
 }
+
+/* ============ CATEGORY MODAL (shared pattern) ============ */
+.category-manager {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.add-cat-form {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.emoji-picker-input {
+  width: 54px;
+  height: 46px;
+  text-align: center;
+  font-size: 1.4rem;
+  border: 1.5px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: text;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.emoji-picker-input:focus { outline: none; border-color: var(--accent); }
+
+.add-cat-name-input {
+  flex: 1;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border-light);
+  border-radius: 12px;
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+}
+
+.add-cat-name-input:focus { outline: none; border-color: var(--accent); }
+
+.cat-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.cat-empty-hint {
+  text-align: center;
+  color: var(--text-tertiary);
+  font-size: 0.9rem;
+  padding: 20px;
+}
+
+.cat-list-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 14px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid transparent;
+  transition: border-color 0.2s;
+}
+
+.cat-list-item:hover { border-color: var(--border-light); }
+
+.cat-item-icon { font-size: 1.3rem; min-width: 28px; text-align: center; line-height: 1; }
+.cat-item-name { flex: 1; font-size: 0.95rem; font-weight: 600; color: var(--text-primary); }
+
+.cat-item-actions {
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.cat-list-item:hover .cat-item-actions { opacity: 1; }
+
+.cat-item-actions button {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  background: var(--surface);
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.cat-item-actions button:hover { background: var(--accent-lighter); color: var(--accent); }
+.cat-item-actions button.danger:hover { background: #fee2e2; color: #ef4444; }
+
+.cat-edit-emoji {
+  width: 42px;
+  height: 36px;
+  text-align: center;
+  font-size: 1.2rem;
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.cat-edit-name {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1.5px solid var(--accent);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 0.9rem;
+}
+
+.cat-action-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.cat-action-btn.save { background: var(--accent); color: #1a1a2e; }
+.cat-action-btn.cancel { background: var(--bg-secondary); color: var(--text-secondary); }

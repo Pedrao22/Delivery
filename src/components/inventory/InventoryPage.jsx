@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import {
-  AlertTriangle, TrendingUp,
-  Package, Plus, Calendar, Ghost
+  AlertTriangle, Package, Plus, Calendar, Ghost,
+  Settings, Edit3, Trash2, Save, X
 } from 'lucide-react';
 import { useOrdersContext } from '../../context/OrdersContext';
 import SearchInput from '../shared/SearchInput';
@@ -11,13 +11,64 @@ import './InventoryPage.css';
 
 const EMPTY_FORM = { name: '', category: '', unit: 'un', qty: 0, minQty: 0, cost: 0, expiry: '', supplier: '' };
 
+function loadInvCategories() {
+  try { return JSON.parse(localStorage.getItem('inv_categories') || '[]'); } catch { return []; }
+}
+function saveInvCategories(cats) {
+  localStorage.setItem('inv_categories', JSON.stringify(cats));
+}
+
 export default function InventoryPage() {
   const { inventory, updateInventoryItem, addInventoryItem } = useOrdersContext();
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
+  const [activeCatFilter, setActiveCatFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
+  const [showCatModal, setShowCatModal] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+
+  // Inventory-specific category list stored in localStorage
+  const [invCategories, setInvCategories] = useState(loadInvCategories);
+  const [newCatName, setNewCatName] = useState('');
+  const [newCatEmoji, setNewCatEmoji] = useState('📦');
+  const [editingCatId, setEditingCatId] = useState(null);
+  const [editCatData, setEditCatData] = useState({ nome: '', icone: '' });
+
+  // Merge managed categories with any categories already on items
+  const allCategories = useMemo(() => {
+    const fromItems = [...new Set(inventory.map(i => i.category).filter(Boolean))];
+    const managed = invCategories.map(c => c.nome);
+    const extra = fromItems.filter(n => !managed.includes(n));
+    return [
+      ...invCategories,
+      ...extra.map(n => ({ id: n, nome: n, icone: '📦' })),
+    ];
+  }, [inventory, invCategories]);
+
+  const handleAddCat = () => {
+    if (!newCatName.trim()) return;
+    if (invCategories.some(c => c.nome.toLowerCase() === newCatName.trim().toLowerCase())) return;
+    const updated = [...invCategories, { id: Date.now().toString(), nome: newCatName.trim(), icone: newCatEmoji || '📦' }];
+    setInvCategories(updated);
+    saveInvCategories(updated);
+    setNewCatName('');
+    setNewCatEmoji('📦');
+  };
+
+  const handleSaveCat = () => {
+    if (!editCatData.nome.trim()) return;
+    const updated = invCategories.map(c => c.id === editingCatId ? { ...c, ...editCatData } : c);
+    setInvCategories(updated);
+    saveInvCategories(updated);
+    setEditingCatId(null);
+  };
+
+  const handleDeleteCat = (id) => {
+    const updated = invCategories.filter(c => c.id !== id);
+    setInvCategories(updated);
+    saveInvCategories(updated);
+  };
 
   const today = new Date();
 
@@ -41,12 +92,13 @@ export default function InventoryPage() {
     return inventory.filter(i => {
       const matchesSearch = i.name.toLowerCase().includes(search.toLowerCase()) ||
                             i.category.toLowerCase().includes(search.toLowerCase());
+      const matchesCat = activeCatFilter === 'all' || i.category === activeCatFilter;
       const alert = getAlertStatus(i);
-      if (activeFilter === 'low') return matchesSearch && (alert === 'low' || alert === 'expiring');
-      if (activeFilter === 'expiring') return matchesSearch && alert === 'expiring';
-      return matchesSearch;
+      if (activeFilter === 'low') return matchesSearch && matchesCat && (alert === 'low' || alert === 'expiring');
+      if (activeFilter === 'expiring') return matchesSearch && matchesCat && alert === 'expiring';
+      return matchesSearch && matchesCat;
     });
-  }, [inventory, search, activeFilter]);
+  }, [inventory, search, activeFilter, activeCatFilter]);
 
   const stats = useMemo(() => {
     const low = inventory.filter(i => i.qty <= i.minQty).length;
@@ -123,6 +175,34 @@ export default function InventoryPage() {
         </div>
       </div>
 
+      {/* Categories bar */}
+      <div className="inv-categories-bar">
+        <button
+          className={`inv-cat-tab ${activeCatFilter === 'all' ? 'active' : ''}`}
+          onClick={() => setActiveCatFilter('all')}
+        >
+          Todos
+        </button>
+        {allCategories.map(cat => (
+          <button
+            key={cat.id}
+            className={`inv-cat-tab ${activeCatFilter === cat.nome ? 'active' : ''}`}
+            onClick={() => setActiveCatFilter(cat.nome)}
+          >
+            <span>{cat.icone}</span>
+            {cat.nome}
+          </button>
+        ))}
+        <button
+          className="inv-cat-tab inv-cat-manage"
+          onClick={() => setShowCatModal(true)}
+          title="Gerenciar categorias de insumos"
+        >
+          <Settings size={14} />
+          Gerenciar
+        </button>
+      </div>
+
       <div className="inventory-table-container">
         <div className="inventory-table-header">
           <span>Insumo</span>
@@ -196,7 +276,20 @@ export default function InventoryPage() {
             </div>
             <div className="inv-form-group">
               <label>Categoria *</label>
-              <input required value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="Ex: Pães" />
+              {allCategories.length > 0 ? (
+                <select
+                  value={form.category}
+                  onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+                  required
+                >
+                  <option value="">Selecione...</option>
+                  {allCategories.map(c => (
+                    <option key={c.id} value={c.nome}>{c.icone} {c.nome}</option>
+                  ))}
+                </select>
+              ) : (
+                <input required value={form.category} onChange={e => setForm(f => ({ ...f, category: e.target.value }))} placeholder="Ex: Pães" />
+              )}
             </div>
           </div>
           <div className="inv-form-row">
@@ -237,6 +330,74 @@ export default function InventoryPage() {
             </div>
           </div>
         </form>
+      </Modal>
+      {/* Category Management Modal */}
+      <Modal
+        isOpen={showCatModal}
+        onClose={() => { setShowCatModal(false); setEditingCatId(null); }}
+        title="Categorias de Insumos"
+      >
+        <div className="category-manager">
+          <div className="add-cat-form">
+            <input
+              className="emoji-picker-input"
+              value={newCatEmoji}
+              onChange={e => setNewCatEmoji(e.target.value)}
+              placeholder="📦"
+              maxLength={4}
+            />
+            <input
+              className="add-cat-name-input"
+              placeholder="Nome da categoria..."
+              value={newCatName}
+              onChange={e => setNewCatName(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && handleAddCat()}
+            />
+            <Button onClick={handleAddCat} icon={<Plus size={16} />}>Adicionar</Button>
+          </div>
+
+          <div className="cat-list">
+            {allCategories.length === 0 && (
+              <p className="cat-empty-hint">Nenhuma categoria criada ainda.</p>
+            )}
+            {allCategories.map(c => (
+              <div key={c.id} className="cat-list-item">
+                {editingCatId === c.id ? (
+                  <>
+                    <input
+                      className="cat-edit-emoji"
+                      value={editCatData.icone}
+                      onChange={e => setEditCatData({ ...editCatData, icone: e.target.value })}
+                      maxLength={4}
+                    />
+                    <input
+                      className="cat-edit-name"
+                      value={editCatData.nome}
+                      onChange={e => setEditCatData({ ...editCatData, nome: e.target.value })}
+                      onKeyDown={e => { if (e.key === 'Enter') handleSaveCat(); if (e.key === 'Escape') setEditingCatId(null); }}
+                      autoFocus
+                    />
+                    <button className="cat-action-btn save" onClick={handleSaveCat}><Save size={14} /></button>
+                    <button className="cat-action-btn cancel" onClick={() => setEditingCatId(null)}><X size={14} /></button>
+                  </>
+                ) : (
+                  <>
+                    <span className="cat-item-icon">{c.icone || '📦'}</span>
+                    <span className="cat-item-name">{c.nome}</span>
+                    <div className="cat-item-actions">
+                      {invCategories.some(ic => ic.id === c.id) && (
+                        <>
+                          <button onClick={() => { setEditingCatId(c.id); setEditCatData({ nome: c.nome, icone: c.icone || '📦' }); }}><Edit3 size={13} /></button>
+                          <button className="danger" onClick={() => handleDeleteCat(c.id)}><Trash2 size={13} /></button>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
       </Modal>
     </div>
   );
