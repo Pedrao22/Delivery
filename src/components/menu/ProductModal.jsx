@@ -6,8 +6,10 @@ import { useOrdersContext } from '../../context/OrdersContext';
 import './ProductModal.css';
 
 export default function ProductModal({ product, isOpen, onClose, onAdd }) {
-  const { restaurantSettings } = useOrdersContext();
+  const { restaurantSettings, categories } = useOrdersContext();
   const primaryColor = restaurantSettings.primaryColor || '#e74c3c';
+
+  const categoryName = categories?.find(c => c.id === product?.categoria_id)?.nome || null;
 
   const variations = product?.variacoes || [];
   const complements = product?.complementos || [];
@@ -57,9 +59,11 @@ export default function ProductModal({ product, isOpen, onClose, onAdd }) {
                 <Clock size={14} />
                 <span>{product.prepTime || '20-30 min'}</span>
              </div>
-             <div className="info-chip category">
-                <span>{product.categoria_id}</span>
-             </div>
+             {categoryName && (
+               <div className="info-chip category">
+                 <span>{categoryName}</span>
+               </div>
+             )}
            </div>
         </div>
 
