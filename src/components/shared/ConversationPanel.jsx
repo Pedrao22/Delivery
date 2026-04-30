@@ -5,7 +5,9 @@ import './ConversationPanel.css';
 
 function timeAgo(dateStr) {
   if (!dateStr) return '';
-  const diff = Date.now() - new Date(dateStr).getTime();
+  // Chatwoot sends created_at as Unix seconds (integer), not ISO string
+  const ms = typeof dateStr === 'number' ? dateStr * 1000 : new Date(dateStr).getTime();
+  const diff = Date.now() - ms;
   const m = Math.floor(diff / 60000);
   if (m < 1) return 'agora';
   if (m < 60) return `${m}m`;
