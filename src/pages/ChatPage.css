@@ -129,24 +129,31 @@
 .chat-counters {
   display: flex;
   align-items: center;
-  gap: 0;
-  padding: 10px 12px 8px;
+  padding: 8px 12px;
   border-bottom: 1px solid var(--border-light);
   flex-shrink: 0;
 }
 
-.chat-counter {
+.chat-counter-btn {
   display: flex;
   align-items: center;
   gap: 8px;
   flex: 1;
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: var(--radius-md);
+  transition: background var(--transition-fast);
 }
+.chat-counter-btn:hover { background: var(--bg-secondary); }
+.chat-counter-btn.active { background: var(--accent-lighter); }
 
 .chat-counter-divider {
   width: 1px;
   height: 24px;
   background: var(--border-light);
-  margin: 0 12px;
+  margin: 0 4px;
 }
 
 .chat-counter-label {
@@ -209,6 +216,16 @@
   height: 40px;
 }
 
+.chat-status-dot {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 2px solid var(--surface);
+}
+
 .chat-conv-info { flex: 1; min-width: 0; }
 
 .chat-conv-top {
@@ -263,6 +280,48 @@
   justify-content: center;
   padding: 0 4px;
   flex-shrink: 0;
+}
+
+/* ── Action buttons ───────────────────────────────── */
+.chat-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 14px;
+  border-radius: var(--radius-full);
+  border: none;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.chat-action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.chat-action-btn.accept {
+  background: var(--success-lighter, #e8f8f0);
+  color: var(--success-dark);
+  border: 1px solid var(--success-light, #a8ddc0);
+}
+.chat-action-btn.accept:hover:not(:disabled) {
+  background: var(--success-light, #a8ddc0);
+}
+
+.chat-action-btn.close {
+  background: #fff0f0;
+  color: var(--error, #d32f2f);
+  border: 1px solid #ffcdd2;
+}
+.chat-action-btn.close:hover:not(:disabled) {
+  background: #ffcdd2;
+}
+
+.chat-action-btn.reopen {
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border-light);
+}
+.chat-action-btn.reopen:hover:not(:disabled) {
+  background: var(--bg-tertiary);
 }
 
 /* ── Main panel ───────────────────────────────────── */

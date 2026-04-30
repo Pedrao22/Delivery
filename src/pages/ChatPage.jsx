@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, RefreshCw, ExternalLink, Loader2, User, RefreshCcw, Search } from 'lucide-react';
+import { MessageSquare, RefreshCw, ExternalLink, Loader2, User, RefreshCcw, Search, CheckCircle, XCircle } from 'lucide-react';
 import { API_URL } from '../lib/supabase';
 import ConversationPanel from '../components/shared/ConversationPanel';
 import './ChatPage.css';
@@ -21,8 +21,11 @@ function timeAgo(dateStr) {
 function authHeaders() {
   const token = localStorage.getItem('pedirecebe_token') ||
     document.cookie.split('; ').find(r => r.startsWith('sb-access-token='))?.split('=')[1];
-  return token ? { Authorization: `Bearer ${token}` } : {};
+  return token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 }
+
+const STATUS_LABEL = { pending: 'Pendente', open: 'Atendendo', resolved: 'Encerrado' };
+const STATUS_DOT   = { pending: 'var(--warning)', open: 'var(--success)', resolved: 'var(--text-tertiary)' };
 
 export default function ChatPage() {
   const [conversations, setConversations] = useState([]);
@@ -31,7 +34,8 @@ export default function ChatPage() {
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState(null);
   const [search, setSearch] = useState('');
-  const [activeTab, setActiveTab] = useState('all');
+  const [activeTab, setActiveTab] = useState('pending');
+  const [actionLoading, setActionLoading] = useState(false);
 
   const fetchConversations = async (silent = false) => {
     if (!silent) setLoadingConvs(true);
@@ -47,13 +51,10 @@ export default function ChatPage() {
     setSyncing(true);
     setSyncMsg(null);
     try {
-      const res = await fetch(`${API_URL}/chatwoot/sync`, {
-        method: 'POST',
-        headers: authHeaders(),
-      });
+      const res = await fetch(`${API_URL}/chatwoot/sync`, { method: 'POST', headers: authHeaders() });
       const d = await res.json();
       const count = d?.synced ?? 0;
-      setSyncMsg(count > 0 ? `${count} conversa(s) sincronizada(s)` : 'Nenhuma conversa nova encontrada');
+      setSyncMsg(count > 0 ? `${count} sincronizada(s)` : 'Nenhuma nova');
       await fetchConversations(true);
     } catch {
       setSyncMsg('Erro ao sincronizar');
@@ -63,8 +64,24 @@ export default function ChatPage() {
     }
   };
 
-  useEffect(() => { fetchConversations(); }, []);
+  const handleStatusChange = async (convId, newStatus) => {
+    setActionLoading(true);
+    try {
+      await fetch(`${API_URL}/chatwoot/conversations/${convId}/status`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ status: newStatus }),
+      });
+      // Optimistic update
+      setConversations(prev =>
+        prev.map(c => c.id === convId ? { ...c, status: newStatus } : c)
+      );
+      if (newStatus === 'resolved') setSelectedId(null);
+    } catch {}
+    finally { setActionLoading(false); }
+  };
 
+  useEffect(() => { fetchConversations(); }, []);
   useEffect(() => {
     const t = setInterval(() => fetchConversations(true), 15000);
     return () => clearInterval(t);
@@ -72,24 +89,27 @@ export default function ChatPage() {
 
   const selectedConv = conversations.find(c => c.id === selectedId);
 
+  const pendente  = conversations.filter(c => c.status === 'pending').length;
+  const atendendo = conversations.filter(c => c.status === 'open').length;
+
   const sortedConvs = [...conversations]
     .sort((a, b) =>
       new Date(b.last_activity_at ?? b.created_at ?? 0).getTime() -
       new Date(a.last_activity_at ?? a.created_at ?? 0).getTime()
     )
     .filter(c => {
-      if (activeTab === 'unread' && !(c.unread_count > 0)) return false;
+      if (activeTab === 'pending'  && c.status !== 'pending')  return false;
+      if (activeTab === 'open'     && c.status !== 'open')     return false;
+      if (activeTab === 'all'      && c.status === 'resolved') return false;
+      if (activeTab === 'resolved' && c.status !== 'resolved') return false;
       if (!search) return true;
       const q = search.toLowerCase();
       return (
-        (c.contact_name || '').toLowerCase().includes(q) ||
+        (c.contact_name  || '').toLowerCase().includes(q) ||
         (c.contact_phone || '').toLowerCase().includes(q) ||
-        (c.last_message || '').toLowerCase().includes(q)
+        (c.last_message  || '').toLowerCase().includes(q)
       );
     });
-
-  const pendente = conversations.filter(c => c.unread_count > 0).length;
-  const atendendo = conversations.filter(c => !(c.unread_count > 0)).length;
 
   return (
     <div className="chat-page">
@@ -100,21 +120,12 @@ export default function ChatPage() {
             <MessageSquare size={16} />
             <span>Atendimento</span>
           </div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
             {syncMsg && (
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', maxWidth: 140, textAlign: 'right' }}>
-                {syncMsg}
-              </span>
+              <span style={{ fontSize: '0.68rem', color: 'var(--text-tertiary)' }}>{syncMsg}</span>
             )}
-            <button
-              className="chat-icon-btn"
-              onClick={handleSync}
-              disabled={syncing}
-              title="Sincronizar conversas do histórico"
-            >
-              {syncing
-                ? <Loader2 size={14} className="animate-spin" />
-                : <RefreshCcw size={14} />}
+            <button className="chat-icon-btn" onClick={handleSync} disabled={syncing} title="Sincronizar histórico">
+              {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCcw size={14} />}
             </button>
             <button className="chat-icon-btn" onClick={() => fetchConversations()} title="Atualizar">
               <RefreshCw size={14} className={loadingConvs ? 'animate-spin' : ''} />
@@ -137,34 +148,41 @@ export default function ChatPage() {
           />
         </div>
 
-        {/* Tabs */}
-        <div className="chat-tabs">
+        {/* Counters — clickable */}
+        <div className="chat-counters">
           <button
-            className={`chat-tab${activeTab === 'all' ? ' active' : ''}`}
-            onClick={() => setActiveTab('all')}
+            className={`chat-counter-btn${activeTab === 'pending' ? ' active' : ''}`}
+            onClick={() => setActiveTab('pending')}
           >
-            Todos
+            <span className="chat-counter-label">Pendente</span>
+            <span className="chat-counter-value pending">{pendente}</span>
           </button>
+          <div className="chat-counter-divider" />
           <button
-            className={`chat-tab${activeTab === 'unread' ? ' active' : ''}`}
-            onClick={() => setActiveTab('unread')}
+            className={`chat-counter-btn${activeTab === 'open' ? ' active' : ''}`}
+            onClick={() => setActiveTab('open')}
           >
-            Não lidos
-            {pendente > 0 && <span className="chat-tab-badge">{pendente}</span>}
+            <span className="chat-counter-label">Atendendo</span>
+            <span className="chat-counter-value attending">{atendendo}</span>
           </button>
         </div>
 
-        {/* Counters */}
-        <div className="chat-counters">
-          <div className="chat-counter">
-            <span className="chat-counter-label">Pendente</span>
-            <span className="chat-counter-value pending">{pendente}</span>
-          </div>
-          <div className="chat-counter-divider" />
-          <div className="chat-counter">
-            <span className="chat-counter-label">Atendendo</span>
-            <span className="chat-counter-value attending">{atendendo}</span>
-          </div>
+        {/* Tabs */}
+        <div className="chat-tabs">
+          {[
+            { key: 'all',      label: 'Todos' },
+            { key: 'pending',  label: 'Pendente' },
+            { key: 'open',     label: 'Atendendo' },
+            { key: 'resolved', label: 'Encerrados' },
+          ].map(tab => (
+            <button
+              key={tab.key}
+              className={`chat-tab${activeTab === tab.key ? ' active' : ''}`}
+              onClick={() => setActiveTab(tab.key)}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
         <div className="chat-conv-list">
@@ -176,15 +194,14 @@ export default function ChatPage() {
           {!loadingConvs && sortedConvs.length === 0 && (
             <div className="chat-empty">
               <MessageSquare size={32} style={{ color: 'var(--text-tertiary)' }} />
-              <p>Nenhuma conversa ainda.</p>
-              <p style={{ fontSize: '0.75rem' }}>As conversas aparecem aqui quando clientes fazem pedidos.</p>
+              <p>Nenhuma conversa nesta categoria.</p>
             </div>
           )}
           {sortedConvs.map(conv => {
-            const name = conv.contact_name || `Conversa #${conv.id}`;
-            const phone = conv.contact_phone || '';
+            const name    = conv.contact_name || `Conversa #${conv.id}`;
+            const phone   = conv.contact_phone || '';
             const preview = conv.last_message || '';
-            const unread = conv.unread_count ?? 0;
+            const unread  = conv.unread_count ?? 0;
             const isSelected = conv.id === selectedId;
             return (
               <button
@@ -192,8 +209,12 @@ export default function ChatPage() {
                 className={`chat-conv-item${isSelected ? ' selected' : ''}`}
                 onClick={() => setSelectedId(conv.id)}
               >
-                <div className="chat-conv-avatar">
+                <div className="chat-conv-avatar" style={{ position: 'relative' }}>
                   <User size={16} />
+                  <span
+                    className="chat-status-dot"
+                    style={{ background: STATUS_DOT[conv.status] ?? STATUS_DOT.open }}
+                  />
                 </div>
                 <div className="chat-conv-info">
                   <div className="chat-conv-top">
@@ -224,7 +245,7 @@ export default function ChatPage() {
               <div className="chat-conv-avatar lg">
                 <User size={20} />
               </div>
-              <div>
+              <div style={{ flex: 1, minWidth: 0 }}>
                 <div className="chat-main-name">
                   {selectedConv?.contact_name || `Conversa #${selectedId}`}
                 </div>
@@ -232,16 +253,52 @@ export default function ChatPage() {
                   <div className="chat-main-phone">{selectedConv.contact_phone}</div>
                 )}
               </div>
-              <a
-                href={`${CHATWOOT_URL}/app/accounts/${ACCOUNT_ID}/conversations/${selectedId}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="chat-icon-btn"
-                style={{ marginLeft: 'auto' }}
-                title="Abrir no Chatwoot"
-              >
-                <ExternalLink size={14} />
-              </a>
+
+              {/* Action buttons */}
+              <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                {selectedConv?.status === 'pending' && (
+                  <button
+                    className="chat-action-btn accept"
+                    disabled={actionLoading}
+                    onClick={() => handleStatusChange(selectedId, 'open')}
+                    title="Aceitar chamado"
+                  >
+                    {actionLoading ? <Loader2 size={13} className="animate-spin" /> : <CheckCircle size={13} />}
+                    Aceitar
+                  </button>
+                )}
+                {selectedConv?.status === 'open' && (
+                  <button
+                    className="chat-action-btn close"
+                    disabled={actionLoading}
+                    onClick={() => handleStatusChange(selectedId, 'resolved')}
+                    title="Encerrar conversa"
+                  >
+                    {actionLoading ? <Loader2 size={13} className="animate-spin" /> : <XCircle size={13} />}
+                    Encerrar
+                  </button>
+                )}
+                {selectedConv?.status === 'resolved' && (
+                  <button
+                    className="chat-action-btn reopen"
+                    disabled={actionLoading}
+                    onClick={() => handleStatusChange(selectedId, 'open')}
+                    title="Reabrir conversa"
+                  >
+                    {actionLoading ? <Loader2 size={13} className="animate-spin" /> : <RefreshCcw size={13} />}
+                    Reabrir
+                  </button>
+                )}
+                <a
+                  href={`${CHATWOOT_URL}/app/accounts/${ACCOUNT_ID}/conversations/${selectedId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="chat-icon-btn"
+                  title="Abrir no Chatwoot"
+                >
+                  <ExternalLink size={14} />
+                </a>
+              </div>
             </div>
 
             <ConversationPanel conversationId={selectedId} />
