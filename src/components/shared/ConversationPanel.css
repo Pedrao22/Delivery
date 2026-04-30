@@ -65,6 +65,43 @@
   margin-top: 2px;
 }
 
+/* Activity / system messages */
+.conv-msg-activity {
+  align-self: center;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  max-width: 90%;
+}
+
+.conv-activity-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.conv-activity-text {
+  font-size: 0.72rem;
+  color: var(--text-tertiary);
+  font-style: italic;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.conv-activity-time {
+  font-size: 0.65rem;
+  color: var(--text-tertiary);
+  opacity: 0.7;
+  flex-shrink: 0;
+}
+
 /* Reply bar */
 .conv-reply-bar {
   display: flex;
