@@ -16,6 +16,19 @@ function timeAgo(dateStr) {
   return `${Math.floor(h / 24)}d`;
 }
 
+function formatWA(text) {
+  if (!text) return null;
+  // Split preserving bold (*) and italic (_) markers
+  const parts = text.split(/(\*[^*]+\*|_[^_]+_)/g);
+  return parts.map((part, i) => {
+    if (part.startsWith('*') && part.endsWith('*') && part.length > 2)
+      return <strong key={i}>{part.slice(1, -1)}</strong>;
+    if (part.startsWith('_') && part.endsWith('_') && part.length > 2)
+      return <em key={i}>{part.slice(1, -1)}</em>;
+    return part;
+  });
+}
+
 function authHeaders() {
   const token = localStorage.getItem('pedirecebe_token') ||
     document.cookie.split('; ').find(r => r.startsWith('sb-access-token='))?.split('=')[1];
@@ -149,7 +162,7 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
           return (
             <div key={msg.id} className={`conv-msg ${isOut ? 'outgoing' : 'incoming'}`}>
               <div className="conv-msg-sender">{senderName}</div>
-              <div className="conv-bubble">{msg.content}</div>
+              <div className="conv-bubble">{formatWA(msg.content)}</div>
               <div className="conv-msg-time">{timeAgo(msg.created_at)}</div>
             </div>
           );
