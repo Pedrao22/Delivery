@@ -364,3 +364,80 @@
   cursor: pointer;
   text-decoration: underline;
 }
+
+/* ── Conversation linker ─────────────────────────── */
+.om-link-btn {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  transition: opacity var(--transition-fast);
+}
+.om-link-btn:hover { opacity: 0.7; }
+
+.om-conv-picker {
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  margin-bottom: var(--space-3);
+  background: var(--surface);
+}
+
+.om-conv-picker-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+}
+
+.om-conv-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.om-conv-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 14px;
+  border: none;
+  border-bottom: 1px solid var(--border-light);
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--transition-fast);
+}
+.om-conv-option:last-child { border-bottom: none; }
+.om-conv-option:hover { background: var(--bg-secondary); }
+.om-conv-option.active { background: var(--accent-lighter); }
+.om-conv-option:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.om-conv-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.om-conv-info { flex: 1; min-width: 0; }
+.om-conv-name { font-size: 0.82rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.om-conv-phone { font-size: 0.73rem; color: var(--text-tertiary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.om-conv-check { font-size: 0.85rem; color: var(--accent); font-weight: 700; flex-shrink: 0; }

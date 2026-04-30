@@ -1,10 +1,11 @@
-import { MapPin, Phone, CreditCard, MessageSquare, ChevronRight, XCircle, Truck, Hash } from 'lucide-react';
-import { useState } from 'react';
+import { MapPin, Phone, CreditCard, MessageSquare, ChevronRight, XCircle, Truck, Hash, Link2, Loader2, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import { useOrdersContext } from '../../context/OrdersContext';
 import Modal from '../shared/Modal';
 import Badge from '../shared/Badge';
 import Button from '../shared/Button';
 import ConversationPanel from '../shared/ConversationPanel';
+import { API_URL } from '../../lib/supabase';
 import './OrderModal.css';
 
 const typeConfig = {
@@ -19,10 +20,51 @@ const statusConfig = {
   ready: { label: 'Pronto', next: null, nextLabel: null, variant: 'success' },
 };
 
+function authHeaders() {
+  const token = localStorage.getItem('pedirecebe_token') ||
+    document.cookie.split('; ').find(r => r.startsWith('sb-access-token='))?.split('=')[1];
+  return token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
+}
+
 export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
-  const { drivers, assignDriverToOrder, tables } = useOrdersContext();
+  const { drivers, assignDriverToOrder, tables, refreshOrders } = useOrdersContext();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showDriverSelect, setShowDriverSelect] = useState(false);
+  const [showConvPicker, setShowConvPicker] = useState(false);
+  const [conversations, setConversations] = useState([]);
+  const [loadingConvs, setLoadingConvs] = useState(false);
+  const [linking, setLinking] = useState(false);
+  const [linkedConvId, setLinkedConvId] = useState(order?.chatwootConversationId ?? null);
+
+  useEffect(() => {
+    setLinkedConvId(order?.chatwootConversationId ?? null);
+  }, [order?.id]);
+
+  const openPicker = async () => {
+    setShowConvPicker(true);
+    setLoadingConvs(true);
+    try {
+      const res = await fetch(`${API_URL}/chatwoot/conversations`, { headers: authHeaders() });
+      const d = await res.json();
+      if (d?.success) setConversations(d.data ?? []);
+    } catch {}
+    finally { setLoadingConvs(false); }
+  };
+
+  const handleLink = async (convId) => {
+    setLinking(true);
+    try {
+      await fetch(`${API_URL}/chatwoot/link-order`, {
+        method: 'POST',
+        headers: authHeaders(),
+        body: JSON.stringify({ orderId: order.id, conversationId: convId }),
+      });
+      setLinkedConvId(convId);
+      setShowConvPicker(false);
+      if (refreshOrders) refreshOrders();
+    } catch {}
+    finally { setLinking(false); }
+  };
 
   if (!order) return null;
 
@@ -198,15 +240,59 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
       {/* Chatwoot Conversation */}
       {isChatOpen && (
         <div className="order-modal-section">
-          <div className="order-modal-section-title">
-            <MessageSquare size={12} style={{ display: 'inline', marginRight: 4 }} />Conversa com Cliente
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-3)' }}>
+            <div className="order-modal-section-title" style={{ marginBottom: 0 }}>
+              <MessageSquare size={12} style={{ display: 'inline', marginRight: 4 }} />Conversa com Cliente
+            </div>
+            <button className="om-link-btn" onClick={openPicker}>
+              <Link2 size={12} /> {linkedConvId ? 'Trocar conversa' : 'Vincular conversa'}
+            </button>
           </div>
-          <div style={{ height: 340 }}>
-            <ConversationPanel
-              conversationId={order.chatwootConversationId ?? undefined}
-              phone={!order.chatwootConversationId ? order.customer.phone : undefined}
-            />
-          </div>
+
+          {/* Conversation picker */}
+          {showConvPicker && (
+            <div className="om-conv-picker">
+              <div className="om-conv-picker-header">
+                <span>Selecione uma conversa</span>
+                <button onClick={() => setShowConvPicker(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-tertiary)', fontSize: '1.1rem', lineHeight: 1 }}>×</button>
+              </div>
+              {loadingConvs ? (
+                <div style={{ display: 'flex', justifyContent: 'center', padding: 16 }}>
+                  <Loader2 size={20} className="animate-spin" style={{ color: 'var(--accent)' }} />
+                </div>
+              ) : conversations.length === 0 ? (
+                <p style={{ padding: 16, color: 'var(--text-tertiary)', fontSize: '0.82rem', textAlign: 'center' }}>Nenhuma conversa encontrada.</p>
+              ) : (
+                <div className="om-conv-list">
+                  {conversations.map(c => (
+                    <button
+                      key={c.id}
+                      className={`om-conv-option${linkedConvId === c.id ? ' active' : ''}`}
+                      onClick={() => handleLink(c.id)}
+                      disabled={linking}
+                    >
+                      <div className="om-conv-avatar"><User size={13} /></div>
+                      <div className="om-conv-info">
+                        <div className="om-conv-name">{c.contact_name || `Conversa #${c.id}`}</div>
+                        <div className="om-conv-phone">{c.contact_phone || c.last_message || '—'}</div>
+                      </div>
+                      {linkedConvId === c.id && <span className="om-conv-check">✓</span>}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Panel */}
+          {!showConvPicker && (
+            <div style={{ height: 320 }}>
+              <ConversationPanel
+                conversationId={linkedConvId ?? undefined}
+                phone={!linkedConvId ? order.customer.phone : undefined}
+              />
+            </div>
+          )}
         </div>
       )}
 
