@@ -19,14 +19,16 @@ function saveInvCategories(cats) {
 }
 
 export default function InventoryPage() {
-  const { inventory, updateInventoryItem, addInventoryItem } = useOrdersContext();
+  const { inventory, updateInventoryItem, addInventoryItem, deleteInventoryItem } = useOrdersContext();
   const [search, setSearch] = useState('');
   const [activeFilter, setActiveFilter] = useState('all');
   const [activeCatFilter, setActiveCatFilter] = useState('all');
   const [showModal, setShowModal] = useState(false);
   const [showCatModal, setShowCatModal] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
+  const [editingId, setEditingId] = useState(null);
   const [saving, setSaving] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   // Inventory-specific category list stored in localStorage
   const [invCategories, setInvCategories] = useState(loadInvCategories);
@@ -112,21 +114,48 @@ export default function InventoryPage() {
 
   const handleOpenModal = () => {
     setForm(EMPTY_FORM);
+    setEditingId(null);
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (item) => {
+    setForm({
+      name: item.name,
+      category: item.category,
+      unit: item.unit,
+      qty: item.qty,
+      minQty: item.minQty,
+      cost: item.cost,
+      expiry: item.expiry || '',
+      supplier: item.supplier || '',
+    });
+    setEditingId(item.id);
     setShowModal(true);
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setSaving(true);
-    addInventoryItem({
+    const payload = {
       ...form,
       qty: Number(form.qty),
       minQty: Number(form.minQty),
       cost: Number(form.cost),
       expiry: form.expiry || null,
-    });
+    };
+    if (editingId) {
+      updateInventoryItem({ ...payload, id: editingId });
+    } else {
+      addInventoryItem(payload);
+    }
     setSaving(false);
     setShowModal(false);
+    setEditingId(null);
+  };
+
+  const handleDelete = (id) => {
+    deleteInventoryItem(id);
+    setConfirmDeleteId(null);
   };
 
   return (
@@ -210,6 +239,7 @@ export default function InventoryPage() {
           <span>Quantidade Atual</span>
           <span>Validade</span>
           <span>Status</span>
+          <span></span>
         </div>
 
         <div className="inventory-rows">
@@ -244,6 +274,24 @@ export default function InventoryPage() {
                     {alert === 'ok' ? 'OK' : alert === 'low' ? 'Crítico' : 'Vencendo'}
                   </span>
                 </div>
+                <div className="inventory-actions-cell">
+                  {confirmDeleteId === item.id ? (
+                    <div className="inv-confirm-delete">
+                      <span>Excluir?</span>
+                      <button className="inv-action-btn danger" onClick={() => handleDelete(item.id)}>Sim</button>
+                      <button className="inv-action-btn" onClick={() => setConfirmDeleteId(null)}>Não</button>
+                    </div>
+                  ) : (
+                    <>
+                      <button className="inv-action-btn" onClick={() => handleOpenEdit(item)} title="Editar">
+                        <Edit3 size={14} />
+                      </button>
+                      <button className="inv-action-btn danger" onClick={() => setConfirmDeleteId(item.id)} title="Excluir">
+                        <Trash2 size={14} />
+                      </button>
+                    </>
+                  )}
+                </div>
               </div>
             );
           }) : (
@@ -257,13 +305,13 @@ export default function InventoryPage() {
 
       <Modal
         isOpen={showModal}
-        onClose={() => setShowModal(false)}
-        title="Novo Insumo"
+        onClose={() => { setShowModal(false); setEditingId(null); }}
+        title={editingId ? 'Editar Insumo' : 'Novo Insumo'}
         footer={
           <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-            <Button variant="secondary" onClick={() => setShowModal(false)}>Cancelar</Button>
+            <Button variant="secondary" onClick={() => { setShowModal(false); setEditingId(null); }}>Cancelar</Button>
             <Button onClick={handleSubmit} disabled={saving}>
-              {saving ? 'Salvando...' : 'Adicionar Insumo'}
+              {saving ? 'Salvando...' : editingId ? 'Salvar Alterações' : 'Adicionar Insumo'}
             </Button>
           </div>
         }
