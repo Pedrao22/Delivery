@@ -202,7 +202,10 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
             <MessageSquare size={12} style={{ display: 'inline', marginRight: 4 }} />Conversa com Cliente
           </div>
           <div style={{ height: 340 }}>
-            <ConversationPanel phone={order.customer.phone} />
+            <ConversationPanel
+              conversationId={order.chatwootConversationId ?? undefined}
+              phone={!order.chatwootConversationId ? order.customer.phone : undefined}
+            />
           </div>
         </div>
       )}

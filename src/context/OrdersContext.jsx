@@ -19,6 +19,7 @@ function mapOrder(o) {
     confirmCode: o.codigo || o.confirmCode,
     customer: o.customer || { name: o.cliente_nome, phone: o.cliente_telefone, address: o.cliente_endereco },
     mesa_id: o.mesa_id,
+    chatwootConversationId: o.chatwoot_conversation_id ?? null,
   };
 }
 
