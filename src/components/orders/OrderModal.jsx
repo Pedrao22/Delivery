@@ -186,10 +186,10 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
       {/* Items */}
       <div className="order-modal-section">
         <div className="order-modal-section-title">Itens do Pedido</div>
-        {order.items.map((item, index) => {
+        {(order.items || []).filter(item => item && typeof item === 'object' && !Array.isArray(item)).map((item, index) => {
           const itemName  = item.nome  || item.name     || '—';
           const itemQty   = item.qty   || item.quantity || item.qtd || 1;
-          const itemPrice = item.price || item.preco    || item.valor || 0;
+          const unitPrice = item.unitPrice ?? item.price ?? item.preco ?? item.valor ?? 0;
           return (
             <div key={index} className="order-modal-item-row">
               <div style={{ flex: 1 }}>
@@ -197,7 +197,7 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
                   {itemQty}x {itemName}
                 </div>
                 <div className="order-modal-item-detail">
-                  {[item.variation, ...(item.complements || [])].filter(Boolean).join(' • ')}
+                  {[item.variation, ...(Array.isArray(item.complements) ? item.complements : [])].filter(Boolean).join(' • ')}
                 </div>
                 {item.obs && (
                   <div className="order-modal-item-detail" style={{ color: 'var(--warning-dark)', fontStyle: 'italic' }}>
@@ -206,7 +206,7 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
                 )}
               </div>
               <div className="order-modal-item-price">
-                R$ {(itemPrice * itemQty).toFixed(2).replace('.', ',')}
+                R$ {(unitPrice * itemQty).toFixed(2).replace('.', ',')}
               </div>
             </div>
           );

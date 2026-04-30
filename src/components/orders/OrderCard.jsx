@@ -23,7 +23,7 @@ export default function OrderCard({ order, onClick, onFinalize, style }) {
   const nomeExibicao = order.cliente_nome || order.customer?.name || 'Cliente';
   const initials = nomeExibicao.split(' ').map(n => n[0]).join('').slice(0, 2);
   
-  const items = order.items || [];
+  const items = (order.items || []).filter(i => i && typeof i === 'object' && !Array.isArray(i));
   const maxItems = 3;
   const visibleItems = items.slice(0, maxItems);
   const remaining = items.length - maxItems;
@@ -72,12 +72,16 @@ export default function OrderCard({ order, onClick, onFinalize, style }) {
 
         {/* Items list */}
         <div className="order-card-items-list">
-          {visibleItems.map((item, i) => (
-            <div key={i} className="order-card-item-row">
-              <span className="order-card-item-name">{item.qty}x {item.nome || item.name}</span>
-              <span className="order-card-item-price">R$ {(item.price * item.qty).toFixed(2).replace('.', ',')}</span>
-            </div>
-          ))}
+          {visibleItems.map((item, i) => {
+            const qty = item.qty || item.quantity || 1;
+            const unitPrice = item.unitPrice ?? item.price ?? 0;
+            return (
+              <div key={i} className="order-card-item-row">
+                <span className="order-card-item-name">{qty}x {item.nome || item.name || '—'}</span>
+                <span className="order-card-item-price">R$ {(unitPrice * qty).toFixed(2).replace('.', ',')}</span>
+              </div>
+            );
+          })}
           {remaining > 0 && (
             <div className="order-card-item-more">+ {remaining} {remaining === 1 ? 'item' : 'itens'}</div>
           )}

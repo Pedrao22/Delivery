@@ -23,12 +23,15 @@ export default function Cart({ items, total, count, onUpdateQty, onRemove, onCle
 
   const handleConfirm = () => {
     if (items.length === 0) return;
+    const validItems = items.filter(i => i && typeof i === 'object' && !Array.isArray(i));
     onConfirm({
-      items: items.map(i => ({
+      items: validItems.map(i => ({
+        nome: i.name,
         name: i.name,
-        variation: i.variation,
-        complements: i.complements,
-        qty: i.qty,
+        variation: i.variation || '',
+        complements: Array.isArray(i.complements) ? i.complements : [],
+        qty: i.qty || 1,
+        unitPrice: i.unitPrice,
         price: i.unitPrice,
         obs: i.obs || '',
       })),

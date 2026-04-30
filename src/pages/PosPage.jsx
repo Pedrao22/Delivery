@@ -66,8 +66,11 @@ export default function PosPage() {
     const orderData = {
       items: items.map(i => ({
         nome: i.name,
-        variation: i.variation,
+        name: i.name,
+        variation: i.variation || '',
+        complements: Array.isArray(i.complements) ? i.complements : [],
         qty: i.qty,
+        unitPrice: i.unitPrice,
         price: i.unitPrice,
         obs: i.obs || '',
       })),
