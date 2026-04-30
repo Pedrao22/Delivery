@@ -265,7 +265,7 @@ export function OrdersProvider({ children }) {
       unit: i.unidade || 'un',
       qty: i.quantidade ?? 0,
       minQty: i.quantidade_minima ?? 0,
-      cost: i.custo ?? 0,
+      cost: i.custo_unitario ?? 0,
       expiry: i.validade || '',
       supplier: i.fornecedor || '',
     };
@@ -278,7 +278,7 @@ export function OrdersProvider({ children }) {
       unidade: item.unit,
       quantidade: Number(item.qty),
       quantidade_minima: Number(item.minQty),
-      custo: Number(item.cost),
+      custo_unitario: Number(item.cost),
       validade: item.expiry || null,
       fornecedor: item.supplier || null,
     };
