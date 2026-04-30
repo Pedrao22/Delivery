@@ -1,9 +1,11 @@
-import { useState, useEffect, useRef } from 'react';
-import { MessageSquare, RefreshCw, Send, ExternalLink, Loader2, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { MessageSquare, RefreshCw, ExternalLink, Loader2, User } from 'lucide-react';
 import { API_URL } from '../lib/supabase';
+import ConversationPanel from '../components/shared/ConversationPanel';
 import './ChatPage.css';
 
 const CHATWOOT_URL = 'https://app.uply.chat';
+const ACCOUNT_ID = '12113';
 
 function timeAgo(dateStr) {
   if (!dateStr) return '';
@@ -25,15 +27,7 @@ function authHeaders() {
 export default function ChatPage() {
   const [conversations, setConversations] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
-  const [messages, setMessages] = useState([]);
-  const [replyText, setReplyText] = useState('');
   const [loadingConvs, setLoadingConvs] = useState(true);
-  const [loadingMsgs, setLoadingMsgs] = useState(false);
-  const [sending, setSending] = useState(false);
-  const messagesEndRef = useRef(null);
-
-  const selectedIdRef = useRef(null);
-  selectedIdRef.current = selectedId;
 
   const fetchConversations = async (silent = false) => {
     if (!silent) setLoadingConvs(true);
@@ -45,68 +39,18 @@ export default function ChatPage() {
     finally { if (!silent) setLoadingConvs(false); }
   };
 
-  const fetchMessages = async (id, silent = false) => {
-    if (!id) return;
-    if (!silent) setLoadingMsgs(true);
-    try {
-      const res = await fetch(`${API_URL}/chatwoot/conversations/${id}/messages`, { headers: authHeaders() });
-      const d = await res.json();
-      if (d?.success) setMessages(d.data ?? []);
-    } catch {}
-    finally { if (!silent) setLoadingMsgs(false); }
-  };
-
-  // Initial load
   useEffect(() => { fetchConversations(); }, []);
 
-  // Auto-refresh conversations every 15s
   useEffect(() => {
     const t = setInterval(() => fetchConversations(true), 15000);
     return () => clearInterval(t);
   }, []);
 
-  // Load messages when conversation changes
-  useEffect(() => {
-    fetchMessages(selectedId);
-  }, [selectedId]);
-
-  // Auto-refresh messages every 8s when a conversation is open
-  useEffect(() => {
-    if (!selectedId) return;
-    const t = setInterval(() => fetchMessages(selectedIdRef.current, true), 8000);
-    return () => clearInterval(t);
-  }, [selectedId]);
-
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
-  const handleSend = async () => {
-    const content = replyText.trim();
-    if (!content || !selectedId || sending) return;
-    setSending(true);
-    try {
-      await fetch(`${API_URL}/chatwoot/conversations/${selectedId}/reply`, {
-        method: 'POST',
-        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId: selectedId, content }),
-      });
-      setReplyText('');
-      await fetchMessages(selectedId);
-    } catch {}
-    finally { setSending(false); }
-  };
-
   const selectedConv = conversations.find(c => c.id === selectedId);
 
-  const sortedConvs = [...conversations].sort((a, b) => {
-    const ta = a.last_activity_at ?? a.created_at ?? 0;
-    const tb = b.last_activity_at ?? b.created_at ?? 0;
-    return new Date(tb).getTime() - new Date(ta).getTime();
-  });
-
-  const sortedMsgs = [...messages].sort((a, b) =>
-    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+  const sortedConvs = [...conversations].sort((a, b) =>
+    new Date(b.last_activity_at ?? b.created_at ?? 0).getTime() -
+    new Date(a.last_activity_at ?? a.created_at ?? 0).getTime()
   );
 
   return (
@@ -119,7 +63,7 @@ export default function ChatPage() {
             <span>Atendimento</span>
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="chat-icon-btn" onClick={fetchConversations} title="Atualizar">
+            <button className="chat-icon-btn" onClick={() => fetchConversations()} title="Atualizar">
               <RefreshCw size={14} className={loadingConvs ? 'animate-spin' : ''} />
             </button>
             <a href={CHATWOOT_URL} target="_blank" rel="noopener noreferrer" className="chat-icon-btn" title="Abrir Chatwoot">
@@ -194,7 +138,7 @@ export default function ChatPage() {
                 )}
               </div>
               <a
-                href={`${CHATWOOT_URL}/app/accounts/${import.meta.env.VITE_CHATWOOT_ACCOUNT_ID || ''}/conversations/${selectedId}`}
+                href={`${CHATWOOT_URL}/app/accounts/${ACCOUNT_ID}/conversations/${selectedId}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="chat-icon-btn"
@@ -205,41 +149,7 @@ export default function ChatPage() {
               </a>
             </div>
 
-            <div className="chat-messages">
-              {loadingMsgs ? (
-                <div className="chat-center">
-                  <Loader2 size={24} className="animate-spin" style={{ color: 'var(--accent)' }} />
-                </div>
-              ) : (
-                sortedMsgs.map(msg => {
-                  const isOut = msg.message_type === 1 || msg.message_type === 'outgoing';
-                  return (
-                    <div key={msg.id} className={`chat-msg ${isOut ? 'outgoing' : 'incoming'}`}>
-                      <div className="chat-bubble">{msg.content}</div>
-                      <div className="chat-msg-time">{timeAgo(msg.created_at)}</div>
-                    </div>
-                  );
-                })
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-
-            <div className="chat-reply-bar">
-              <input
-                className="chat-reply-input"
-                placeholder="Digite uma resposta..."
-                value={replyText}
-                onChange={e => setReplyText(e.target.value)}
-                onKeyDown={e => e.key === 'Enter' && !e.shiftKey && handleSend()}
-              />
-              <button
-                className="chat-send-btn"
-                onClick={handleSend}
-                disabled={!replyText.trim() || sending}
-              >
-                {sending ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
-              </button>
-            </div>
+            <ConversationPanel conversationId={selectedId} />
           </>
         )}
       </main>

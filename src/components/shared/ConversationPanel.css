@@ -1,0 +1,107 @@
+.conv-panel {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 280px;
+  background: var(--bg-secondary);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.conv-panel-empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  color: var(--text-tertiary);
+  font-size: 0.82rem;
+  text-align: center;
+}
+
+/* Messages area */
+.conv-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.conv-msg {
+  display: flex;
+  flex-direction: column;
+  max-width: 78%;
+}
+.conv-msg.outgoing { align-self: flex-end; align-items: flex-end; }
+.conv-msg.incoming { align-self: flex-start; align-items: flex-start; }
+
+.conv-bubble {
+  padding: 7px 11px;
+  border-radius: 13px;
+  font-size: 0.83rem;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.conv-msg.outgoing .conv-bubble {
+  background: var(--accent);
+  color: #fff;
+  border-bottom-right-radius: 3px;
+}
+.conv-msg.incoming .conv-bubble {
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border-light);
+  border-bottom-left-radius: 3px;
+}
+
+.conv-msg-time {
+  font-size: 0.68rem;
+  color: var(--text-tertiary);
+  margin-top: 2px;
+}
+
+/* Reply bar */
+.conv-reply-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 10px;
+  background: var(--surface);
+  border-top: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.conv-reply-input {
+  flex: 1;
+  padding: 7px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  font-size: 0.83rem;
+  outline: none;
+  transition: border-color var(--transition-fast);
+}
+.conv-reply-input:focus { border-color: var(--accent); }
+
+.conv-send-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  border: none;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: opacity var(--transition-fast);
+  flex-shrink: 0;
+}
+.conv-send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.conv-send-btn:not(:disabled):hover { opacity: 0.82; }

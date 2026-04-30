@@ -1,9 +1,10 @@
-import { MapPin, Phone, CreditCard, MessageSquare, ChevronRight, XCircle, Send, Truck, Hash } from 'lucide-react';
-import { useState, useRef, useEffect } from 'react';
+import { MapPin, Phone, CreditCard, MessageSquare, ChevronRight, XCircle, Truck, Hash } from 'lucide-react';
+import { useState } from 'react';
 import { useOrdersContext } from '../../context/OrdersContext';
 import Modal from '../shared/Modal';
 import Badge from '../shared/Badge';
 import Button from '../shared/Button';
+import ConversationPanel from '../shared/ConversationPanel';
 import './OrderModal.css';
 
 const typeConfig = {
@@ -19,17 +20,9 @@ const statusConfig = {
 };
 
 export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
-  const { addChatMessage, drivers, assignDriverToOrder, tables } = useOrdersContext();
+  const { drivers, assignDriverToOrder, tables } = useOrdersContext();
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [showDriverSelect, setShowDriverSelect] = useState(false);
-  const [message, setMessage] = useState('');
-  const chatEndRef = useRef(null);
-
-  useEffect(() => {
-    if (isChatOpen) {
-      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }
-  }, [isChatOpen, order?.chat]);
 
   if (!order) return null;
 
@@ -37,13 +30,6 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
   const status = statusConfig[order.status];
   const assignedDriver = order.driverId ? drivers.find(d => d.id === order.driverId) : null;
   const assignedTable = order.tableId ? tables.find(t => t.id === order.tableId) : null;
-
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (!message.trim()) return;
-    addChatMessage(order.id, message, 'admin');
-    setMessage('');
-  };
 
   const handleAssignDriver = (driverId) => {
     assignDriverToOrder(order.id, driverId);
@@ -209,40 +195,15 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
         </div>
       </div>
 
-      {/* Mock Chat Overlay */}
+      {/* Chatwoot Conversation */}
       {isChatOpen && (
-        <div className="order-chat-container">
-          <div className="order-chat-header">
-            <div className="chat-customer-info">
-              <div className="chat-avatar">{order.customer.name.charAt(0)}</div>
-              <div>
-                <div className="chat-name">{order.customer.name}</div>
-                <div className="chat-status">Online</div>
-              </div>
-            </div>
+        <div className="order-modal-section">
+          <div className="order-modal-section-title">
+            <MessageSquare size={12} style={{ display: 'inline', marginRight: 4 }} />Conversa com Cliente
           </div>
-          
-          <div className="order-chat-messages">
-            {order.chat?.map((msg) => (
-              <div key={msg.id} className={`chat-message-bubble ${msg.sender}`}>
-                <div className="chat-message-text">{msg.text}</div>
-                <div className="chat-message-time">{msg.time}</div>
-              </div>
-            ))}
-            <div ref={chatEndRef} />
+          <div style={{ height: 340 }}>
+            <ConversationPanel phone={order.customer.phone} />
           </div>
-
-          <form className="order-chat-input" onSubmit={handleSendMessage}>
-            <input 
-              type="text" 
-              placeholder="Digite uma mensagem..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-            />
-            <button type="submit" disabled={!message.trim()}>
-              <Send size={18} />
-            </button>
-          </form>
         </div>
       )}
 
