@@ -40,11 +40,21 @@
 .conv-msg.outgoing { align-self: flex-end; align-items: flex-end; }
 .conv-msg.incoming { align-self: flex-start; align-items: flex-start; }
 
+.conv-msg-sender {
+  font-size: 0.72rem;
+  font-weight: 600;
+  margin-bottom: 3px;
+  padding: 0 4px;
+  color: rgba(255, 255, 255, 0.45);
+}
+.conv-msg.outgoing .conv-msg-sender { color: rgba(255, 255, 255, 0.45); }
+.conv-msg.incoming .conv-msg-sender { color: rgba(255, 255, 255, 0.5); }
+
 .conv-bubble {
-  padding: 7px 11px;
-  border-radius: 13px;
-  font-size: 0.83rem;
-  line-height: 1.45;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 0.95rem;
+  line-height: 1.5;
   white-space: pre-wrap;
   word-break: break-word;
 }

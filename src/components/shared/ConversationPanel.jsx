@@ -136,6 +136,7 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
         {sorted.map(msg => {
           const isActivity = msg.message_type === 2;
           const isOut = msg.message_type === 1 || msg.message_type === 'outgoing';
+          const senderName = msg.sender?.name || (isOut ? 'Você' : 'Cliente');
           if (isActivity) {
             return (
               <div key={msg.id} className="conv-msg-activity">
@@ -147,6 +148,7 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
           }
           return (
             <div key={msg.id} className={`conv-msg ${isOut ? 'outgoing' : 'incoming'}`}>
+              <div className="conv-msg-sender">{senderName}</div>
               <div className="conv-bubble">{msg.content}</div>
               <div className="conv-msg-time">{timeAgo(msg.created_at)}</div>
             </div>
