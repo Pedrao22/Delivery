@@ -142,9 +142,9 @@ export default function ChatPage() {
             </div>
           )}
           {sortedConvs.map(conv => {
-            const contact = conv.meta?.sender ?? conv.contact ?? {};
-            const name = contact.name || `Conversa #${conv.id}`;
-            const preview = conv.last_non_activity_message?.content ?? '';
+            const name = conv.contact_name || `Conversa #${conv.id}`;
+            const phone = conv.contact_phone || '';
+            const preview = conv.last_message || '';
             const unread = conv.unread_count ?? 0;
             const isSelected = conv.id === selectedId;
             return (
@@ -162,7 +162,7 @@ export default function ChatPage() {
                     <span className="chat-conv-time">{timeAgo(conv.last_activity_at ?? conv.created_at)}</span>
                   </div>
                   <div className="chat-conv-preview">
-                    <span className="chat-conv-text">{preview || 'Sem mensagens'}</span>
+                    <span className="chat-conv-text">{phone || preview || 'Sem mensagens'}</span>
                     {unread > 0 && <span className="chat-conv-badge">{unread}</span>}
                   </div>
                 </div>
@@ -187,10 +187,10 @@ export default function ChatPage() {
               </div>
               <div>
                 <div className="chat-main-name">
-                  {selectedConv?.meta?.sender?.name || `Conversa #${selectedId}`}
+                  {selectedConv?.contact_name || `Conversa #${selectedId}`}
                 </div>
-                {selectedConv?.meta?.sender?.phone_number && (
-                  <div className="chat-main-phone">{selectedConv.meta.sender.phone_number}</div>
+                {selectedConv?.contact_phone && (
+                  <div className="chat-main-phone">{selectedConv.contact_phone}</div>
                 )}
               </div>
               <a
