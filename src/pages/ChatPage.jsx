@@ -32,26 +32,49 @@ export default function ChatPage() {
   const [sending, setSending] = useState(false);
   const messagesEndRef = useRef(null);
 
-  const fetchConversations = async () => {
-    setLoadingConvs(true);
+  const selectedIdRef = useRef(null);
+  selectedIdRef.current = selectedId;
+
+  const fetchConversations = async (silent = false) => {
+    if (!silent) setLoadingConvs(true);
     try {
       const res = await fetch(`${API_URL}/chatwoot/conversations`, { headers: authHeaders() });
       const d = await res.json();
       if (d?.success) setConversations(d.data ?? []);
     } catch {}
-    finally { setLoadingConvs(false); }
+    finally { if (!silent) setLoadingConvs(false); }
   };
 
+  const fetchMessages = async (id, silent = false) => {
+    if (!id) return;
+    if (!silent) setLoadingMsgs(true);
+    try {
+      const res = await fetch(`${API_URL}/chatwoot/conversations/${id}/messages`, { headers: authHeaders() });
+      const d = await res.json();
+      if (d?.success) setMessages(d.data ?? []);
+    } catch {}
+    finally { if (!silent) setLoadingMsgs(false); }
+  };
+
+  // Initial load
   useEffect(() => { fetchConversations(); }, []);
 
+  // Auto-refresh conversations every 15s
+  useEffect(() => {
+    const t = setInterval(() => fetchConversations(true), 15000);
+    return () => clearInterval(t);
+  }, []);
+
+  // Load messages when conversation changes
+  useEffect(() => {
+    fetchMessages(selectedId);
+  }, [selectedId]);
+
+  // Auto-refresh messages every 8s when a conversation is open
   useEffect(() => {
     if (!selectedId) return;
-    setLoadingMsgs(true);
-    fetch(`${API_URL}/chatwoot/conversations/${selectedId}/messages`, { headers: authHeaders() })
-      .then(r => r.json())
-      .then(d => { if (d?.success) setMessages(d.data ?? []); })
-      .catch(() => {})
-      .finally(() => setLoadingMsgs(false));
+    const t = setInterval(() => fetchMessages(selectedIdRef.current, true), 8000);
+    return () => clearInterval(t);
   }, [selectedId]);
 
   useEffect(() => {
@@ -69,10 +92,7 @@ export default function ChatPage() {
         body: JSON.stringify({ conversationId: selectedId, content }),
       });
       setReplyText('');
-      // Reload messages
-      const res = await fetch(`${API_URL}/chatwoot/conversations/${selectedId}/messages`, { headers: authHeaders() });
-      const d = await res.json();
-      if (d?.success) setMessages(d.data ?? []);
+      await fetchMessages(selectedId);
     } catch {}
     finally { setSending(false); }
   };
