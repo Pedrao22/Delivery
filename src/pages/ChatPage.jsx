@@ -1,7 +1,13 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, RefreshCw, ExternalLink, Loader2, User, RefreshCcw, Search, CheckCircle, XCircle } from 'lucide-react';
+import { MessageSquare, RefreshCw, ExternalLink, Loader2, User, RefreshCcw, Search, CheckCircle, XCircle, ShoppingCart } from 'lucide-react';
 import { API_URL } from '../lib/supabase';
+import { useOrdersContext } from '../context/OrdersContext';
+import { useCart } from '../hooks/useCart';
 import ConversationPanel from '../components/shared/ConversationPanel';
+import MenuGrid from '../components/menu/MenuGrid';
+import Cart from '../components/menu/Cart';
+import Modal from '../components/shared/Modal';
+import Button from '../components/shared/Button';
 import './ChatPage.css';
 
 const CHATWOOT_URL = 'https://app.uply.chat';
@@ -28,6 +34,9 @@ const STATUS_LABEL = { pending: 'Pendente', open: 'Atendendo', resolved: 'Encerr
 const STATUS_DOT   = { pending: 'var(--warning)', open: 'var(--success)', resolved: 'var(--text-tertiary)' };
 
 export default function ChatPage() {
+  const { addOrder } = useOrdersContext();
+  const { items, total, count, addItem, removeItem, updateQty, clearCart } = useCart();
+
   const [conversations, setConversations] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [loadingConvs, setLoadingConvs] = useState(true);
@@ -36,6 +45,8 @@ export default function ChatPage() {
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState('pending');
   const [actionLoading, setActionLoading] = useState(false);
+  const [showOrderModal, setShowOrderModal] = useState(false);
+  const [showCart, setShowCart] = useState(false);
 
   const fetchConversations = async (silent = false) => {
     if (!silent) setLoadingConvs(true);
@@ -62,6 +73,12 @@ export default function ChatPage() {
       setSyncing(false);
       setTimeout(() => setSyncMsg(null), 4000);
     }
+  };
+
+  const handleConfirmOrder = async (orderData) => {
+    await addOrder(orderData);
+    setShowCart(false);
+    clearCart();
   };
 
   const handleStatusChange = async (convId, newStatus) => {
@@ -256,6 +273,14 @@ export default function ChatPage() {
 
               {/* Action buttons */}
               <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+                <button
+                  className="chat-action-btn order"
+                  onClick={() => setShowOrderModal(true)}
+                  title="Criar pedido para este cliente"
+                >
+                  <ShoppingCart size={13} />
+                  Fazer Pedido
+                </button>
                 {selectedConv?.status === 'pending' && (
                   <button
                     className="chat-action-btn accept"
@@ -305,6 +330,39 @@ export default function ChatPage() {
           </>
         )}
       </main>
+      {/* New Order Modal — Menu */}
+      <Modal
+        isOpen={showOrderModal}
+        onClose={() => setShowOrderModal(false)}
+        title={`Novo Pedido — ${selectedConv?.contact_name || 'Cliente'}`}
+        size="full"
+        footer={
+          count > 0 ? (
+            <Button onClick={() => { setShowOrderModal(false); setShowCart(true); }} icon={<ShoppingCart size={16} />}>
+              Ver Carrinho ({count}) — R$ {total.toFixed(2).replace('.', ',')}
+            </Button>
+          ) : null
+        }
+      >
+        <MenuGrid onAddToCart={addItem} />
+      </Modal>
+
+      {/* Cart — pre-filled with chat customer */}
+      <Cart
+        items={items}
+        total={total}
+        count={count}
+        onUpdateQty={updateQty}
+        onRemove={removeItem}
+        onClear={clearCart}
+        onConfirm={handleConfirmOrder}
+        isOpen={showCart}
+        onClose={() => setShowCart(false)}
+        initialCustomer={{
+          name: selectedConv?.contact_name || '',
+          phone: selectedConv?.contact_phone || '',
+        }}
+      />
     </div>
   );
 }

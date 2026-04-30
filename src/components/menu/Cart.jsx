@@ -1,16 +1,23 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Trash2, ShoppingBag } from 'lucide-react';
 import Button from '../shared/Button';
 import EmptyState from '../shared/EmptyState';
 import './Cart.css';
 
-export default function Cart({ items, total, count, onUpdateQty, onRemove, onClear, onConfirm, isOpen, onClose }) {
+export default function Cart({ items, total, count, onUpdateQty, onRemove, onClear, onConfirm, isOpen, onClose, initialCustomer }) {
   const [orderType, setOrderType] = useState('delivery');
   const [payment, setPayment] = useState('pix');
   const [cashGiven, setCashGiven] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [address, setAddress] = useState('');
+
+  useEffect(() => {
+    if (isOpen && initialCustomer) {
+      setCustomerName(initialCustomer.name || '');
+      setCustomerPhone(initialCustomer.phone || '');
+    }
+  }, [isOpen, initialCustomer]);
 
   if (!isOpen) return null;
 

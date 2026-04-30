@@ -328,6 +328,16 @@
   background: var(--bg-tertiary);
 }
 
+.chat-action-btn.order {
+  background: var(--accent-lighter);
+  color: var(--accent-dark);
+  border: 1px solid var(--accent-light);
+}
+.chat-action-btn.order:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+}
+
 /* ── Main panel ───────────────────────────────────── */
 .chat-main {
   flex: 1;
