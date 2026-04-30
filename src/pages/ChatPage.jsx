@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, RefreshCw, ExternalLink, Loader2, User } from 'lucide-react';
+import { MessageSquare, RefreshCw, ExternalLink, Loader2, User, RefreshCcw } from 'lucide-react';
 import { API_URL } from '../lib/supabase';
 import ConversationPanel from '../components/shared/ConversationPanel';
 import './ChatPage.css';
@@ -28,6 +28,8 @@ export default function ChatPage() {
   const [conversations, setConversations] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [loadingConvs, setLoadingConvs] = useState(true);
+  const [syncing, setSyncing] = useState(false);
+  const [syncMsg, setSyncMsg] = useState(null);
 
   const fetchConversations = async (silent = false) => {
     if (!silent) setLoadingConvs(true);
@@ -37,6 +39,26 @@ export default function ChatPage() {
       if (d?.success) setConversations(d.data ?? []);
     } catch {}
     finally { if (!silent) setLoadingConvs(false); }
+  };
+
+  const handleSync = async () => {
+    setSyncing(true);
+    setSyncMsg(null);
+    try {
+      const res = await fetch(`${API_URL}/chatwoot/sync`, {
+        method: 'POST',
+        headers: authHeaders(),
+      });
+      const d = await res.json();
+      const count = d?.synced ?? 0;
+      setSyncMsg(count > 0 ? `${count} conversa(s) sincronizada(s)` : 'Nenhuma conversa nova encontrada');
+      await fetchConversations(true);
+    } catch {
+      setSyncMsg('Erro ao sincronizar');
+    } finally {
+      setSyncing(false);
+      setTimeout(() => setSyncMsg(null), 4000);
+    }
   };
 
   useEffect(() => { fetchConversations(); }, []);
@@ -62,7 +84,22 @@ export default function ChatPage() {
             <MessageSquare size={16} />
             <span>Atendimento</span>
           </div>
-          <div style={{ display: 'flex', gap: 8 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            {syncMsg && (
+              <span style={{ fontSize: '0.7rem', color: 'var(--text-tertiary)', maxWidth: 140, textAlign: 'right' }}>
+                {syncMsg}
+              </span>
+            )}
+            <button
+              className="chat-icon-btn"
+              onClick={handleSync}
+              disabled={syncing}
+              title="Sincronizar conversas do histórico"
+            >
+              {syncing
+                ? <Loader2 size={14} className="animate-spin" />
+                : <RefreshCcw size={14} />}
+            </button>
             <button className="chat-icon-btn" onClick={() => fetchConversations()} title="Atualizar">
               <RefreshCw size={14} className={loadingConvs ? 'animate-spin' : ''} />
             </button>
