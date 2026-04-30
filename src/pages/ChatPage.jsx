@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, RefreshCw, ExternalLink, Loader2, User, RefreshCcw } from 'lucide-react';
+import { MessageSquare, RefreshCw, ExternalLink, Loader2, User, RefreshCcw, Search } from 'lucide-react';
 import { API_URL } from '../lib/supabase';
 import ConversationPanel from '../components/shared/ConversationPanel';
 import './ChatPage.css';
@@ -30,6 +30,8 @@ export default function ChatPage() {
   const [loadingConvs, setLoadingConvs] = useState(true);
   const [syncing, setSyncing] = useState(false);
   const [syncMsg, setSyncMsg] = useState(null);
+  const [search, setSearch] = useState('');
+  const [activeTab, setActiveTab] = useState('all');
 
   const fetchConversations = async (silent = false) => {
     if (!silent) setLoadingConvs(true);
@@ -70,10 +72,24 @@ export default function ChatPage() {
 
   const selectedConv = conversations.find(c => c.id === selectedId);
 
-  const sortedConvs = [...conversations].sort((a, b) =>
-    new Date(b.last_activity_at ?? b.created_at ?? 0).getTime() -
-    new Date(a.last_activity_at ?? a.created_at ?? 0).getTime()
-  );
+  const sortedConvs = [...conversations]
+    .sort((a, b) =>
+      new Date(b.last_activity_at ?? b.created_at ?? 0).getTime() -
+      new Date(a.last_activity_at ?? a.created_at ?? 0).getTime()
+    )
+    .filter(c => {
+      if (activeTab === 'unread' && !(c.unread_count > 0)) return false;
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return (
+        (c.contact_name || '').toLowerCase().includes(q) ||
+        (c.contact_phone || '').toLowerCase().includes(q) ||
+        (c.last_message || '').toLowerCase().includes(q)
+      );
+    });
+
+  const pendente = conversations.filter(c => c.unread_count > 0).length;
+  const atendendo = conversations.filter(c => !(c.unread_count > 0)).length;
 
   return (
     <div className="chat-page">
@@ -106,6 +122,48 @@ export default function ChatPage() {
             <a href={CHATWOOT_URL} target="_blank" rel="noopener noreferrer" className="chat-icon-btn" title="Abrir Chatwoot">
               <ExternalLink size={14} />
             </a>
+          </div>
+        </div>
+
+        {/* Search */}
+        <div className="chat-search-wrap">
+          <Search size={13} className="chat-search-icon" />
+          <input
+            className="chat-search-input"
+            type="text"
+            placeholder="Procurar por mensagens nas conversas"
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+
+        {/* Tabs */}
+        <div className="chat-tabs">
+          <button
+            className={`chat-tab${activeTab === 'all' ? ' active' : ''}`}
+            onClick={() => setActiveTab('all')}
+          >
+            Todos
+          </button>
+          <button
+            className={`chat-tab${activeTab === 'unread' ? ' active' : ''}`}
+            onClick={() => setActiveTab('unread')}
+          >
+            Não lidos
+            {pendente > 0 && <span className="chat-tab-badge">{pendente}</span>}
+          </button>
+        </div>
+
+        {/* Counters */}
+        <div className="chat-counters">
+          <div className="chat-counter">
+            <span className="chat-counter-label">Pendente</span>
+            <span className="chat-counter-value pending">{pendente}</span>
+          </div>
+          <div className="chat-counter-divider" />
+          <div className="chat-counter">
+            <span className="chat-counter-label">Atendendo</span>
+            <span className="chat-counter-value attending">{atendendo}</span>
           </div>
         </div>
 

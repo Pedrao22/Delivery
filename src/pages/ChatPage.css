@@ -55,6 +55,122 @@
   color: var(--accent-dark);
 }
 
+/* ── Search ───────────────────────────────────────── */
+.chat-search-wrap {
+  position: relative;
+  padding: 10px 12px 0;
+  flex-shrink: 0;
+}
+
+.chat-search-icon {
+  position: absolute;
+  left: 22px;
+  top: 50%;
+  transform: translateY(20%);
+  color: var(--text-tertiary);
+  pointer-events: none;
+}
+
+.chat-search-input {
+  width: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-full);
+  padding: 7px 12px 7px 30px;
+  font-size: 0.78rem;
+  color: var(--text-primary);
+  outline: none;
+  transition: border-color var(--transition-fast);
+  box-sizing: border-box;
+}
+.chat-search-input::placeholder { color: var(--text-tertiary); }
+.chat-search-input:focus { border-color: var(--accent); background: var(--surface); }
+
+/* ── Tabs ─────────────────────────────────────────── */
+.chat-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 8px 12px 0;
+  flex-shrink: 0;
+}
+
+.chat-tab {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 12px;
+  border-radius: var(--radius-full);
+  border: none;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.chat-tab:hover { background: var(--bg-secondary); color: var(--text-primary); }
+.chat-tab.active { background: var(--accent-lighter); color: var(--accent); }
+
+.chat-tab-badge {
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 3px;
+}
+
+/* ── Counters ─────────────────────────────────────── */
+.chat-counters {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  padding: 10px 12px 8px;
+  border-bottom: 1px solid var(--border-light);
+  flex-shrink: 0;
+}
+
+.chat-counter {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.chat-counter-divider {
+  width: 1px;
+  height: 24px;
+  background: var(--border-light);
+  margin: 0 12px;
+}
+
+.chat-counter-label {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.chat-counter-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  padding: 1px 8px;
+  border-radius: var(--radius-full);
+}
+.chat-counter-value.pending {
+  background: var(--warning-light);
+  color: var(--warning-dark);
+}
+.chat-counter-value.attending {
+  background: var(--success-lighter, #e8f8f0);
+  color: var(--success-dark);
+}
+
+/* ── Conv list ────────────────────────────────────── */
 .chat-conv-list {
   flex: 1;
   overflow-y: auto;
