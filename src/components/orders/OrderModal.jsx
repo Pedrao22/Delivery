@@ -34,11 +34,12 @@ export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
   const [conversations, setConversations] = useState([]);
   const [loadingConvs, setLoadingConvs] = useState(false);
   const [linking, setLinking] = useState(false);
+  const orderId = order?.id ?? null;
   const [linkedConvId, setLinkedConvId] = useState(order?.chatwootConversationId ?? null);
 
   useEffect(() => {
     setLinkedConvId(order?.chatwootConversationId ?? null);
-  }, [order?.id]);
+  }, [orderId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const openPicker = async () => {
     setShowConvPicker(true);
