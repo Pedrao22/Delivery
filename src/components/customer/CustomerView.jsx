@@ -3,7 +3,7 @@ import {
   Phone, ShoppingCart, ArrowLeft, Check,
   MapPin, CreditCard, QrCode, Wallet, Info,
   Star, Clock, ChevronRight, Search,
-  ChevronDown, MessageCircle, Heart
+  ChevronDown, MessageCircle, Heart, Share2
 } from 'lucide-react';
 import Modal from '../shared/Modal';
 import { menuCategories, menuItems } from '../../data/menuItems';
@@ -363,62 +363,79 @@ export default function CustomerView({ ridOverride } = {}) {
   }
 
   // 3. Menu Step
+  const minOrderVal = publicRestaurant?.min_order ?? restaurantSettings.minOrder ?? 0;
+
   return (
     <div className="customer-wrapper menu-step">
-      {/* Sticky Header */}
-      <header className="menu-header" style={{ borderTop: `3px solid ${primaryColor}` }}>
-        <div className="menu-header-inner">
-          <div className="header-top">
-            <div className="brand-box">
-              <div className="brand-logo">
-                {brandLogo?.startsWith('http') ? (
-                  <img src={brandLogo} alt={brandName} style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 14 }} />
-                ) : (brandLogo || '🍽️')}
-              </div>
-              <div className="brand-meta">
-                <h1>{brandName}</h1>
-                <div className="brand-status">
-                  {isOpen ? (
-                    <span className="status-tag open">Aberto</span>
-                  ) : (
-                    <span className="status-tag closed">Fechado</span>
-                  )}
-                  <span className="status-info"><Clock size={12} /> {deliveryTime}</span>
-                </div>
-              </div>
-            </div>
-            <button className="user-points">
-              <div className="points-label">Meus Pontos</div>
-              <div className="points-val">★ {customer?.points || 0}</div>
+      <header className="menu-header">
+        {/* Brand bar — solid primary color */}
+        <div className="cv-brand-bar" style={{ background: primaryColor }}>
+          <div className="cv-brand-logo">
+            {brandLogo?.startsWith('http') ? (
+              <img src={brandLogo} alt={brandName} />
+            ) : (
+              <span>{brandLogo || '🍽️'}</span>
+            )}
+          </div>
+          <h1 className="cv-brand-title">{brandName}</h1>
+          <div className="cv-brand-actions">
+            <button
+              className="cv-hdr-btn"
+              onClick={() => navigator.share?.({ title: brandName, url: window.location.href })}
+              aria-label="Compartilhar"
+            >
+              <Share2 size={19} />
             </button>
           </div>
+        </div>
 
-          <div className="search-bar" style={{ '--focus-color': primaryColor }}>
-            <Search size={17} />
+        {/* Info bar */}
+        <div className="cv-info-bar">
+          <span className="cv-info-left">
+            <Clock size={13} />
+            {isOpen ? 'Aberto agora' : 'Fechado'}
+            {minOrderVal > 0 && <> &bull; Pedido mín. R$&nbsp;{minOrderVal.toFixed(2).replace('.', ',')}</>}
+          </span>
+          <span className="cv-info-right">
+            {deliveryTime} <ChevronRight size={13} />
+          </span>
+        </div>
+
+        {/* Closed banner */}
+        {!isOpen && (
+          <div className="cv-closed-banner">
+            🔴 Loja fechada no momento
+          </div>
+        )}
+
+        {/* Search */}
+        <div className="cv-search-row">
+          <div className="cv-search-bar">
+            <Search size={15} />
             <input
               type="text"
-              placeholder="O que você quer comer hoje?"
+              placeholder="Buscar no cardápio..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
 
-        {/* Categories — inside header so they stick together */}
-        <nav className="categories-nav">
+        {/* Category tabs — underline style */}
+        <nav className="cv-cats-nav">
           <button
-            className={`cat-pill ${activeCategory === 'all' ? 'active' : ''}`}
+            className={`cv-cat-btn${activeCategory === 'all' ? ' active' : ''}`}
             onClick={() => setActiveCategory('all')}
-            style={activeCategory === 'all' ? { backgroundColor: primaryColor } : {}}
+            style={activeCategory === 'all' ? { color: primaryColor, borderBottomColor: primaryColor } : {}}
           >
             Todos
           </button>
           {displayCategories.map(cat => (
             <button
               key={cat.id}
-              className={`cat-pill ${activeCategory === cat.id ? 'active' : ''}`}
+              className={`cv-cat-btn${activeCategory === cat.id ? ' active' : ''}`}
               onClick={() => setActiveCategory(cat.id)}
-              style={activeCategory === cat.id ? { backgroundColor: primaryColor } : {}}
+              style={activeCategory === cat.id ? { color: primaryColor, borderBottomColor: primaryColor } : {}}
             >
               {cat.icone} {cat.nome}
             </button>
