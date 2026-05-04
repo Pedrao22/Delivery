@@ -172,8 +172,8 @@ export default function SettingsPage() {
                   <MapPin size={18} className="settings-input-icon" style={{ top: '16px', transform: 'none' }} />
                   <textarea
                     className="settings-input settings-textarea"
-                    value={formData.address}
-                    onChange={e => setFormData({...formData, address: e.target.value})}
+                    value={formData.endereco || ''}
+                    onChange={e => setFormData({...formData, endereco: e.target.value})}
                     placeholder="Rua, número, bairro, cidade..."
                   />
                 </div>
