@@ -15,20 +15,70 @@ const ACCOUNT_ID = '12113';
 
 const TYPE_LABEL = { delivery: '🛵 Delivery', pickup: '🏪 Retirada', local: '🍽️ Local' };
 
-function buildOrderSummary(newOrder, orderData) {
+function buildOrderSummary(newOrder, orderData, settings = {}) {
   const code = newOrder?.confirmCode || '';
   const items = (orderData.items || [])
     .filter(i => i && typeof i === 'object' && !Array.isArray(i));
+
   const itemLines = items.map(i => {
     const name = i.nome || i.name || '?';
     const qty  = i.qty || 1;
-    const unit = i.unitPrice ?? i.price ?? 0;
-    return `• ${qty}x ${name} — R$ ${(unit * qty).toFixed(2).replace('.', ',')}`;
+    let line = `➡️ ${qty}x ${name}`;
+    if (i.variation) line += `\n   ${i.variation}`;
+    if (Array.isArray(i.complements) && i.complements.length > 0) {
+      i.complements.forEach(c => {
+        const cName = c.nome || c.name || String(c);
+        const cQty  = c.qty || c.quantidade || 1;
+        line += `\n     ${cQty}x ${cName}`;
+      });
+    }
+    return line;
   }).join('\n');
-  const total   = (orderData.total || 0).toFixed(2).replace('.', ',');
-  const payment = orderData.payment || '';
-  const type    = TYPE_LABEL[orderData.type] || orderData.type || '';
-  return `✅ *Pedido ${code} confirmado!*\n\n📦 *Itens:*\n${itemLines}\n\n💰 *Total: R$ ${total}*\n💳 ${payment}\n${type}\n\nObrigado pelo pedido! 🙏`;
+
+  const total      = (orderData.total || 0).toFixed(2).replace('.', ',');
+  const payment    = orderData.payment || '';
+  const type       = orderData.type || '';
+  const address    = orderData.customer?.address || '';
+  const discounts  = parseFloat(orderData.discounts || orderData.discount || 0);
+  const deliveryFee = orderData.delivery_fee != null ? parseFloat(orderData.delivery_fee) : null;
+
+  const rawTime  = settings.deliveryTime || '30 a 45 min';
+  const nums     = rawTime.match(/\d+/g) || [];
+  const timeStr  = nums.length >= 2
+    ? `entre ${nums[0]}~${nums[1]} minutos`
+    : rawTime;
+
+  const lines = [];
+  lines.push(`*Pedido nº ${code}*`);
+  lines.push('');
+  lines.push('📦 *Itens:*');
+  lines.push(itemLines);
+  lines.push('');
+  lines.push(`💳 ${payment}`);
+
+  if (type === 'delivery') {
+    const taxaStr = deliveryFee != null
+      ? ` (taxa de: R$ ${deliveryFee.toFixed(2).replace('.', ',')})`
+      : '';
+    lines.push(`🛵 Delivery${taxaStr}`);
+    if (address) lines.push(`🏠 ${address}`);
+    lines.push(`⏱️ Estimativa: ${timeStr}`);
+  } else if (type === 'pickup') {
+    lines.push('🏪 Retirada no local');
+  } else if (type === 'local') {
+    lines.push('🍽️ Consumo local');
+  }
+
+  if (discounts > 0) {
+    lines.push(`💸 Desconto: R$ ${discounts.toFixed(2).replace('.', ',')}`);
+  }
+
+  lines.push('');
+  lines.push(`💰 *Total: R$ ${total}*`);
+  lines.push('');
+  lines.push('Obrigado pela preferência! Se precisar de algo é só chamar 😉');
+
+  return lines.join('\n');
 }
 
 function timeAgo(dateStr) {
@@ -52,7 +102,7 @@ const STATUS_LABEL = { pending: 'Pendente', open: 'Atendendo', resolved: 'Encerr
 const STATUS_DOT   = { pending: 'var(--warning)', open: 'var(--success)', resolved: 'var(--text-tertiary)' };
 
 export default function ChatPage() {
-  const { addOrder } = useOrdersContext();
+  const { addOrder, restaurantSettings } = useOrdersContext();
   const { items, total, count, addItem, removeItem, updateQty, clearCart } = useCart();
 
   const [conversations, setConversations] = useState([]);
@@ -98,7 +148,7 @@ export default function ChatPage() {
     // Envia resumo do pedido ao cliente via Chatwoot
     if (selectedId) {
       try {
-        const summary = buildOrderSummary(newOrder, orderData);
+        const summary = buildOrderSummary(newOrder, orderData, restaurantSettings);
         await fetch(`${API_URL}/chatwoot/conversations/${selectedId}/reply`, {
           method: 'POST',
           headers: authHeaders(),
