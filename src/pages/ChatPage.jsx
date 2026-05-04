@@ -13,6 +13,24 @@ import './ChatPage.css';
 const CHATWOOT_URL = 'https://app.uply.chat';
 const ACCOUNT_ID = '12113';
 
+const TYPE_LABEL = { delivery: '🛵 Delivery', pickup: '🏪 Retirada', local: '🍽️ Local' };
+
+function buildOrderSummary(newOrder, orderData) {
+  const code = newOrder?.confirmCode || '';
+  const items = (orderData.items || [])
+    .filter(i => i && typeof i === 'object' && !Array.isArray(i));
+  const itemLines = items.map(i => {
+    const name = i.nome || i.name || '?';
+    const qty  = i.qty || 1;
+    const unit = i.unitPrice ?? i.price ?? 0;
+    return `• ${qty}x ${name} — R$ ${(unit * qty).toFixed(2).replace('.', ',')}`;
+  }).join('\n');
+  const total   = (orderData.total || 0).toFixed(2).replace('.', ',');
+  const payment = orderData.payment || '';
+  const type    = TYPE_LABEL[orderData.type] || orderData.type || '';
+  return `✅ *Pedido ${code} confirmado!*\n\n📦 *Itens:*\n${itemLines}\n\n💰 *Total: R$ ${total}*\n💳 ${payment}\n${type}\n\nObrigado pelo pedido! 🙏`;
+}
+
 function timeAgo(dateStr) {
   if (!dateStr) return '';
   const diff = Date.now() - new Date(dateStr).getTime();
@@ -76,7 +94,20 @@ export default function ChatPage() {
   };
 
   const handleConfirmOrder = async (orderData) => {
-    await addOrder(orderData);
+    const newOrder = await addOrder(orderData);
+    // Envia resumo do pedido ao cliente via Chatwoot
+    if (selectedId) {
+      try {
+        const summary = buildOrderSummary(newOrder, orderData);
+        await fetch(`${API_URL}/chatwoot/conversations/${selectedId}/reply`, {
+          method: 'POST',
+          headers: authHeaders(),
+          body: JSON.stringify({ conversationId: selectedId, content: summary }),
+        });
+      } catch (err) {
+        console.warn('Não foi possível enviar resumo ao cliente:', err);
+      }
+    }
     setShowCart(false);
     clearCart();
   };

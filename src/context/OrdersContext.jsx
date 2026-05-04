@@ -396,7 +396,7 @@ export function OrdersProvider({ children }) {
     seenOrderIdsRef.current.add(newOrder.id);
     setOrders(prev => [newOrder, ...prev]);
     allOrdersRef.current = [newOrder, ...allOrdersRef.current];
-    return newOrder.id;
+    return newOrder;
   }, []);
 
   const removeOrder = useCallback(async (orderId) => {
