@@ -1,5 +1,5 @@
 import React from 'react';
-import { Outlet, Link, useNavigate, useLocation } from 'react-router-dom';
+import { Outlet, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { 
   BarChart3, 
   Store, 
@@ -17,6 +17,10 @@ const SuperAdminLayout = () => {
   const { logout, profile } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  if (profile && profile.role !== 'super_admin') {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleLogout = async () => {
     await logout();
