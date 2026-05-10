@@ -108,10 +108,21 @@ function playBeep() {
   } catch {}
 }
 
+const DEFAULT_HORARIOS = {
+  segunda: { ativo: true,  abertura: '11:00', fechamento: '23:00' },
+  terca:   { ativo: true,  abertura: '11:00', fechamento: '23:00' },
+  quarta:  { ativo: true,  abertura: '11:00', fechamento: '23:00' },
+  quinta:  { ativo: true,  abertura: '11:00', fechamento: '23:00' },
+  sexta:   { ativo: true,  abertura: '11:00', fechamento: '23:00' },
+  sabado:  { ativo: true,  abertura: '11:00', fechamento: '23:00' },
+  domingo: { ativo: false, abertura: '11:00', fechamento: '23:00' },
+};
+
 const DEFAULT_SETTINGS = {
   name: 'Meu Restaurante', logo: '🍽️', primaryColor: '#e74c3c',
   isOpen: true, deliveryTime: '30 a 45 min', minOrder: 0,
   payments: { pix: true, card: true, cash: true, pix_counter: true },
+  horarios: DEFAULT_HORARIOS,
 };
 
 const DEFAULT_LOYALTY = {
@@ -352,6 +363,7 @@ export function OrdersProvider({ children }) {
         endereco: d.endereco || '',
         slug: d.slug || null,
         pedidoProximoNumero: d.pedido_proximo_numero ?? 1,
+        horarios: d.horarios || DEFAULT_HORARIOS,
       });
     } catch (err) { console.warn('Erro ao carregar configurações:', err); }
     finally { setSettingsLoaded(true); }
@@ -596,6 +608,7 @@ export function OrdersProvider({ children }) {
           payments_config: data.payments, pix_key: data.pixKey,
           cnpj: data.cnpj, email: data.email, telefone: data.telefone, endereco: data.endereco,
           slug: data.slug, pedido_proximo_numero: data.pedidoProximoNumero ? parseInt(data.pedidoProximoNumero, 10) : undefined,
+          horarios: data.horarios || undefined,
         }),
       });
     } catch { refreshSettings(); }

@@ -1275,3 +1275,182 @@
   .cv-brand-title { font-size: 1.05rem; }
   .cv-brand-logo { width: 44px; height: 44px; font-size: 1.5rem; }
 }
+
+/* ═══════════════════════════════════════════════════════════
+   FOOD-APPEAL REDESIGN — Cores quentes que remetem à fome
+   ═══════════════════════════════════════════════════════════ */
+
+/* Fundo creme quente */
+.customer-wrapper { background: #FFF8F0; }
+.login-step       { background: #FFF8F0; }
+
+/* Brand bar: gradiente do primaryColor */
+.cv-brand-bar {
+  background: linear-gradient(135deg, var(--cv-primary, #E53935) 0%, color-mix(in srgb, var(--cv-primary, #E53935) 70%, #000) 100%);
+}
+
+/* Logo com sombra quente */
+.cv-brand-logo {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  border: 3px solid rgba(255,255,255,0.7);
+}
+
+/* Status Aberto — dot pulsante verde */
+.cv-info-left { font-weight: 600; color: #444; }
+
+.cv-status-open {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #2E7D32;
+  font-weight: 700;
+}
+
+.cv-status-open::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #2E7D32;
+  border-radius: 50%;
+  animation: pulse-green 1.8s ease infinite;
+}
+
+.cv-status-closed {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #C62828;
+  font-weight: 700;
+}
+
+.cv-status-closed::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  background: #C62828;
+  border-radius: 50%;
+}
+
+@keyframes pulse-green {
+  0%, 100% { opacity: 1; transform: scale(1);   }
+  50%       { opacity: 0.6; transform: scale(1.4); }
+}
+
+/* Banner de fechado melhorado */
+.cv-closed-banner {
+  background: linear-gradient(90deg, #FFF3E0, #FFE0B2);
+  color: #E65100;
+  border-bottom: 2px solid #FFCC02;
+  padding: 10px 16px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.cv-closed-next {
+  font-weight: 500;
+  color: #BF360C;
+  font-size: 0.8rem;
+}
+
+/* Títulos de seção */
+.menu-step .section-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #1A1A1A;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Cards na lista (menu-step) — fundo creme nos rows */
+.menu-step .menu-inner { background: #FFF8F0; }
+
+.menu-step .menu-section { background: transparent; }
+
+.menu-step .menu-section .products-grid {
+  background: #fff;
+  border: 1px solid #FFE0CC;
+  box-shadow: 0 4px 20px rgba(255,87,34,0.07);
+}
+
+.menu-step .menu-section .products-grid .product-card-premium {
+  border-bottom: 1px solid #FFF0E6;
+}
+
+.menu-step .menu-section .products-grid .product-card-premium:hover {
+  background: #FFFAF6;
+}
+
+/* Emoji area — gradiente quente */
+.menu-step .menu-section .products-grid .card-image-section {
+  background: linear-gradient(135deg, #FFF0E6 0%, #FFE0CC 100%);
+}
+
+/* Preço laranja âmbar */
+.card-price-tag {
+  font-weight: 900 !important;
+  font-size: 1rem !important;
+}
+
+/* Cart flutuante — full-width no mobile */
+@media (max-width: 600px) {
+  .floating-cart-bar {
+    left: 12px;
+    right: 12px;
+    transform: none;
+    width: auto;
+    bottom: max(80px, calc(64px + env(safe-area-inset-bottom, 12px)));
+  }
+  .cart-content { border-radius: 18px; }
+}
+
+/* Cart desabilitado (loja fechada) */
+.cart-content.cart-disabled {
+  cursor: default;
+  opacity: 0.85;
+}
+.cart-content.cart-disabled:hover { filter: none; }
+.cart-content.cart-disabled:active { transform: none; }
+
+/* Bestseller badge mais apetitoso */
+.bestseller-badge {
+  background: linear-gradient(135deg, #FF8F00, #FFC107) !important;
+  color: #fff !important;
+  font-weight: 800 !important;
+  font-size: 0.65rem !important;
+  padding: 3px 8px !important;
+  border-radius: 8px !important;
+  box-shadow: 0 2px 8px rgba(255,143,0,0.35) !important;
+}
+
+/* Cards de bestseller scroll — fundo quente */
+.bestseller-card-wrapper .product-card.compact {
+  background: #fff;
+  border: 1px solid #FFE0CC;
+  box-shadow: 0 2px 12px rgba(255,87,34,0.08);
+  border-radius: 14px;
+}
+
+.bestseller-card-wrapper .product-image-container {
+  background: linear-gradient(135deg, #FFF0E6 0%, #FFE0CC 100%);
+}
+
+/* Login card — warm feel */
+.login-card {
+  border: 1px solid #FFE0CC;
+  box-shadow: 0 24px 60px rgba(255,87,34,0.10);
+}
+
+/* Seção de fundo no menu inner */
+.menu-step .menu-section {
+  background: transparent;
+  margin-bottom: 16px;
+}

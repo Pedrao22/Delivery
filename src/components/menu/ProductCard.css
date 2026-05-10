@@ -200,3 +200,41 @@
 
 .add-btn-round:hover { transform: scale(1.1); }
 .add-btn-round:active { transform: scale(0.9); }
+
+/* ── Food-appeal overrides (customer view context) ────── */
+.customer-wrapper .card-image-section {
+  background: linear-gradient(135deg, #FFF0E6 0%, #FFE0CC 100%);
+}
+
+.customer-wrapper .card-emoji-large { font-size: 3.5rem; }
+
+.customer-wrapper .product-card-premium {
+  box-shadow: 0 4px 20px rgba(255, 87, 34, 0.08);
+  border-color: #FFE0CC;
+}
+
+.customer-wrapper .product-card-premium:hover {
+  box-shadow: 0 10px 32px rgba(255, 87, 34, 0.15);
+  border-color: #FFBF9B;
+}
+
+.customer-wrapper .card-price-tag {
+  color: #E65100;
+  font-weight: 900;
+}
+
+.customer-wrapper .compact .product-image-container {
+  background: linear-gradient(135deg, #FFF0E6 0%, #FFE0CC 100%);
+}
+
+.customer-wrapper .compact .product-price {
+  color: #E65100;
+  font-weight: 900;
+}
+
+.customer-wrapper .bestseller-badge {
+  background: linear-gradient(135deg, #FF8F00, #FFC107);
+  color: #fff;
+  border: none;
+  box-shadow: 0 2px 8px rgba(255,143,0,0.35);
+}

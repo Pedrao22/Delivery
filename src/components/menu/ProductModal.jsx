@@ -5,7 +5,7 @@ import Button from '../shared/Button';
 import { useOrdersContext } from '../../context/OrdersContext';
 import './ProductModal.css';
 
-export default function ProductModal({ product, isOpen, onClose, onAdd }) {
+export default function ProductModal({ product, isOpen, storeOpen = true, nextOpenTime = null, onClose, onAdd }) {
   const { restaurantSettings, categories } = useOrdersContext();
   const primaryColor = restaurantSettings.primaryColor || '#e74c3c';
 
@@ -51,15 +51,17 @@ export default function ProductModal({ product, isOpen, onClose, onAdd }) {
           </div>
           <button
             className="add-to-cart-lux"
-            style={{ backgroundColor: primaryColor }}
-            onClick={() => onAdd(selectedVariation, selectedComplements, qty, obs)}
+            style={{ backgroundColor: storeOpen ? primaryColor : '#9E9E9E' }}
+            onClick={storeOpen ? () => onAdd(selectedVariation, selectedComplements, qty, obs) : undefined}
+            disabled={!storeOpen}
+            title={!storeOpen && nextOpenTime ? `Abre ${nextOpenTime}` : undefined}
           >
             <div className="lux-btn-left">
               <ShoppingCart size={18} />
-              <span>Adicionar</span>
+              <span>{storeOpen ? 'Adicionar' : 'Loja fechada'}</span>
             </div>
             <div className="lux-btn-right">
-              R$ {calcTotal().toFixed(2).replace('.', ',')}
+              {storeOpen ? `R$ ${calcTotal().toFixed(2).replace('.', ',')}` : (nextOpenTime ? `Abre ${nextOpenTime}` : '—')}
             </div>
           </button>
         </div>

@@ -72,7 +72,39 @@ export default function CustomerView({ ridOverride } = {}) {
   const primaryColor = publicRestaurant?.cor_primaria || restaurantSettings.primaryColor || '#E53935';
   const brandLogo    = publicRestaurant?.logo_url     || restaurantSettings.logo         || '🍽️';
   const deliveryTime = publicRestaurant?.delivery_time || restaurantSettings.deliveryTime || '30-45 min';
-  const isOpen       = publicRestaurant?.is_open ?? restaurantSettings.isOpen ?? true;
+  const horarios     = publicRestaurant?.horarios     || restaurantSettings.horarios     || null;
+
+  // Calcula aberto/fechado com base nos horários por dia da semana
+  const isOpen = useMemo(() => {
+    if (!horarios) return publicRestaurant?.is_open ?? restaurantSettings.isOpen ?? true;
+    const days = ['domingo','segunda','terca','quarta','quinta','sexta','sabado'];
+    const today = days[new Date().getDay()];
+    const s = horarios[today];
+    if (!s?.ativo) return false;
+    const now = new Date().getHours() * 60 + new Date().getMinutes();
+    const [hA, mA] = (s.abertura || '00:00').split(':').map(Number);
+    const [hF, mF] = (s.fechamento || '23:59').split(':').map(Number);
+    return now >= hA * 60 + mA && now < hF * 60 + mF;
+  }, [horarios, publicRestaurant, restaurantSettings.isOpen]);
+
+  // Próximo horário de abertura (exibido quando fechado)
+  const nextOpenTime = useMemo(() => {
+    if (!horarios || isOpen) return null;
+    const days = ['domingo','segunda','terca','quarta','quinta','sexta','sabado'];
+    const labels = ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'];
+    const todayIdx = new Date().getDay();
+    for (let i = 0; i < 7; i++) {
+      const idx = (todayIdx + i) % 7;
+      const s = horarios[days[idx]];
+      if (!s?.ativo) continue;
+      const now = new Date().getHours() * 60 + new Date().getMinutes();
+      const [hA, mA] = (s.abertura || '00:00').split(':').map(Number);
+      if (i > 0 || now < hA * 60 + mA) {
+        return i === 0 ? `hoje às ${s.abertura}` : `${labels[idx]} às ${s.abertura}`;
+      }
+    }
+    return null;
+  }, [horarios, isOpen]);
 
   // Payment options — normalize legacy keys (pix→pix_online, card→card_credit, pix_counter→pix_balcao)
   const rawPayments = publicRestaurant?.payments_config || restaurantSettings.payments || {};
@@ -392,8 +424,9 @@ export default function CustomerView({ ridOverride } = {}) {
         {/* Info bar */}
         <div className="cv-info-bar">
           <span className="cv-info-left">
-            <Clock size={13} />
-            {isOpen ? 'Aberto agora' : 'Fechado'}
+            <span className={isOpen ? 'cv-status-open' : 'cv-status-closed'}>
+              {isOpen ? 'Aberto agora' : 'Fechado'}
+            </span>
             {minOrderVal > 0 && <> &bull; Pedido mín. R$&nbsp;{minOrderVal.toFixed(2).replace('.', ',')}</>}
           </span>
           <span className="cv-info-right">
@@ -404,7 +437,8 @@ export default function CustomerView({ ridOverride } = {}) {
         {/* Closed banner */}
         {!isOpen && (
           <div className="cv-closed-banner">
-            🔴 Loja fechada no momento
+            <span>🔴 Loja fechada no momento</span>
+            {nextOpenTime && <span className="cv-closed-next">Abre {nextOpenTime}</span>}
           </div>
         )}
 
@@ -476,10 +510,14 @@ export default function CustomerView({ ridOverride } = {}) {
       {/* Premium Floating Cart — hidden when checkout modal is open */}
       {cartCount > 0 && !isCheckoutOpen && (
         <div className="floating-cart-bar">
-          <div className="cart-content" onClick={handleOrder} style={{ backgroundColor: primaryColor }}>
+          <div
+            className={`cart-content ${!isOpen ? 'cart-disabled' : ''}`}
+            onClick={isOpen ? handleOrder : undefined}
+            style={{ backgroundColor: isOpen ? primaryColor : '#9E9E9E' }}
+          >
             <div className="cart-left">
                <div className="cart-count">{cartCount}</div>
-               <div className="cart-text">Ver carrinho</div>
+               <div className="cart-text">{isOpen ? 'Ver carrinho' : 'Loja fechada'}</div>
             </div>
             <div className="cart-right">
                <span>R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
@@ -494,6 +532,8 @@ export default function CustomerView({ ridOverride } = {}) {
         <ProductModal
           product={selectedProduct}
           isOpen={!!selectedProduct}
+          storeOpen={isOpen}
+          nextOpenTime={nextOpenTime}
           onClose={() => setSelectedProduct(null)}
           onAdd={(v, c, q, o) => { addToCart(selectedProduct, v, c, q, o); setSelectedProduct(null); }}
         />

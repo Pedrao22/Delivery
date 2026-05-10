@@ -4,8 +4,18 @@ import {
   Save, Globe, Phone, MapPin, Check,
   Camera, Briefcase, Bell, QrCode, Wallet, Info,
   Sparkles, ShieldCheck, Zap, DollarSign,
-  Lock, Eye, EyeOff, KeyRound, Copy, ExternalLink
+  Lock, Eye, EyeOff, KeyRound, Copy, ExternalLink, ToggleLeft, ToggleRight
 } from 'lucide-react';
+
+const DIAS_SEMANA = [
+  { key: 'segunda', label: 'Segunda-feira' },
+  { key: 'terca',   label: 'Terça-feira'  },
+  { key: 'quarta',  label: 'Quarta-feira' },
+  { key: 'quinta',  label: 'Quinta-feira' },
+  { key: 'sexta',   label: 'Sexta-feira'  },
+  { key: 'sabado',  label: 'Sábado'       },
+  { key: 'domingo', label: 'Domingo'      },
+];
 import { useOrdersContext } from '../context/OrdersContext';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/supabase';
@@ -368,6 +378,32 @@ export default function SettingsPage() {
                 {renderInput("Valor Mínimo (R$)", DollarSign, formData.minOrder, "minOrder", "number")}
                 {renderInput("Tempo de Entrega", Clock, formData.deliveryTime, "deliveryTime", "text", "Ex: 40-50 min")}
                 {renderInput("Próximo número do pedido", Zap, formData.pedidoProximoNumero ?? 1, "pedidoProximoNumero", "number", "Ex: 100")}
+              </div>
+
+              {/* Horários de Funcionamento */}
+              <h3 className="settings-section-title" style={{ marginTop: 'var(--space-8)' }}><Clock size={20} /> Horários de Funcionamento</h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: 'var(--space-6)' }}>
+                {DIAS_SEMANA.map(({ key, label }) => {
+                  const dia = (formData.horarios || {})[key] || { ativo: false, abertura: '11:00', fechamento: '23:00' };
+                  const setDia = (patch) => setFormData(prev => ({
+                    ...prev,
+                    horarios: { ...(prev.horarios || {}), [key]: { ...dia, ...patch } },
+                  }));
+                  return (
+                    <div key={key} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 14px', borderRadius: 'var(--radius-md)', background: dia.ativo ? 'var(--bg-secondary)' : 'var(--bg-tertiary)', border: '1px solid var(--border-light)', opacity: dia.ativo ? 1 : 0.6 }}>
+                      <button onClick={() => setDia({ ativo: !dia.ativo })} style={{ background: 'none', border: 'none', cursor: 'pointer', color: dia.ativo ? 'var(--success)' : 'var(--text-tertiary)', display: 'flex', flexShrink: 0 }}>
+                        {dia.ativo ? <ToggleRight size={28} /> : <ToggleLeft size={28} />}
+                      </button>
+                      <span style={{ width: '130px', fontWeight: 600, fontSize: '0.85rem', color: 'var(--text-primary)', flexShrink: 0 }}>{label}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', opacity: dia.ativo ? 1 : 0.4, pointerEvents: dia.ativo ? 'auto' : 'none' }}>
+                        <input type="time" value={dia.abertura} onChange={e => setDia({ abertura: e.target.value })} style={{ padding: '5px 10px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', background: 'var(--surface)', color: 'var(--text-primary)', fontFamily: 'inherit' }} />
+                        <span style={{ color: 'var(--text-tertiary)', fontSize: '0.8rem' }}>até</span>
+                        <input type="time" value={dia.fechamento} onChange={e => setDia({ fechamento: e.target.value })} style={{ padding: '5px 10px', border: '1.5px solid var(--border)', borderRadius: 'var(--radius-sm)', fontSize: '0.85rem', background: 'var(--surface)', color: 'var(--text-primary)', fontFamily: 'inherit' }} />
+                      </div>
+                      {!dia.ativo && <span style={{ marginLeft: 'auto', fontSize: '0.75rem', color: 'var(--text-tertiary)' }}>Fechado</span>}
+                    </div>
+                  );
+                })}
               </div>
 
               <div className={`ops-status-card ${formData.isOpen ? 'open' : 'closed'}`}>
