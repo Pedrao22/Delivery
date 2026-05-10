@@ -104,7 +104,7 @@ export default function LoyaltyPage() {
 
   const handleAdd = async () => {
     await addLoyaltyReward();
-    setRewards(loyaltySettings.rewards || []);
+    // useEffect watching loyaltySettings syncs rewards automatically
   };
 
   const handleRemove = (id) => {

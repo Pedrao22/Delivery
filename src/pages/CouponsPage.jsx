@@ -1,104 +1,220 @@
 import React, { useState } from 'react';
-import { Ticket, Plus, Trash2, Edit2 } from 'lucide-react';
+import { Ticket, Plus, Trash2, Check, X, Pencil, Tag, DollarSign, Percent, TrendingUp } from 'lucide-react';
 import { useOrdersContext } from '../context/OrdersContext';
-import Button from '../components/shared/Button';
-import Badge from '../components/shared/Badge';
-import Modal from '../components/shared/Modal';
+import './CouponsPage.css';
 
-export default function CouponsPage() {
-  const { coupons, addCoupon, updateCoupon, deleteCoupon } = useOrdersContext();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCoupon, setEditingCoupon] = useState(null);
-  const [formData, setFormData] = useState({ code: '', type: 'percentage', value: '', minOrder: '' });
-  const [saving, setSaving] = useState(false);
+const TYPE_CONFIG = {
+  percentage: { label: 'Porcentagem', icon: '％', color: '#6366F1' },
+  fixed:      { label: 'Valor Fixo',  icon: '💵', color: '#10B981' },
+};
+
+function CouponCard({ coupon, onDelete, onUpdate }) {
+  const [editing, setEditing] = useState(false);
+  const [draft, setDraft] = useState(coupon);
+  const tc = TYPE_CONFIG[coupon.type] || TYPE_CONFIG.percentage;
 
   const handleSave = async () => {
+    await onUpdate(coupon.id, draft);
+    setEditing(false);
+  };
+
+  const handleCancel = () => { setDraft(coupon); setEditing(false); };
+
+  const valueDisplay = coupon.type === 'percentage'
+    ? `${coupon.value}%`
+    : `R$ ${Number(coupon.value || 0).toFixed(2).replace('.', ',')}`;
+
+  return (
+    <div className={`cp-coupon-card ${editing ? 'editing' : ''}`}>
+      <div className="cp-coupon-badge" style={{ background: `${tc.color}15`, color: tc.color }}>
+        <span className="cp-coupon-icon">{tc.icon}</span>
+        {editing
+          ? <input className="cp-input cp-input-code" value={draft.code}
+              onChange={e => setDraft(d => ({ ...d, code: e.target.value.toUpperCase() }))}
+              placeholder="CÓDIGO" />
+          : <span className="cp-coupon-code">{coupon.code}</span>
+        }
+      </div>
+
+      <div className="cp-coupon-body">
+        {editing ? (
+          <div className="cp-coupon-edit-fields">
+            <div className="cp-coupon-type-row">
+              {Object.entries(TYPE_CONFIG).map(([k, v]) => (
+                <button key={k} className={`cp-type-btn ${draft.type === k ? 'active' : ''}`}
+                  style={draft.type === k ? { borderColor: v.color, color: v.color, background: `${v.color}12` } : {}}
+                  onClick={() => setDraft(d => ({ ...d, type: k }))}>
+                  {v.icon} {v.label}
+                </button>
+              ))}
+            </div>
+            <div className="cp-edit-row">
+              <div className="cp-edit-field">
+                <span className="cp-edit-label">Valor</span>
+                <input className="cp-input" type="number" min={0}
+                  placeholder={draft.type === 'percentage' ? 'Ex: 10' : 'Ex: 15.00'}
+                  value={draft.value}
+                  onChange={e => setDraft(d => ({ ...d, value: parseFloat(e.target.value) || 0 }))} />
+              </div>
+              <div className="cp-edit-field">
+                <span className="cp-edit-label">Pedido Mín. (R$)</span>
+                <input className="cp-input" type="number" min={0} placeholder="0.00"
+                  value={draft.minOrder || ''}
+                  onChange={e => setDraft(d => ({ ...d, minOrder: parseFloat(e.target.value) || 0 }))} />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="cp-coupon-label" style={{ color: tc.color }}>
+              {tc.label} · <strong>{valueDisplay}</strong>
+            </div>
+            <div className="cp-coupon-meta">
+              Pedido mín.: {coupon.minOrder > 0 ? `R$ ${Number(coupon.minOrder).toFixed(2).replace('.', ',')}` : 'Sem mínimo'}
+            </div>
+          </>
+        )}
+      </div>
+
+      <div className="cp-coupon-actions">
+        {editing ? (
+          <>
+            <button className="cp-icon-btn cp-icon-save" onClick={handleSave} title="Salvar"><Check size={15} /></button>
+            <button className="cp-icon-btn cp-icon-cancel" onClick={handleCancel} title="Cancelar"><X size={15} /></button>
+          </>
+        ) : (
+          <>
+            <button className="cp-icon-btn" onClick={() => setEditing(true)} title="Editar"><Pencil size={14} /></button>
+            <button className="cp-icon-btn cp-icon-del" onClick={() => onDelete(coupon.id)} title="Remover"><Trash2 size={14} /></button>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function NewCouponForm({ onSave, onCancel }) {
+  const [draft, setDraft] = useState({ code: '', type: 'percentage', value: '', minOrder: '' });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleSave = async () => {
+    if (!draft.code.trim()) { setError('Digite um código'); return; }
     setSaving(true);
     try {
-      if (editingCoupon) {
-        await updateCoupon(editingCoupon.id, formData);
-      } else {
-        await addCoupon(formData);
-      }
-      setIsModalOpen(false);
-      setEditingCoupon(null);
-    } catch (err) {
-      alert(err.message || 'Erro ao salvar cupom');
+      await onSave(draft);
+    } catch (e) {
+      setError(e.message || 'Erro ao criar cupom');
     } finally {
       setSaving(false);
     }
   };
 
   return (
-    <div className="page-container" style={{ padding: 'var(--space-6)' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)', marginBottom: 'var(--space-6)' }}>
-        <div style={{ flex: 1 }}>
-          <h2 style={{ fontSize: 'var(--font-2xl)', fontWeight: 800 }}>Cupons de Desconto</h2>
-          <p style={{ color: 'var(--text-tertiary)', marginTop: 2 }}>Crie códigos promocionais para seus clientes</p>
-        </div>
-        <Button size="sm" onClick={() => { setFormData({ code: '', type: 'percentage', value: '', minOrder: '' }); setEditingCoupon(null); setIsModalOpen(true); }} icon={<Plus size={14} />} style={{ flexShrink: 0 }}>
-          Novo Cupom
-        </Button>
+    <div className="cp-coupon-card editing">
+      <div className="cp-coupon-badge" style={{ background: '#6366F115', color: '#6366F1' }}>
+        <span className="cp-coupon-icon">％</span>
+        <input className="cp-input cp-input-code" value={draft.code}
+          onChange={e => { setError(''); setDraft(d => ({ ...d, code: e.target.value.toUpperCase() })); }}
+          placeholder="CÓDIGO" autoFocus />
       </div>
 
-      <div className="card" style={{ overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
-        <table style={{ minWidth: '600px', width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ background: 'var(--bg-secondary)', textAlign: 'left' }}>
-              <th style={{ padding: '16px' }}>Código</th>
-              <th style={{ padding: '16px' }}>Tipo</th>
-              <th style={{ padding: '16px' }}>Valor</th>
-              <th style={{ padding: '16px' }}>Pedido Mín.</th>
-              <th style={{ padding: '16px' }}>Status</th>
-              <th style={{ padding: '16px' }}>Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {coupons.map(coupon => (
-              <tr key={coupon.id} style={{ borderBottom: '1px solid var(--border-light)' }}>
-                <td style={{ padding: '16px', fontWeight: 700, color: 'var(--accent)' }}>{coupon.code}</td>
-                <td style={{ padding: '16px' }}>{coupon.type === 'percentage' ? 'Porcentagem' : 'Fixo'}</td>
-                <td style={{ padding: '16px' }}>{coupon.type === 'percentage' ? `${coupon.value}%` : `R$ ${coupon.value}`}</td>
-                <td style={{ padding: '16px' }}>R$ {coupon.minOrder}</td>
-                <td style={{ padding: '16px' }}><Badge variant="local">Ativo</Badge></td>
-                <td style={{ padding: '16px' }}>
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <button onClick={() => { setEditingCoupon(coupon); setFormData(coupon); setIsModalOpen(true); }} style={{ padding: '6px', background: 'var(--bg-secondary)', border: 'none', borderRadius: '4px', cursor: 'pointer' }}><Edit2 size={14} /></button>
-                    <button onClick={() => deleteCoupon(coupon.id)} style={{ padding: '6px', background: 'var(--bg-secondary)', border: 'none', borderRadius: '4px', color: 'var(--danger)', cursor: 'pointer' }}><Trash2 size={14} /></button>
-                  </div>
-                </td>
-              </tr>
+      <div className="cp-coupon-body">
+        <div className="cp-coupon-edit-fields">
+          {error && <div className="cp-error">{error}</div>}
+          <div className="cp-coupon-type-row">
+            {Object.entries(TYPE_CONFIG).map(([k, v]) => (
+              <button key={k} className={`cp-type-btn ${draft.type === k ? 'active' : ''}`}
+                style={draft.type === k ? { borderColor: v.color, color: v.color, background: `${v.color}12` } : {}}
+                onClick={() => setDraft(d => ({ ...d, type: k }))}>
+                {v.icon} {v.label}
+              </button>
             ))}
-          </tbody>
-        </table>
+          </div>
+          <div className="cp-edit-row">
+            <div className="cp-edit-field">
+              <span className="cp-edit-label">Valor</span>
+              <input className="cp-input" type="number" min={0}
+                placeholder={draft.type === 'percentage' ? 'Ex: 10' : 'Ex: 15.00'}
+                value={draft.value}
+                onChange={e => setDraft(d => ({ ...d, value: e.target.value }))} />
+            </div>
+            <div className="cp-edit-field">
+              <span className="cp-edit-label">Pedido Mín. (R$)</span>
+              <input className="cp-input" type="number" min={0} placeholder="0.00"
+                value={draft.minOrder}
+                onChange={e => setDraft(d => ({ ...d, minOrder: e.target.value }))} />
+            </div>
+          </div>
+        </div>
       </div>
 
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title={editingCoupon ? 'Editar Cupom' : 'Novo Cupom'}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-4)' }}>
-          <div className="form-group">
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--font-sm)', fontWeight: 600 }}>Código do Cupom</label>
-            <input type="text" value={formData.code} onChange={e => setFormData({ ...formData, code: e.target.value.toUpperCase() })} placeholder="Ex: QUERO10" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-4)' }}>
-            <div className="form-group">
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--font-sm)', fontWeight: 600 }}>Tipo</label>
-              <select value={formData.type} onChange={e => setFormData({ ...formData, type: e.target.value })} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }}>
-                <option value="percentage">Porcentagem (%)</option>
-                <option value="fixed">Valor Fixo (R$)</option>
-              </select>
+      <div className="cp-coupon-actions">
+        <button className="cp-icon-btn cp-icon-save" onClick={handleSave} disabled={saving} title="Salvar">
+          <Check size={15} />
+        </button>
+        <button className="cp-icon-btn cp-icon-cancel" onClick={onCancel} title="Cancelar"><X size={15} /></button>
+      </div>
+    </div>
+  );
+}
+
+export default function CouponsPage() {
+  const { coupons, addCoupon, updateCoupon, deleteCoupon, restaurantSettings } = useOrdersContext();
+  const primaryColor = restaurantSettings?.primaryColor || '#6366F1';
+  const [showNew, setShowNew] = useState(false);
+
+  const handleAdd = async (data) => {
+    await addCoupon(data);
+    setShowNew(false);
+  };
+
+  return (
+    <div className="cp-page">
+
+      {/* Stats */}
+      <div className="cp-stats">
+        {[
+          { icon: <Ticket size={18} />,     value: coupons.length, label: 'Cupons Criados', color: primaryColor },
+          { icon: <TrendingUp size={18} />, value: coupons.length, label: 'Cupons Ativos',  color: '#10B981' },
+          { icon: <Percent size={18} />,    value: '—',            label: 'Usos Este Mês',  color: '#F59E0B' },
+        ].map((s, i) => (
+          <div key={i} className="cp-stat-card">
+            <div className="cp-stat-icon" style={{ background: `${s.color}15`, color: s.color }}>{s.icon}</div>
+            <div>
+              <div className="cp-stat-value">{s.value}</div>
+              <div className="cp-stat-label">{s.label}</div>
             </div>
-            <div className="form-group">
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--font-sm)', fontWeight: 600 }}>Valor</label>
-              <input type="number" value={formData.value} onChange={e => setFormData({ ...formData, value: parseFloat(e.target.value) })} placeholder="0.00" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }} />
-            </div>
           </div>
-          <div className="form-group">
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: 'var(--font-sm)', fontWeight: 600 }}>Pedido Mínimo (R$)</label>
-            <input type="number" value={formData.minOrder} onChange={e => setFormData({ ...formData, minOrder: parseFloat(e.target.value) })} placeholder="0.00" style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid var(--border)' }} />
-          </div>
-          <Button fullWidth onClick={handleSave} disabled={saving}>{saving ? 'Salvando...' : 'Salvar Cupom'}</Button>
+        ))}
+      </div>
+
+      {/* Card principal */}
+      <div className="cp-card">
+        <div className="cp-card-header">
+          <div className="cp-card-title"><Ticket size={18} /> Cupons de Desconto</div>
+          {!showNew && (
+            <button className="cp-add-btn" onClick={() => setShowNew(true)}>
+              <Plus size={15} /> Adicionar
+            </button>
+          )}
         </div>
-      </Modal>
+
+        <div className="cp-coupons-list">
+          {showNew && <NewCouponForm onSave={handleAdd} onCancel={() => setShowNew(false)} />}
+
+          {coupons.length === 0 && !showNew ? (
+            <div className="cp-empty">
+              <span>🎟️</span>
+              <p>Nenhum cupom cadastrado</p>
+            </div>
+          ) : (
+            coupons.map(c => (
+              <CouponCard key={c.id} coupon={c} onDelete={deleteCoupon} onUpdate={updateCoupon} />
+            ))
+          )}
+        </div>
+      </div>
     </div>
   );
 }
