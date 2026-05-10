@@ -286,21 +286,21 @@
 }
 
 @media (max-width: 1400px) {
-  .orders-stats-sidebar { width: 200px; }
-  .kanban-column { min-width: 280px; }
+  /* Esconde sidebar direita para caber em laptops de 1366px com nav lateral de 260px */
+  .orders-stats-sidebar { display: none; }
+  .kanban-board { gap: var(--space-3); }
+  .kanban-column { min-width: 300px; }
 }
 
-@media (max-width: 1280px) {
-  .kanban-board { gap: var(--space-3); padding: var(--space-3); }
-  .kanban-column { min-width: 240px; }
+@media (max-width: 1200px) {
+  .kanban-board { gap: var(--space-2); padding: var(--space-3); }
+  .kanban-column { min-width: 260px; }
   .kanban-column-header { padding: var(--space-4) var(--space-4); }
   .kanban-column-body { padding: var(--space-2); }
-  .orders-stats-sidebar { width: 180px; }
 }
 
 @media (max-width: 1024px) {
   .kanban-board { padding: var(--space-3); gap: var(--space-2); }
-  .orders-stats-sidebar { display: none; }
 }
 
 /* ===== AUTO-ACCEPT PANEL ===== */

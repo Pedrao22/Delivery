@@ -16,7 +16,8 @@ function DriverModal({ isOpen, onClose, onSave }) {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSave({ ...formData, status: 'available', rating: 5.0, deliveries: 0 });
+    // Map to backend field names (PT)
+    onSave({ nome: formData.name, telefone: formData.phone, veiculo: formData.vehicle, foto: formData.photo });
     setFormData({ name: '', phone: '', vehicle: 'Moto', photo: '🏍️' });
     onClose();
   };
@@ -70,7 +71,7 @@ function AssignModal({ isOpen, onClose, driver, orders, onAssign }) {
     <div className="driver-modal-overlay">
       <div className="driver-modal">
         <div className="driver-modal-header">
-          <h3>Atribuir pedido — {driver?.name}</h3>
+          <h3>Atribuir pedido — {driver?.nome || driver?.name}</h3>
           <button className="driver-modal-close" onClick={onClose}><X size={18} /></button>
         </div>
         <div className="assign-list">
@@ -108,24 +109,40 @@ export default function DeliveryPage() {
   const [assignTarget, setAssignTarget] = useState(null);
   const [localOverrides, setLocalOverrides] = useState({});
 
-  const displayDrivers = drivers.map(d => ({ ...d, ...(localOverrides[d.id] || {}) }));
+  // Normalize DB field names (PT) to frontend names (EN) and map status values
+  const normalizeDriver = (d) => ({
+    ...d,
+    name:       d.nome      || d.name      || '',
+    phone:      d.telefone  || d.phone     || '',
+    vehicle:    d.veiculo   || d.vehicle   || 'Moto',
+    photo:      d.foto      || d.photo     || '',
+    deliveries: d.entregas  ?? d.deliveries ?? 0,
+    status:     d.status === 'disponivel' ? 'available'
+              : d.status === 'em_rota'    ? 'delivering'
+              : d.status || 'available',
+  });
+
+  const displayDrivers = drivers.map(d => ({ ...normalizeDriver(d), ...(localOverrides[d.id] || {}) }));
 
   const available  = displayDrivers.filter(d => d.status === 'available').length;
   const delivering = displayDrivers.filter(d => d.status === 'delivering').length;
   const offline    = displayDrivers.filter(d => d.status === 'offline').length;
 
-  const patchDriver = (id, patch) => {
-    setLocalOverrides(prev => ({ ...prev, [id]: { ...(prev[id] || {}), ...patch } }));
-    apiFetch(`/drivers/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }).catch(() => {});
+  // localPatch → local state; apiPatch → backend (PT field names)
+  const patchDriver = (id, localPatch, apiPatch) => {
+    setLocalOverrides(prev => ({ ...prev, [id]: { ...(prev[id] || {}), ...localPatch } }));
+    if (apiPatch) {
+      apiFetch(`/drivers/${id}`, { method: 'PATCH', body: JSON.stringify(apiPatch) }).catch(() => {});
+    }
   };
 
   const handleAssign = (driverId, order) => {
     const label = `#${(order.id || '').slice(-4).toUpperCase()} — ${order.cliente_nome || order.customer?.name || ''}`;
-    patchDriver(driverId, { status: 'delivering', currentOrder: label });
+    patchDriver(driverId, { status: 'delivering', currentOrder: label }, { status: 'em_rota' });
   };
 
   const handleFinish = (driverId) => {
-    patchDriver(driverId, { status: 'available', currentOrder: null });
+    patchDriver(driverId, { status: 'available', currentOrder: null }, { status: 'disponivel' });
   };
 
   return (
@@ -192,7 +209,7 @@ export default function DeliveryPage() {
                   </div>
                   <button
                     className="driver-remove-btn"
-                    onClick={() => { if (window.confirm(`Remover ${driver.name}?`)) removeDriver(driver.id); }}
+                    onClick={() => { if (window.confirm(`Remover ${driver.nome || driver.name}?`)) removeDriver(driver.id); }}
                     title="Remover"
                   >
                     <Trash2 size={14} />
