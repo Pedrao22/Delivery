@@ -1037,7 +1037,8 @@
 /* Base — garante stack vertical no header */
 .menu-step .menu-header {
   display: block;
-  background: #fff;
+  background: #FBF8F4;
+  border-bottom: none;
   border-top: none;
   width: 100%;
   box-sizing: border-box;
@@ -1054,9 +1055,11 @@
   flex-direction: row;
   align-items: center;
   gap: 12px;
-  padding: 16px 16px 18px;
+  padding: 20px 18px 24px;
   width: 100%;
   box-sizing: border-box;
+  border-radius: 0 0 28px 28px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.14);
 }
 
 /* Logo — círculo elevado */
@@ -1218,25 +1221,26 @@
   display: block;
   width: 100%;
   box-sizing: border-box;
-  padding: 10px 14px 8px;
-  background: #fff;
+  padding: 14px 14px 8px;
+  background: transparent;
 }
 
 .cv-search-bar {
   display: flex;
   align-items: center;
   gap: 10px;
-  background: #F5F3F0;
-  border-radius: 14px;
-  padding: 11px 14px;
-  border: 1.5px solid #EDE9E3;
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px 16px;
+  border: 1.5px solid #E8E4DF;
   color: #BBB;
-  transition: border-color 0.2s, background 0.2s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
 .cv-search-bar:focus-within {
-  background: #fff;
-  border-color: #D0C8BF;
+  border-color: #C8C0B8;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.10);
 }
 
 .cv-search-bar input {
@@ -1260,11 +1264,11 @@
   flex-direction: row;
   flex-wrap: nowrap;
   gap: 8px;
-  padding: 12px 14px;
+  padding: 4px 14px 14px;
   overflow-x: auto;
   overflow-y: visible;
-  background: #fff;
-  border-bottom: 1px solid #EDEBE8;
+  background: transparent;
+  border-bottom: none;
   width: 100%;
   box-sizing: border-box;
 }
