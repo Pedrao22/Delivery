@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import Sidebar from './components/layout/Sidebar';
 import TopBar from './components/layout/TopBar';
+import BottomNav from './components/layout/BottomNav';
 import OrdersPage from './pages/OrdersPage';
 import MenuManagementPage from './pages/MenuManagementPage';
 import DashboardPage from './components/dashboard/DashboardPage';
@@ -94,6 +95,7 @@ function AppContent() {
         isDark={isDark}
         onToggleTheme={toggleTheme}
       />
+      <BottomNav onMenuOpen={toggleSidebar} orderCount={analyzing.length} />
       <main className="app-main">
         <Routes>
           <Route path="/" element={<OrdersPage onMenuToggle={toggleSidebar} />} />

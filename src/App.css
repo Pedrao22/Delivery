@@ -18,6 +18,12 @@
   }
 }
 
+@media (max-width: 768px) {
+  .app-main {
+    padding-bottom: calc(64px + env(safe-area-inset-bottom));
+  }
+}
+
 /* Toast notification */
 .toast {
   position: fixed;
