@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Plus, ShoppingCart, Loader2 } from 'lucide-react';
 import { useOrdersContext } from '../context/OrdersContext';
 import TopBar from '../components/layout/TopBar';
@@ -9,6 +9,7 @@ import SearchInput from '../components/shared/SearchInput';
 import FilterTabs from '../components/shared/FilterTabs';
 import Button from '../components/shared/Button';
 import Modal from '../components/shared/Modal';
+import ThermalTicket from '../components/orders/ThermalTicket';
 import { useCart } from '../hooks/useCart';
 import './OrdersPage.css';
 
@@ -22,14 +23,39 @@ const filterTabs = [
 export default function OrdersPage({ onMenuToggle }) {
   const {
     orders, loadingOrders, refreshOrders,
-    moveOrder, finalizeReady, finalizeSingleOrder, addOrder
+    moveOrder, finalizeReady, finalizeSingleOrder, addOrder,
+    restaurantSettings,
   } = useOrdersContext();
 
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState('all');
   const [showNewOrder, setShowNewOrder] = useState(false);
   const [showCart, setShowCart] = useState(false);
+  const [printOrder, setPrintOrder] = useState(null);
+  const printRef = useRef(false);
   const { items, total, count, addItem, removeItem, updateQty, clearCart } = useCart();
+
+  // Auto-print when an order moves to production
+  const handleMoveOrder = (orderId, newStatus) => {
+    if (newStatus === 'production') {
+      const order = orders.find(o => o.id === orderId);
+      if (order) setPrintOrder({ ...order, status: 'production' });
+    }
+    return moveOrder(orderId, newStatus);
+  };
+
+  useEffect(() => {
+    if (!printOrder || printRef.current) return;
+    printRef.current = true;
+    const timer = setTimeout(() => {
+      window.print();
+      setTimeout(() => {
+        setPrintOrder(null);
+        printRef.current = false;
+      }, 500);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [printOrder]);
 
   // Real-time polling
   useEffect(() => {
@@ -86,9 +112,14 @@ export default function OrdersPage({ onMenuToggle }) {
 
       <KanbanBoard
         orders={filteredOrders}
-        onMoveOrder={moveOrder}
+        onMoveOrder={handleMoveOrder}
         onFinalizeReady={finalizeReady}
         onFinalizeOrder={finalizeSingleOrder}
+      />
+
+      <ThermalTicket
+        order={printOrder}
+        restaurantName={restaurantSettings?.name || restaurantSettings?.nome}
       />
 
       {/* New Order Modal */}
