@@ -32,6 +32,7 @@ import { OrdersProvider, useOrdersContext } from './context/OrdersContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/shared/ProtectedRoute';
 import { useTheme } from './hooks/useTheme';
+import ToastContainer from './components/shared/ToastContainer';
 import './App.css';
 
 function PageWrapper({ title, subtitle, onMenuToggle, children }) {
@@ -49,7 +50,6 @@ function AppContent() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { analyzing, updateSettings, restaurantSettings, settingsLoaded } = useOrdersContext();
   const { toggleTheme, isDark } = useTheme();
-  const [toast, setToast] = useState(null);
   const { user, profile } = useAuth();
 
   // Onboarding — localStorage per device. If settings already loaded from
@@ -80,11 +80,6 @@ function AppContent() {
   }
 
   const toggleSidebar = () => setSidebarOpen(prev => !prev);
-
-  const showToast = (msg) => {
-    setToast(msg);
-    setTimeout(() => setToast(null), 3000);
-  };
 
   return (
     <div className="app-layout">
@@ -157,7 +152,7 @@ function AppContent() {
           <Route path="/cliente" element={<CustomerView />} />
         </Routes>
       </main>
-      {toast && <div className="toast success">{toast}</div>}
+      <ToastContainer />
     </div>
   );
 }

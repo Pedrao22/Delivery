@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import { apiFetch } from '../lib/supabase';
+import toast from '../lib/toast';
 
 const OrdersContext = createContext();
 
@@ -221,6 +222,9 @@ export function OrdersProvider({ children }) {
 
       if (!isFirstOrderLoadRef.current && newAnalyzing.length > 0) {
         playBeep();
+        newAnalyzing.forEach(o => {
+          toast.info(`🛵 Novo Pedido! ${o.confirmCode || ''} · R$ ${(o.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 5000);
+        });
         setNotifications(prev => [
           ...newAnalyzing.map(o => ({
             id: `order-${o.id}`,
@@ -307,6 +311,7 @@ export function OrdersProvider({ children }) {
       if (!isFirstInventoryLoadRef.current) {
         const newLow = lowStock.filter(item => !knownLowStockRef.current.has(item.id));
         if (newLow.length > 0) {
+          newLow.forEach(item => toast.warning(`⚠️ Estoque baixo: ${item.name} (${item.qty} ${item.unit})`, 5000));
           setNotifications(prev => [
             ...newLow.map(item => ({
               id: `stock-${item.id}`,
@@ -448,39 +453,53 @@ export function OrdersProvider({ children }) {
 
   // PRODUCTS
   const addProduct = useCallback(async (data) => {
-    try { const r = await apiFetch('/menu/products', { method: 'POST', body: JSON.stringify(data) }); const p = mapProduct(r.data); setProducts(prev => [...prev, p]); return p; }
-    catch (err) { throw err; }
+    try {
+      const r = await apiFetch('/menu/products', { method: 'POST', body: JSON.stringify(data) });
+      const p = mapProduct(r.data);
+      setProducts(prev => [...prev, p]);
+      toast.success('Produto adicionado!');
+      return p;
+    } catch (err) { toast.error('Erro ao adicionar produto'); throw err; }
   }, []);
 
   const updateProduct = useCallback(async (idOrItem, data) => {
     const id = data !== undefined ? idOrItem : idOrItem.id;
     const payload = data !== undefined ? data : idOrItem;
     setProducts(prev => prev.map(x => x.id === id ? { ...x, ...payload } : x));
-    try { await apiFetch(`/menu/products/${id}`, { method: 'PUT', body: JSON.stringify(payload) }); }
-    catch { refreshMenu(); }
+    try {
+      await apiFetch(`/menu/products/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+      toast.success('Produto atualizado!');
+    } catch { refreshMenu(); toast.error('Erro ao salvar produto'); }
   }, []); // eslint-disable-line
 
   const deleteProduct = useCallback(async (id) => {
     setProducts(prev => prev.filter(x => x.id !== id));
+    toast.success('Produto removido');
     try { await apiFetch(`/menu/products/${id}`, { method: 'DELETE' }); } catch {}
   }, []);
 
   // CATEGORIES
   const addCategory = useCallback(async (c) => {
-    try { const r = await apiFetch('/menu/categories', { method: 'POST', body: JSON.stringify(c) }); setCategories(prev => [...prev, mapCategory(r.data)]); }
-    catch (err) { throw err; }
+    try {
+      const r = await apiFetch('/menu/categories', { method: 'POST', body: JSON.stringify(c) });
+      setCategories(prev => [...prev, mapCategory(r.data)]);
+      toast.success('Categoria criada!');
+    } catch (err) { toast.error('Erro ao criar categoria'); throw err; }
   }, []);
 
   const updateCategory = useCallback(async (idOrItem, data) => {
     const id = data !== undefined ? idOrItem : idOrItem.id;
     const payload = data !== undefined ? data : idOrItem;
     setCategories(prev => prev.map(x => x.id === id ? { ...x, ...payload } : x));
-    try { await apiFetch(`/menu/categories/${id}`, { method: 'PUT', body: JSON.stringify(payload) }); }
-    catch { refreshMenu(); }
+    try {
+      await apiFetch(`/menu/categories/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+      toast.success('Categoria atualizada!');
+    } catch { refreshMenu(); toast.error('Erro ao salvar categoria'); }
   }, []); // eslint-disable-line
 
   const deleteCategory = useCallback(async (id) => {
     setCategories(prev => prev.filter(x => x.id !== id));
+    toast.success('Categoria removida');
     try { await apiFetch(`/menu/categories/${id}`, { method: 'DELETE' }); } catch {}
   }, []);
 
@@ -489,25 +508,31 @@ export function OrdersProvider({ children }) {
     try {
       const r = await apiFetch('/inventory', { method: 'POST', body: JSON.stringify(inventoryToApi(item)) });
       setInventory(prev => [...prev, mapInventoryItem(r.data)]);
-    }
-    catch (err) { throw err; }
+      toast.success('Item adicionado ao estoque!');
+    } catch (err) { toast.error('Erro ao adicionar item'); throw err; }
   }, []); // eslint-disable-line
 
   const updateInventoryItem = useCallback(async (item) => {
     setInventory(prev => prev.map(i => i.id === item.id ? { ...i, ...item } : i));
-    try { await apiFetch(`/inventory/${item.id}`, { method: 'PATCH', body: JSON.stringify(inventoryToApi(item)) }); }
-    catch { refreshInventory(); }
+    try {
+      await apiFetch(`/inventory/${item.id}`, { method: 'PATCH', body: JSON.stringify(inventoryToApi(item)) });
+      toast.success('Estoque atualizado!');
+    } catch { refreshInventory(); toast.error('Erro ao atualizar estoque'); }
   }, []); // eslint-disable-line
 
   const deleteInventoryItem = useCallback(async (id) => {
     setInventory(prev => prev.filter(i => i.id !== id));
+    toast.success('Item removido do estoque');
     try { await apiFetch(`/inventory/${id}`, { method: 'DELETE' }); } catch {}
   }, []);
 
   // TABLES
   const addTable = useCallback(async (t) => {
-    try { const r = await apiFetch('/tables', { method: 'POST', body: JSON.stringify({ numero: String(t.numero), capacidade: t.seats || t.capacidade || 4 }) }); setTables(prev => [...prev, mapTable(r.data)]); }
-    catch (err) { throw err; }
+    try {
+      const r = await apiFetch('/tables', { method: 'POST', body: JSON.stringify({ numero: String(t.numero), capacidade: t.seats || t.capacidade || 4 }) });
+      setTables(prev => [...prev, mapTable(r.data)]);
+      toast.success('Mesa adicionada!');
+    } catch (err) { toast.error('Erro ao adicionar mesa'); throw err; }
   }, []);
 
   const updateTable = useCallback(async (id, data) => {
@@ -518,6 +543,7 @@ export function OrdersProvider({ children }) {
 
   const deleteTable = useCallback(async (id) => {
     setTables(prev => prev.filter(t => t.id !== id));
+    toast.success('Mesa removida');
     try { await apiFetch(`/tables/${id}`, { method: 'DELETE' }); } catch {}
   }, []);
 
@@ -542,12 +568,16 @@ export function OrdersProvider({ children }) {
 
   // DRIVERS
   const addDriver = useCallback(async (d) => {
-    try { const r = await apiFetch('/drivers', { method: 'POST', body: JSON.stringify(d) }); setDrivers(prev => [...prev, r.data]); }
-    catch (err) { throw err; }
+    try {
+      const r = await apiFetch('/drivers', { method: 'POST', body: JSON.stringify(d) });
+      setDrivers(prev => [...prev, r.data]);
+      toast.success('Entregador adicionado!');
+    } catch (err) { toast.error('Erro ao adicionar entregador'); throw err; }
   }, []);
 
   const removeDriver = useCallback(async (id) => {
     setDrivers(prev => prev.filter(d => d.id !== id));
+    toast.success('Entregador removido');
     try { await apiFetch(`/drivers/${id}`, { method: 'DELETE' }); } catch {}
   }, []);
 
@@ -556,7 +586,8 @@ export function OrdersProvider({ children }) {
     try {
       const r = await apiFetch('/coupons', { method: 'POST', body: JSON.stringify({ codigo: data.code, tipo: data.type === 'percentage' ? 'percent' : 'fixed', valor: data.value, pedido_minimo: data.minOrder || 0 }) });
       setCoupons(prev => [...prev, mapCoupon(r.data)]);
-    } catch (err) { throw err; }
+      toast.success('Cupom criado!');
+    } catch (err) { toast.error('Erro ao criar cupom'); throw err; }
   }, []);
 
   const updateCoupon = useCallback(async (id, data) => {
@@ -567,20 +598,25 @@ export function OrdersProvider({ children }) {
     if (data.minOrder !== undefined) bd.pedido_minimo = data.minOrder;
     if (data.active !== undefined) bd.ativo = data.active;
     setCoupons(prev => prev.map(c => c.id === id ? { ...c, ...data } : c));
-    try { await apiFetch(`/coupons/${id}`, { method: 'PATCH', body: JSON.stringify(bd) }); }
-    catch { refreshCoupons(); }
+    try {
+      await apiFetch(`/coupons/${id}`, { method: 'PATCH', body: JSON.stringify(bd) });
+      toast.success('Cupom atualizado!');
+    } catch { refreshCoupons(); toast.error('Erro ao atualizar cupom'); }
   }, []); // eslint-disable-line
 
   const deleteCoupon = useCallback(async (id) => {
     setCoupons(prev => prev.filter(c => c.id !== id));
+    toast.success('Cupom removido');
     try { await apiFetch(`/coupons/${id}`, { method: 'DELETE' }); } catch {}
   }, []);
 
   // LOYALTY
   const updateLoyaltyConfig = useCallback(async (data) => {
     setLoyaltySettings(prev => ({ ...prev, ...data }));
-    try { await apiFetch('/loyalty', { method: 'PATCH', body: JSON.stringify({ pontos_por_real: data.pointsPerReal, ativo: data.active }) }); }
-    catch { refreshLoyalty(); }
+    try {
+      await apiFetch('/loyalty', { method: 'PATCH', body: JSON.stringify({ pontos_por_real: data.pointsPerReal, ativo: data.active }) });
+      toast.success('Configurações de fidelidade salvas!');
+    } catch { refreshLoyalty(); toast.error('Erro ao salvar configurações'); }
   }, []); // eslint-disable-line
 
   const addLoyaltyReward = useCallback(async () => {
@@ -588,11 +624,15 @@ export function OrdersProvider({ children }) {
       const r = await apiFetch('/loyalty/rewards', { method: 'POST', body: JSON.stringify({ pontos: 500, label: 'Nova Recompensa', tipo: 'discount', valor: 10 }) });
       const mapped = { id: r.data.id, points: r.data.pontos, label: r.data.nome ?? r.data.label, type: r.data.tipo, value: r.data.valor || 0 };
       setLoyaltySettings(prev => ({ ...prev, rewards: [...prev.rewards, mapped] }));
-    } catch {}
+      toast.success('Prêmio adicionado!');
+    } catch (err) {
+      toast.error(`Erro ao adicionar prêmio: ${err?.message || 'verifique o console'}`);
+    }
   }, []);
 
   const removeLoyaltyReward = useCallback(async (id) => {
     setLoyaltySettings(prev => ({ ...prev, rewards: prev.rewards.filter(r => r.id !== id) }));
+    toast.success('Prêmio removido');
     try { await apiFetch(`/loyalty/rewards/${id}`, { method: 'DELETE' }); } catch {}
   }, []);
 
@@ -611,7 +651,8 @@ export function OrdersProvider({ children }) {
           horarios: data.horarios || undefined,
         }),
       });
-    } catch { refreshSettings(); }
+      toast.success('Configurações salvas!');
+    } catch { refreshSettings(); toast.error('Erro ao salvar configurações'); }
   }, []); // eslint-disable-line
 
   // STATS
