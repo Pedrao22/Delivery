@@ -400,7 +400,7 @@ export default function CustomerView({ ridOverride } = {}) {
   return (
     <div className="customer-wrapper menu-step">
       <header className="menu-header">
-        {/* Brand bar — solid primary color */}
+        {/* Brand bar */}
         <div className="cv-brand-bar" style={{ background: primaryColor }}>
           <div className="cv-brand-logo">
             {brandLogo?.startsWith('http') ? (
@@ -409,7 +409,22 @@ export default function CustomerView({ ridOverride } = {}) {
               <span>{brandLogo || '🍽️'}</span>
             )}
           </div>
-          <h1 className="cv-brand-title">{brandName}</h1>
+          <div className="cv-brand-text">
+            <h1 className="cv-brand-title">{brandName}</h1>
+            <div className="cv-brand-chips">
+              <span className={isOpen ? 'cv-chip-open' : 'cv-chip-closed'}>
+                {isOpen ? 'Aberto' : 'Fechado'}
+              </span>
+              <span className="cv-chip-sep">·</span>
+              <span className="cv-chip-time">⏱ {deliveryTime}</span>
+              {minOrderVal > 0 && (
+                <>
+                  <span className="cv-chip-sep">·</span>
+                  <span className="cv-chip-min">Mín. R$&nbsp;{minOrderVal.toFixed(2).replace('.', ',')}</span>
+                </>
+              )}
+            </div>
+          </div>
           <div className="cv-brand-actions">
             <button
               className="cv-hdr-btn"
@@ -421,23 +436,10 @@ export default function CustomerView({ ridOverride } = {}) {
           </div>
         </div>
 
-        {/* Info bar */}
-        <div className="cv-info-bar">
-          <span className="cv-info-left">
-            <span className={isOpen ? 'cv-status-open' : 'cv-status-closed'}>
-              {isOpen ? 'Aberto agora' : 'Fechado'}
-            </span>
-            {minOrderVal > 0 && <> &bull; Pedido mín. R$&nbsp;{minOrderVal.toFixed(2).replace('.', ',')}</>}
-          </span>
-          <span className="cv-info-right">
-            {deliveryTime} <ChevronRight size={13} />
-          </span>
-        </div>
-
         {/* Closed banner */}
         {!isOpen && (
           <div className="cv-closed-banner">
-            <span>🔴 Loja fechada no momento</span>
+            <span>⏰ Loja fechada no momento</span>
             {nextOpenTime && <span className="cv-closed-next">Abre {nextOpenTime}</span>}
           </div>
         )}
@@ -455,21 +457,21 @@ export default function CustomerView({ ridOverride } = {}) {
           </div>
         </div>
 
-        {/* Category tabs — underline style */}
+        {/* Category pills */}
         <nav className="cv-cats-nav">
           <button
             className={`cv-cat-btn${activeCategory === 'all' ? ' active' : ''}`}
             onClick={() => setActiveCategory('all')}
-            style={activeCategory === 'all' ? { color: primaryColor, borderBottomColor: primaryColor } : {}}
+            style={activeCategory === 'all' ? { backgroundColor: primaryColor, borderColor: primaryColor, color: '#fff' } : {}}
           >
-            Todos
+            🍽️ Todos
           </button>
           {displayCategories.map(cat => (
             <button
               key={cat.id}
               className={`cv-cat-btn${activeCategory === cat.id ? ' active' : ''}`}
               onClick={() => setActiveCategory(cat.id)}
-              style={activeCategory === cat.id ? { color: primaryColor, borderBottomColor: primaryColor } : {}}
+              style={activeCategory === cat.id ? { backgroundColor: primaryColor, borderColor: primaryColor, color: '#fff' } : {}}
             >
               {cat.icone} {cat.nome}
             </button>
