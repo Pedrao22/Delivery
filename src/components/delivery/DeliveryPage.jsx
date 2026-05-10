@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, X, Trash2, Navigation } from 'lucide-react';
+import { Plus, X, Trash2, Navigation, MapPin, MessageCircle, Check } from 'lucide-react';
 import { useOrdersContext } from '../../context/OrdersContext';
 import { apiFetch } from '../../lib/supabase';
 import './DeliveryPage.css';
@@ -63,16 +63,93 @@ function DriverModal({ isOpen, onClose, onSave }) {
   );
 }
 
-function AssignModal({ isOpen, onClose, driver, orders, onAssign }) {
+function buildMapsUrl(origin, destination) {
+  const base = 'https://www.google.com/maps/dir/?api=1';
+  const params = new URLSearchParams({
+    destination: destination || '',
+    ...(origin ? { origin } : {}),
+    travelmode: 'driving',
+  });
+  return `${base}&${params.toString()}`;
+}
+
+function buildWhatsAppUrl(phone, message) {
+  const cleaned = phone.replace(/\D/g, '');
+  const number = cleaned.startsWith('55') ? cleaned : `55${cleaned}`;
+  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
+}
+
+function AssignModal({ isOpen, onClose, driver, orders, onAssign, restaurantAddress }) {
+  const [assigned, setAssigned] = useState(null);
+
   if (!isOpen) return null;
   const readyOrders = (orders || []).filter(o => o.status === 'ready' && o.tipo !== 'local');
+  const driverName  = driver?.nome || driver?.name || 'Entregador';
+  const driverPhone = driver?.telefone || driver?.phone || '';
+
+  const handleAssign = (order) => {
+    onAssign(driver.id, order);
+    setAssigned(order);
+  };
+
+  const handleClose = () => { setAssigned(null); onClose(); };
+
+  if (assigned) {
+    const address     = assigned.customer?.address || assigned.endereco || '';
+    const clientName  = assigned.cliente_nome || assigned.customer?.name || 'Cliente';
+    const code        = `#${(assigned.id || '').slice(-4).toUpperCase()}`;
+    const mapsUrl     = buildMapsUrl(restaurantAddress, address);
+    const waMessage   = `🛵 *Nova entrega, ${driverName}!*\n\n📦 Pedido: ${code}\n👤 Cliente: ${clientName}\n📍 Endereço: ${address}\n\n🗺️ Rota: ${mapsUrl}`;
+    const waUrl       = driverPhone ? buildWhatsAppUrl(driverPhone, waMessage) : null;
+
+    return (
+      <div className="driver-modal-overlay">
+        <div className="driver-modal">
+          <div className="driver-modal-header">
+            <h3>Pedido atribuído!</h3>
+            <button className="driver-modal-close" onClick={handleClose}><X size={18} /></button>
+          </div>
+          <div className="assign-confirmed">
+            <div className="assign-confirmed-icon"><Check size={28} /></div>
+            <div className="assign-confirmed-info">
+              <strong>{code} · {clientName}</strong>
+              <span className="assign-address">{address || '—'}</span>
+            </div>
+            <div className="assign-location-btns">
+              <a
+                className="assign-map-btn"
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <MapPin size={15} /> Abrir Rota
+              </a>
+              {waUrl && (
+                <a
+                  className="assign-wa-btn"
+                  href={waUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <MessageCircle size={15} /> Enviar ao Entregador
+                </a>
+              )}
+            </div>
+            {!driverPhone && (
+              <p className="assign-no-phone">Cadastre o telefone do entregador para enviar via WhatsApp</p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="driver-modal-overlay">
       <div className="driver-modal">
         <div className="driver-modal-header">
-          <h3>Atribuir pedido — {driver?.nome || driver?.name}</h3>
-          <button className="driver-modal-close" onClick={onClose}><X size={18} /></button>
+          <h3>Atribuir pedido — {driverName}</h3>
+          <button className="driver-modal-close" onClick={handleClose}><X size={18} /></button>
         </div>
         <div className="assign-list">
           {readyOrders.length === 0 ? (
@@ -80,21 +157,35 @@ function AssignModal({ isOpen, onClose, driver, orders, onAssign }) {
               <span>📦</span>
               <p>Nenhum pedido pronto para entrega</p>
             </div>
-          ) : readyOrders.map(order => (
-            <div key={order.id} className="assign-order-row"
-              onClick={() => { onAssign(driver.id, order); onClose(); }}>
-              <div className="assign-order-info">
-                <strong>#{(order.id || '').slice(-4).toUpperCase()}</strong>
-                <span>{order.cliente_nome || order.customer?.name}</span>
-                <span className="assign-address">
-                  {order.customer?.address || order.endereco || '—'}
-                </span>
+          ) : readyOrders.map(order => {
+            const addr = order.customer?.address || order.endereco || '';
+            return (
+              <div key={order.id} className="assign-order-row" onClick={() => handleAssign(order)}>
+                <div className="assign-order-info">
+                  <strong>#{(order.id || '').slice(-4).toUpperCase()}</strong>
+                  <span>{order.cliente_nome || order.customer?.name}</span>
+                  <span className="assign-address">{addr || '—'}</span>
+                </div>
+                <div className="assign-row-right">
+                  <span className="assign-value">
+                    R$ {(order.total || 0).toFixed(2).replace('.', ',')}
+                  </span>
+                  {addr && (
+                    <a
+                      className="assign-mini-map"
+                      href={buildMapsUrl(restaurantAddress, addr)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      onClick={e => e.stopPropagation()}
+                      title="Ver no Maps"
+                    >
+                      <MapPin size={13} />
+                    </a>
+                  )}
+                </div>
               </div>
-              <span className="assign-value">
-                R$ {(order.total || 0).toFixed(2).replace('.', ',')}
-              </span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
     </div>
@@ -268,10 +359,11 @@ export default function DeliveryPage() {
       <DriverModal isOpen={isAddOpen} onClose={() => setIsAddOpen(false)} onSave={addDriver} />
       <AssignModal
         isOpen={!!assignTarget}
-        onClose={() => setAssignTarget(null)}
+        onClose={() => { setAssignTarget(null); }}
         driver={assignTarget}
         orders={orders}
         onAssign={handleAssign}
+        restaurantAddress={restaurantSettings?.endereco || restaurantSettings?.address || ''}
       />
     </div>
   );

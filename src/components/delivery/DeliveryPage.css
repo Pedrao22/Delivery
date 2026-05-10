@@ -540,6 +540,102 @@
   flex-shrink: 0;
 }
 
+/* ── Row right (value + mini map icon) ── */
+.assign-row-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.assign-mini-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #EEF2FF;
+  color: #6366F1;
+  text-decoration: none;
+  transition: background 0.15s;
+}
+
+.assign-mini-map:hover { background: #C7D2FE; }
+
+/* ── Confirmed state ── */
+.assign-confirmed {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 24px 20px 20px;
+  text-align: center;
+}
+
+.assign-confirmed-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  background: #D1FAE5;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.assign-confirmed-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.assign-confirmed-info strong {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.assign-location-btns {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.assign-map-btn,
+.assign-wa-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 18px;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: filter 0.15s;
+}
+
+.assign-map-btn {
+  background: #EEF2FF;
+  color: #4F46E5;
+}
+
+.assign-wa-btn {
+  background: #DCFCE7;
+  color: #16A34A;
+}
+
+.assign-map-btn:hover  { filter: brightness(0.95); }
+.assign-wa-btn:hover   { filter: brightness(0.95); }
+
+.assign-no-phone {
+  font-size: 0.75rem;
+  color: var(--text-tertiary);
+  margin: 0;
+}
+
 /* ── Responsive ── */
 @media (max-width: 640px) {
   .delivery-page { padding: var(--space-4); }

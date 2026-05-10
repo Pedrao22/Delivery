@@ -3,7 +3,8 @@ import {
   Phone, ShoppingCart, ArrowLeft, Check,
   MapPin, CreditCard, QrCode, Wallet, Info,
   Star, Clock, ChevronRight, Search,
-  ChevronDown, MessageCircle, Heart, Share2
+  ChevronDown, MessageCircle, Heart, Share2,
+  Navigation, Loader2
 } from 'lucide-react';
 import Modal from '../shared/Modal';
 import { menuCategories, menuItems } from '../../data/menuItems';
@@ -51,6 +52,42 @@ export default function CustomerView({ ridOverride } = {}) {
   const [searchQuery, setSearchQuery] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [orderError, setOrderError] = useState('');
+  const [locating, setLocating] = useState(false);
+
+  const handleUseLocation = async () => {
+    if (!navigator.geolocation) {
+      setOrderError('Seu navegador não suporta geolocalização.');
+      return;
+    }
+    setLocating(true);
+    try {
+      const pos = await new Promise((resolve, reject) =>
+        navigator.geolocation.getCurrentPosition(resolve, reject, { timeout: 10000, enableHighAccuracy: true })
+      );
+      const { latitude, longitude } = pos.coords;
+      const res = await fetch(
+        `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=pt-BR`,
+        { headers: { 'Accept-Language': 'pt-BR' } }
+      );
+      const data = await res.json();
+      const a = data.address || {};
+      const parts = [
+        a.road,
+        a.house_number,
+        a.suburb || a.neighbourhood || a.quarter,
+        a.city || a.town || a.village || a.municipality,
+      ].filter(Boolean);
+      const formatted = parts.length > 0 ? parts.join(', ') : data.display_name;
+      setCheckoutForm(prev => ({ ...prev, address: formatted }));
+    } catch (err) {
+      const msg = err.code === 1
+        ? 'Permissão de localização negada. Habilite nas configurações do navegador.'
+        : 'Não foi possível obter sua localização. Tente novamente.';
+      setOrderError(msg);
+    } finally {
+      setLocating(false);
+    }
+  };
 
   const [checkoutForm, setCheckoutForm] = useState({
     customerName: '',
@@ -606,7 +643,23 @@ export default function CustomerView({ ridOverride } = {}) {
             </div>
             {checkoutForm.type === 'delivery' && (
               <div className="animated-fields">
-                <input placeholder="Endereço Completo *" value={checkoutForm.address} onChange={e => setCheckoutForm({...checkoutForm, address: e.target.value})} />
+                <div className="cv-address-row">
+                  <input
+                    placeholder="Endereço Completo *"
+                    value={checkoutForm.address}
+                    onChange={e => setCheckoutForm({...checkoutForm, address: e.target.value})}
+                    className="cv-address-input"
+                  />
+                  <button
+                    type="button"
+                    className="cv-location-btn"
+                    onClick={handleUseLocation}
+                    disabled={locating}
+                    title="Usar minha localização atual"
+                  >
+                    {locating ? <Loader2 size={16} className="cv-spin" /> : <Navigation size={16} />}
+                  </button>
+                </div>
                 <input placeholder="Referência (Opcional)" value={checkoutForm.reference} onChange={e => setCheckoutForm({...checkoutForm, reference: e.target.value})} />
               </div>
             )}
