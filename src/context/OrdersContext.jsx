@@ -56,7 +56,7 @@ function mapLoyalty(config, premios) {
   return {
     pointsPerReal: config?.pontos_por_real ?? config?.pointsPerReal ?? 1,
     active: config?.ativo ?? config?.active ?? false,
-    rewards: (premios || []).map(p => ({ id: p.id, points: p.pontos ?? p.points, label: p.label, type: p.tipo ?? p.type, value: p.valor ?? p.value ?? 0 })),
+    rewards: (premios || []).map(p => ({ id: p.id, points: p.pontos ?? p.points, label: p.nome ?? p.label, type: p.tipo ?? p.type, value: p.valor ?? p.value ?? 0 })),
   };
 }
 
@@ -586,7 +586,7 @@ export function OrdersProvider({ children }) {
   const addLoyaltyReward = useCallback(async () => {
     try {
       const r = await apiFetch('/loyalty/rewards', { method: 'POST', body: JSON.stringify({ pontos: 500, label: 'Nova Recompensa', tipo: 'discount', valor: 10 }) });
-      const mapped = { id: r.data.id, points: r.data.pontos, label: r.data.label, type: r.data.tipo, value: r.data.valor || 0 };
+      const mapped = { id: r.data.id, points: r.data.pontos, label: r.data.nome ?? r.data.label, type: r.data.tipo, value: r.data.valor || 0 };
       setLoyaltySettings(prev => ({ ...prev, rewards: [...prev.rewards, mapped] }));
     } catch {}
   }, []);
