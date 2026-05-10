@@ -1047,36 +1047,27 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 18px 16px 20px;
-  min-height: 88px;
+  padding: 16px 16px 18px;
+  min-height: 80px;
   position: relative;
   overflow: hidden;
 }
 
-/* Gradient overlay for depth regardless of primary color */
-.cv-brand-bar::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, rgba(0,0,0,0.18) 100%);
-  pointer-events: none;
-}
-
 /* Logo — elevated circle */
 .cv-brand-logo {
-  width: 62px;
-  height: 62px;
+  width: 58px;
+  height: 58px;
   border-radius: 50%;
   background: #fff;
   border: 3px solid rgba(255,255,255,0.90);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: 1.85rem;
   flex-shrink: 0;
   overflow: hidden;
-  box-shadow: 0 6px 24px rgba(0,0,0,0.28);
-  z-index: 1;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+  position: relative;
 }
 
 .cv-brand-logo img {
@@ -1090,20 +1081,21 @@
 .cv-brand-text {
   flex: 1;
   min-width: 0;
-  z-index: 1;
+  position: relative;
 }
 
 .cv-brand-title {
-  font-size: 1.2rem;
+  font-size: 1.25rem;
   font-weight: 900;
   color: #fff;
   letter-spacing: -0.02em;
-  white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  text-shadow: 0 1px 6px rgba(0,0,0,0.20);
-  margin-bottom: 7px;
-  line-height: 1.1;
+  white-space: nowrap;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.25);
+  margin-bottom: 6px;
+  line-height: 1.15;
+  display: block;
 }
 
 /* Info chips row */
@@ -1172,7 +1164,7 @@
   font-weight: 400;
 }
 
-.cv-brand-actions { display: flex; gap: 4px; z-index: 1; }
+.cv-brand-actions { display: flex; gap: 4px; position: relative; flex-shrink: 0; }
 
 .cv-hdr-btn {
   width: 38px;
@@ -1259,40 +1251,39 @@
 .cv-cats-nav {
   display: flex;
   gap: 8px;
-  padding: 10px 14px 12px;
+  padding: 12px 14px;
   overflow-x: auto;
   background: #fff;
-  border-bottom: 2px solid #F7F3EE;
-  white-space: nowrap;
+  border-bottom: 1px solid #EDEBE8;
+  flex-wrap: nowrap;
 }
 
 .cv-cats-nav::-webkit-scrollbar { display: none; }
 
 .cv-cat-btn {
-  padding: 8px 16px;
-  background: #F5F2EE;
-  border: 1.5px solid #E8E3DC;
+  padding: 9px 18px;
+  background: #F2EFEB;
+  border: 1.5px solid #DDD8D0;
   border-radius: 100px;
-  font-size: 0.8rem;
+  font-size: 0.83rem;
   font-weight: 700;
-  color: #888;
+  color: #555;
   cursor: pointer;
   white-space: nowrap;
   flex-shrink: 0;
   font-family: inherit;
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .cv-cat-btn:hover {
-  background: #EDE8E1;
-  color: #444;
-  border-color: #D8D0C8;
+  background: #E8E3DC;
+  color: #222;
+  border-color: #C8C0B8;
 }
 
 .cv-cat-btn.active {
-  box-shadow: 0 4px 14px rgba(0,0,0,0.18);
-  transform: translateY(-1px);
+  box-shadow: 0 3px 12px rgba(0,0,0,0.20);
   font-weight: 800;
 }
 
@@ -1523,20 +1514,25 @@
    MOBILE TWEAKS
    ══════════════════════════════════════════════════════════════ */
 
-@media (max-width: 479px) {
-  .cv-brand-bar     { padding: 14px 14px 16px; min-height: 80px; }
-  .cv-brand-logo    { width: 54px; height: 54px; font-size: 1.75rem; }
-  .cv-brand-title   { font-size: 1.05rem; }
+@media (max-width: 480px) {
+  .cv-brand-bar  { padding: 14px 14px 16px; min-height: 76px; gap: 12px; }
+  .cv-brand-logo { width: 52px; height: 52px; font-size: 1.65rem; }
+  .cv-brand-title { font-size: 1.1rem; }
   .cv-chip-open, .cv-chip-closed, .cv-chip-time, .cv-chip-min {
-    font-size: 0.68rem; padding: 3px 8px;
+    font-size: 0.70rem; padding: 3px 9px;
   }
-  .cv-cats-nav      { padding: 8px 12px 10px; gap: 7px; }
-  .cv-cat-btn       { padding: 7px 13px; font-size: 0.76rem; }
-  .menu-step .menu-inner { padding: 12px 12px; }
+  .cv-cats-nav { padding: 10px 12px 11px; gap: 7px; }
+  .cv-cat-btn  { padding: 8px 14px; font-size: 0.79rem; }
+  .cv-search-row { padding: 8px 12px; }
+  .menu-step .menu-inner { padding: 12px 12px 120px; }
+  .menu-step .menu-section { margin-bottom: 16px; }
+  .menu-step .menu-section .products-grid { border-radius: 16px; }
+  .menu-step .menu-section .products-grid .product-card-premium { padding: 14px 14px; gap: 12px; }
   .menu-step .menu-section .products-grid .card-image-section {
-    width: 80px; min-height: 80px; height: 80px;
+    width: 82px; min-height: 82px; height: 82px; border-radius: 12px;
   }
   .menu-step .menu-section .products-grid .card-emoji-large { font-size: 2.6rem; }
   .menu-step .menu-section .products-grid .card-title { font-size: 0.9rem; }
-  .menu-step .menu-section .products-grid .product-card-premium { padding: 14px; gap: 12px; }
+  .menu-step .menu-section .products-grid .card-price-tag { font-size: 0.95rem; }
+  .menu-step .menu-section .products-grid .card-add-btn { width: 32px; height: 32px; }
 }
