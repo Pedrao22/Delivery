@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MessageSquare, RefreshCw, ExternalLink, Loader2, User, RefreshCcw, Search, CheckCircle, XCircle, ShoppingCart } from 'lucide-react';
-import { API_URL } from '../lib/supabase';
+import { API_URL, getAuthHeaders } from '../lib/supabase';
 import { useOrdersContext } from '../context/OrdersContext';
 import { useCart } from '../hooks/useCart';
 import ConversationPanel from '../components/shared/ConversationPanel';
@@ -90,12 +90,6 @@ function timeAgo(dateStr) {
   const h = Math.floor(m / 60);
   if (h < 24) return `${h}h atrás`;
   return `${Math.floor(h / 24)}d atrás`;
-}
-
-function authHeaders() {
-  const token = localStorage.getItem('pedirecebe_token') ||
-    document.cookie.split('; ').find(r => r.startsWith('sb-access-token='))?.split('=')[1];
-  return token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 }
 
 const STATUS_LABEL = { pending: 'Pendente', open: 'Atendendo', resolved: 'Encerrado' };

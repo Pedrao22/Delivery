@@ -5,7 +5,7 @@ import Modal from '../shared/Modal';
 import Badge from '../shared/Badge';
 import Button from '../shared/Button';
 import ConversationPanel from '../shared/ConversationPanel';
-import { API_URL } from '../../lib/supabase';
+import { API_URL, getAuthHeaders } from '../../lib/supabase';
 import './OrderModal.css';
 
 const typeConfig = {
@@ -20,11 +20,6 @@ const statusConfig = {
   ready: { label: 'Pronto', next: null, nextLabel: null, variant: 'success' },
 };
 
-function authHeaders() {
-  const token = localStorage.getItem('pedirecebe_token') ||
-    document.cookie.split('; ').find(r => r.startsWith('sb-access-token='))?.split('=')[1];
-  return token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
-}
 
 export default function OrderModal({ order, isOpen, onClose, onMoveOrder }) {
   const { drivers, assignDriverToOrder, tables, refreshOrders } = useOrdersContext();

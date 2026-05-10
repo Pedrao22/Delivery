@@ -50,6 +50,17 @@ async function getValidToken() {
   }
 }
 
+// Sync headers for direct fetch() calls — não faz refresh, use apiFetch quando possível
+export function getAuthHeaders() {
+  const token = localStorage.getItem(TOKEN_KEY);
+  const impersonateId = localStorage.getItem('pedirecebe_impersonate_id');
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { Authorization: `Bearer ${token}` } : {}),
+    ...(impersonateId ? { 'X-Impersonate-Restaurant-Id': impersonateId } : {}),
+  };
+}
+
 export async function apiFetch(path, options = {}) {
   const { skipAuth, ...fetchOptions } = options;
   const token = skipAuth ? null : await getValidToken();

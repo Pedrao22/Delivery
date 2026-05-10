@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Loader2, MessageSquare } from 'lucide-react';
-import { API_URL } from '../../lib/supabase';
+import { API_URL, getAuthHeaders } from '../../lib/supabase';
 import './ConversationPanel.css';
 
 function timeAgo(dateStr) {
@@ -27,12 +27,6 @@ function formatWA(text) {
       return <em key={i}>{part.slice(1, -1)}</em>;
     return part;
   });
-}
-
-function authHeaders() {
-  const token = localStorage.getItem('pedirecebe_token') ||
-    document.cookie.split('; ').find(r => r.startsWith('sb-access-token='))?.split('=')[1];
-  return token ? { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' } : { 'Content-Type': 'application/json' };
 }
 
 /**
