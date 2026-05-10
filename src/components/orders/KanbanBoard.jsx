@@ -31,10 +31,6 @@ export default function KanbanBoard({ orders, onMoveOrder, onFinalizeReady, onFi
     return () => board.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const scrollToCol = (i) => {
-    colRefs.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
-    setActiveCol(i);
-  };
 
   // Auto-accept & time settings (persisted locally)
   const [autoAccept, setAutoAccept] = useState(() => localStorage.getItem('autoAccept') === 'true');
@@ -102,22 +98,6 @@ export default function KanbanBoard({ orders, onMoveOrder, onFinalizeReady, onFi
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      {/* Tab bar — visível só no mobile */}
-      <div className="kanban-col-tabs">
-        {columns.map((col, i) => (
-          <button
-            key={col.id}
-            className={`kanban-col-tab col-tab-${col.id} ${activeCol === i ? 'active' : ''}`}
-            onClick={() => scrollToCol(i)}
-          >
-            {col.title}
-            {getColumnOrders(col.id).length > 0 && (
-              <span className="kanban-col-tab-badge">{getColumnOrders(col.id).length}</span>
-            )}
-          </button>
-        ))}
-      </div>
-
       <div className="kanban-board" ref={boardRef}>
         {columns.map((col, colIndex) => {
           const colOrders = getColumnOrders(col.id);
@@ -247,6 +227,13 @@ export default function KanbanBoard({ orders, onMoveOrder, onFinalizeReady, onFi
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Dots indicadores — visíveis só no mobile */}
+      <div className="kanban-dots">
+        {columns.map((col, i) => (
+          <span key={col.id} className={`kanban-dot col-dot-${col.id} ${activeCol === i ? 'active' : ''}`} />
+        ))}
       </div>
 
       <DragOverlay>
