@@ -285,8 +285,8 @@
   to { opacity: 1; transform: translateX(0); }
 }
 
-@media (max-width: 1400px) {
-  /* Esconde sidebar direita para caber em laptops de 1366px com nav lateral de 260px */
+@media (max-width: 1600px) {
+  /* Esconde sidebar direita para caber em laptops (até 1440px lógico) com nav lateral de 260px */
   .orders-stats-sidebar { display: none; }
   .kanban-board { gap: var(--space-3); }
   .kanban-column { min-width: 300px; }

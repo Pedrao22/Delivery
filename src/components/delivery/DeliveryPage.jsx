@@ -112,11 +112,12 @@ export default function DeliveryPage() {
   // Normalize DB field names (PT) to frontend names (EN) and map status values
   const normalizeDriver = (d) => ({
     ...d,
-    name:       d.nome      || d.name      || '',
-    phone:      d.telefone  || d.phone     || '',
-    vehicle:    d.veiculo   || d.vehicle   || 'Moto',
-    photo:      d.foto      || d.photo     || '',
-    deliveries: d.entregas  ?? d.deliveries ?? 0,
+    name:       d.nome       || d.name      || '',
+    phone:      d.telefone   || d.phone     || '',
+    vehicle:    d.veiculo    || d.vehicle   || 'Moto',
+    photo:      d.foto_emoji || d.foto      || d.photo || '',
+    deliveries: d.total_entregas ?? d.entregas ?? d.deliveries ?? 0,
+    // DB enum is 'available'|'delivering'|'offline'; guard for legacy rows
     status:     d.status === 'disponivel' ? 'available'
               : d.status === 'em_rota'    ? 'delivering'
               : d.status || 'available',
@@ -128,7 +129,7 @@ export default function DeliveryPage() {
   const delivering = displayDrivers.filter(d => d.status === 'delivering').length;
   const offline    = displayDrivers.filter(d => d.status === 'offline').length;
 
-  // localPatch → local state; apiPatch → backend (PT field names)
+  // localPatch → local UI; apiPatch → backend (uses same EN enum values)
   const patchDriver = (id, localPatch, apiPatch) => {
     setLocalOverrides(prev => ({ ...prev, [id]: { ...(prev[id] || {}), ...localPatch } }));
     if (apiPatch) {
@@ -138,11 +139,11 @@ export default function DeliveryPage() {
 
   const handleAssign = (driverId, order) => {
     const label = `#${(order.id || '').slice(-4).toUpperCase()} — ${order.cliente_nome || order.customer?.name || ''}`;
-    patchDriver(driverId, { status: 'delivering', currentOrder: label }, { status: 'em_rota' });
+    patchDriver(driverId, { status: 'delivering', currentOrder: label }, { status: 'delivering' });
   };
 
   const handleFinish = (driverId) => {
-    patchDriver(driverId, { status: 'available', currentOrder: null }, { status: 'disponivel' });
+    patchDriver(driverId, { status: 'available', currentOrder: null }, { status: 'available' });
   };
 
   return (
