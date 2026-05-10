@@ -16,7 +16,7 @@ function fmtDate(iso) {
   return d.toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
 }
 
-export default function ThermalTicket({ order, restaurantName }) {
+export default function ThermalTicket({ order, restaurantName, paperWidth = '58mm' }) {
   if (!order) return null;
 
   const items = (order.items || []).filter(i => i && typeof i === 'object' && !Array.isArray(i));
@@ -25,7 +25,7 @@ export default function ThermalTicket({ order, restaurantName }) {
   const hasMesa = order.type === 'local';
 
   return (
-    <div id="thermal-ticket-root" className="thermal-ticket">
+    <div id="thermal-ticket-root" className="thermal-ticket" data-width={paperWidth}>
 
       {/* Header */}
       <div className="tt-center tt-bold tt-lg">{restaurantName || 'RESTAURANTE'}</div>

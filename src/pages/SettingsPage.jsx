@@ -4,7 +4,8 @@ import {
   Save, Globe, Phone, MapPin, Check,
   Camera, Briefcase, Bell, QrCode, Wallet, Info,
   Sparkles, ShieldCheck, Zap, DollarSign,
-  Lock, Eye, EyeOff, KeyRound, Copy, ExternalLink, ToggleLeft, ToggleRight
+  Lock, Eye, EyeOff, KeyRound, Copy, ExternalLink, ToggleLeft, ToggleRight,
+  Printer
 } from 'lucide-react';
 
 const DIAS_SEMANA = [
@@ -404,6 +405,81 @@ export default function SettingsPage() {
                     </div>
                   );
                 })}
+              </div>
+
+              {/* Impressora Térmica */}
+              <h3 className="settings-section-title" style={{ marginTop: 'var(--space-8)' }}>
+                <Printer size={20} /> Impressora Térmica
+              </h3>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: 'var(--space-6)' }}>
+
+                {/* Toggle auto-print */}
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', border: '1px solid var(--border-light)' }}>
+                  <div>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Imprimir automaticamente</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Dispara a impressão ao aceitar um pedido (mover para Em Produção)</div>
+                  </div>
+                  <button
+                    onClick={() => setFormData(p => ({ ...p, printerEnabled: !p.printerEnabled }))}
+                    style={{ background: 'none', border: 'none', cursor: 'pointer', color: formData.printerEnabled ? 'var(--success)' : 'var(--text-tertiary)', display: 'flex', flexShrink: 0 }}
+                  >
+                    {formData.printerEnabled ? <ToggleRight size={32} /> : <ToggleLeft size={32} />}
+                  </button>
+                </div>
+
+                {/* Largura do papel */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', opacity: formData.printerEnabled ? 1 : 0.5, pointerEvents: formData.printerEnabled ? 'auto' : 'none' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Largura do papel</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Verifique o rolo instalado na impressora</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {['58mm', '80mm'].map(w => (
+                      <button
+                        key={w}
+                        onClick={() => setFormData(p => ({ ...p, printerWidth: w }))}
+                        style={{
+                          padding: '6px 16px', borderRadius: '100px', fontSize: '0.82rem', fontWeight: 700, cursor: 'pointer',
+                          background: (formData.printerWidth || '58mm') === w ? 'var(--accent)' : 'var(--surface)',
+                          color: (formData.printerWidth || '58mm') === w ? '#fff' : 'var(--text-secondary)',
+                          border: `1.5px solid ${(formData.printerWidth || '58mm') === w ? 'var(--accent)' : 'var(--border-light)'}`,
+                          transition: 'all 0.15s',
+                        }}
+                      >{w}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Número de vias */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '14px 16px', borderRadius: 'var(--radius-md)', background: 'var(--bg-secondary)', border: '1px solid var(--border-light)', opacity: formData.printerEnabled ? 1 : 0.5, pointerEvents: formData.printerEnabled ? 'auto' : 'none' }}>
+                  <div style={{ flex: 1 }}>
+                    <div style={{ fontWeight: 700, fontSize: '0.9rem', color: 'var(--text-primary)' }}>Número de vias</div>
+                    <div style={{ fontSize: '0.78rem', color: 'var(--text-tertiary)', marginTop: '2px' }}>Quantas cópias imprimir por pedido</div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '8px' }}>
+                    {[1, 2, 3].map(n => (
+                      <button
+                        key={n}
+                        onClick={() => setFormData(p => ({ ...p, printerCopies: n }))}
+                        style={{
+                          width: '36px', height: '36px', borderRadius: '50%', fontSize: '0.9rem', fontWeight: 800, cursor: 'pointer',
+                          background: (formData.printerCopies || 1) === n ? 'var(--accent)' : 'var(--surface)',
+                          color: (formData.printerCopies || 1) === n ? '#fff' : 'var(--text-secondary)',
+                          border: `1.5px solid ${(formData.printerCopies || 1) === n ? 'var(--accent)' : 'var(--border-light)'}`,
+                          transition: 'all 0.15s',
+                        }}
+                      >{n}</button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px', padding: '12px 14px', borderRadius: 'var(--radius-md)', background: 'var(--accent-lighter)', border: '1px solid var(--accent-light)' }}>
+                  <Info size={16} color="var(--accent)" style={{ marginTop: '2px', flexShrink: 0 }} />
+                  <span style={{ fontSize: '0.78rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                    No primeiro uso, configure o tamanho do papel no diálogo de impressão do navegador como <strong>{formData.printerWidth || '58mm'} × Auto</strong> e marque <strong>"Salvar como padrão"</strong>. Após isso a impressão será automática sem confirmação.
+                  </span>
+                </div>
               </div>
 
               <div className={`ops-status-card ${formData.isOpen ? 'open' : 'closed'}`}>

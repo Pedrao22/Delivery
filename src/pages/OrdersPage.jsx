@@ -35,9 +35,12 @@ export default function OrdersPage({ onMenuToggle }) {
   const printRef = useRef(false);
   const { items, total, count, addItem, removeItem, updateQty, clearCart } = useCart();
 
+  const printerEnabled = restaurantSettings?.printerEnabled ?? true;
+  const printerCopies  = Math.max(1, Math.min(3, restaurantSettings?.printerCopies || 1));
+
   // Auto-print when an order moves to production
   const handleMoveOrder = (orderId, newStatus) => {
-    if (newStatus === 'production') {
+    if (newStatus === 'production' && printerEnabled) {
       const order = orders.find(o => o.id === orderId);
       if (order) setPrintOrder({ ...order, status: 'production' });
     }
@@ -47,15 +50,18 @@ export default function OrdersPage({ onMenuToggle }) {
   useEffect(() => {
     if (!printOrder || printRef.current) return;
     printRef.current = true;
-    const timer = setTimeout(() => {
-      window.print();
+    const timer = setTimeout(async () => {
+      for (let i = 0; i < printerCopies; i++) {
+        if (i > 0) await new Promise(r => setTimeout(r, 800));
+        window.print();
+      }
       setTimeout(() => {
         setPrintOrder(null);
         printRef.current = false;
       }, 500);
     }, 300);
     return () => clearTimeout(timer);
-  }, [printOrder]);
+  }, [printOrder]); // eslint-disable-line
 
   // Real-time polling
   useEffect(() => {
@@ -120,6 +126,7 @@ export default function OrdersPage({ onMenuToggle }) {
       <ThermalTicket
         order={printOrder}
         restaurantName={restaurantSettings?.name || restaurantSettings?.nome}
+        paperWidth={restaurantSettings?.printerWidth || '58mm'}
       />
 
       {/* New Order Modal */}
