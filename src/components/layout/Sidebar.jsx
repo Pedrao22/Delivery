@@ -73,6 +73,9 @@ export default function Sidebar({ isOpen, onToggle, orderCount, isDark, onToggle
               className="sidebar-logo-img"
             />
           </div>
+          <button className="sidebar-close-btn" onClick={onToggle}>
+            <X size={18} />
+          </button>
         </div>
 
         <nav className="sidebar-nav">

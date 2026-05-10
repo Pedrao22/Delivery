@@ -360,4 +360,38 @@
   .sidebar-toggle-mobile {
     display: none;
   }
+
+  /* sidebar ocupa quase toda a tela no mobile */
+  .sidebar {
+    width: min(85vw, 320px);
+  }
+
+  /* botão fechar dentro do header do sidebar */
+  .sidebar-close-btn {
+    display: flex;
+  }
+}
+
+/* por padrão o botão fechar fica oculto (só mobile) */
+.sidebar-close-btn {
+  display: none;
+  position: absolute;
+  right: var(--space-4);
+  top: 50%;
+  transform: translateY(-50%);
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-full);
+  color: var(--text-secondary);
+  background: var(--bg-secondary);
+  border: none;
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.sidebar-close-btn:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
 }

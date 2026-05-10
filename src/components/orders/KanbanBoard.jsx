@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { CheckCheck, ArrowUpRight, Clock, Edit2, X, ToggleLeft, ToggleRight } from 'lucide-react';
@@ -16,6 +16,25 @@ const columns = [
 export default function KanbanBoard({ orders, onMoveOrder, onFinalizeReady, onFinalizeOrder }) {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [activeId, setActiveId] = useState(null);
+  const boardRef = useRef(null);
+  const colRefs = useRef([]);
+  const [activeCol, setActiveCol] = useState(0);
+
+  useEffect(() => {
+    const board = boardRef.current;
+    if (!board) return;
+    const handleScroll = () => {
+      const idx = Math.round(board.scrollLeft / board.offsetWidth);
+      setActiveCol(Math.max(0, Math.min(columns.length - 1, idx)));
+    };
+    board.addEventListener('scroll', handleScroll, { passive: true });
+    return () => board.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  const scrollToCol = (i) => {
+    colRefs.current[i]?.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'start' });
+    setActiveCol(i);
+  };
 
   // Auto-accept & time settings (persisted locally)
   const [autoAccept, setAutoAccept] = useState(() => localStorage.getItem('autoAccept') === 'true');
@@ -83,11 +102,27 @@ export default function KanbanBoard({ orders, onMoveOrder, onFinalizeReady, onFi
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
     >
-      <div className="kanban-board">
-        {columns.map(col => {
+      {/* Tab bar — visível só no mobile */}
+      <div className="kanban-col-tabs">
+        {columns.map((col, i) => (
+          <button
+            key={col.id}
+            className={`kanban-col-tab col-tab-${col.id} ${activeCol === i ? 'active' : ''}`}
+            onClick={() => scrollToCol(i)}
+          >
+            {col.title}
+            {getColumnOrders(col.id).length > 0 && (
+              <span className="kanban-col-tab-badge">{getColumnOrders(col.id).length}</span>
+            )}
+          </button>
+        ))}
+      </div>
+
+      <div className="kanban-board" ref={boardRef}>
+        {columns.map((col, colIndex) => {
           const colOrders = getColumnOrders(col.id);
           return (
-            <div key={col.id} className={`kanban-column col-${col.id}`}>
+            <div key={col.id} className={`kanban-column col-${col.id}`} ref={el => colRefs.current[colIndex] = el}>
               <div className="kanban-column-header">
                 <div className="kanban-column-title-row">
                   <div className="kanban-column-title">
