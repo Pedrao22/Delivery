@@ -1,4 +1,5 @@
-import { Clock, MessageSquare, CreditCard, Check } from 'lucide-react';
+import { useState } from 'react';
+import { Clock, MessageSquare, Check, ChevronDown } from 'lucide-react';
 import { useTimer } from '../../hooks/useTimer';
 import './OrderCard.css';
 
@@ -16,9 +17,12 @@ const paymentIcons = {
   'Pix Balcão': '💠',
 };
 
-export default function OrderCard({ order, onClick, onFinalize, style }) {
+export default function OrderCard({ order, onClick, onFinalize, drivers, onAssignDriver, style }) {
   const { color, label, isUrgent } = useTimer(order.criado_em || order.createdAt);
+  const [showPicker, setShowPicker] = useState(false);
   const type = typeConfig[order.type || order.tipo] || typeConfig.delivery;
+  const isDelivery = (order.type || order.tipo) === 'delivery';
+  const availableDrivers = (drivers || []).filter(d => d.status === 'available' || d.status === 'disponivel');
   
   const nomeExibicao = order.cliente_nome || order.customer?.name || 'Cliente';
   const initials = nomeExibicao.split(' ').map(n => n[0]).join('').slice(0, 2);
@@ -111,6 +115,44 @@ export default function OrderCard({ order, onClick, onFinalize, style }) {
           </span>
         </div>
       </div>
+
+      {/* Driver strip — delivery orders in production/ready */}
+      {isDelivery && (order.status === 'production' || order.status === 'ready') && (
+        <div className="order-card-driver-strip" onClick={e => e.stopPropagation()}>
+          {order.entregadorNome ? (
+            <div className="order-card-driver-assigned">
+              <span>🛵</span>
+              <span className="order-card-driver-name">{order.entregadorNome}</span>
+            </div>
+          ) : (
+            <div className="order-card-driver-picker-wrap">
+              <button
+                className="order-card-assign-btn"
+                onClick={() => setShowPicker(v => !v)}
+              >
+                🛵 Atribuir entregador
+                {availableDrivers.length > 0 && <ChevronDown size={12} />}
+              </button>
+              {showPicker && (
+                <div className="order-card-driver-picker">
+                  {availableDrivers.length === 0 ? (
+                    <div className="order-card-driver-empty">Nenhum entregador disponível</div>
+                  ) : availableDrivers.map(d => (
+                    <button
+                      key={d.id}
+                      className="order-card-driver-option"
+                      onClick={() => { onAssignDriver?.(order, d); setShowPicker(false); }}
+                    >
+                      <span>{d.foto_emoji || d.foto || '🛵'}</span>
+                      <span>{d.nome || d.name}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }

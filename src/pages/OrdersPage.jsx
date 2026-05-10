@@ -24,7 +24,7 @@ export default function OrdersPage({ onMenuToggle }) {
   const {
     orders, loadingOrders, refreshOrders,
     moveOrder, finalizeReady, finalizeSingleOrder, addOrder,
-    restaurantSettings,
+    restaurantSettings, drivers, assignDriverToOrder,
   } = useOrdersContext();
 
   const [search, setSearch] = useState('');
@@ -121,6 +121,9 @@ export default function OrdersPage({ onMenuToggle }) {
         onMoveOrder={handleMoveOrder}
         onFinalizeReady={finalizeReady}
         onFinalizeOrder={finalizeSingleOrder}
+        drivers={drivers}
+        onAssignDriver={assignDriverToOrder}
+        restaurantAddress={restaurantSettings?.endereco || ''}
       />
 
       <ThermalTicket

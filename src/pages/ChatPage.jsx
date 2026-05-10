@@ -113,7 +113,7 @@ export default function ChatPage() {
   const fetchConversations = async (silent = false) => {
     if (!silent) setLoadingConvs(true);
     try {
-      const res = await fetch(`${API_URL}/chatwoot/conversations`, { headers: authHeaders() });
+      const res = await fetch(`${API_URL}/chatwoot/conversations`, { headers: getAuthHeaders() });
       const d = await res.json();
       if (d?.success) setConversations(d.data ?? []);
     } catch {}
@@ -124,7 +124,7 @@ export default function ChatPage() {
     setSyncing(true);
     setSyncMsg(null);
     try {
-      const res = await fetch(`${API_URL}/chatwoot/sync`, { method: 'POST', headers: authHeaders() });
+      const res = await fetch(`${API_URL}/chatwoot/sync`, { method: 'POST', headers: getAuthHeaders() });
       const d = await res.json();
       const count = d?.synced ?? 0;
       setSyncMsg(count > 0 ? `${count} sincronizada(s)` : 'Nenhuma nova');
@@ -139,13 +139,12 @@ export default function ChatPage() {
 
   const handleConfirmOrder = async (orderData) => {
     const newOrder = await addOrder(orderData);
-    // Envia resumo do pedido ao cliente via Chatwoot
     if (selectedId) {
       try {
         const summary = buildOrderSummary(newOrder, orderData, restaurantSettings);
         await fetch(`${API_URL}/chatwoot/conversations/${selectedId}/reply`, {
           method: 'POST',
-          headers: authHeaders(),
+          headers: getAuthHeaders(),
           body: JSON.stringify({ conversationId: selectedId, content: summary }),
         });
       } catch (err) {
@@ -161,7 +160,7 @@ export default function ChatPage() {
     try {
       await fetch(`${API_URL}/chatwoot/conversations/${convId}/status`, {
         method: 'POST',
-        headers: authHeaders(),
+        headers: getAuthHeaders(),
         body: JSON.stringify({ status: newStatus }),
       });
       // Optimistic update

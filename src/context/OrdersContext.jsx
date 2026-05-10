@@ -21,6 +21,8 @@ function mapOrder(o) {
     customer: o.customer || { name: o.cliente_nome, phone: o.cliente_telefone, address: o.cliente_endereco },
     mesa_id: o.mesa_id,
     chatwootConversationId: o.chatwoot_conversation_id ?? null,
+    entregadorNome: o.entregador_nome || null,
+    entregadorTelefone: o.entregador_telefone || null,
   };
 }
 
@@ -581,6 +583,15 @@ export function OrdersProvider({ children }) {
     try { await apiFetch(`/drivers/${id}`, { method: 'DELETE' }); } catch {}
   }, []);
 
+  const assignDriverToOrder = useCallback(async (orderId, driver) => {
+    const nome = driver.nome || driver.name || '';
+    const telefone = driver.telefone || driver.phone || '';
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, entregadorNome: nome, entregadorTelefone: telefone } : o));
+    try {
+      await apiFetch(`/orders/${orderId}/driver`, { method: 'PATCH', body: JSON.stringify({ nome, telefone }) });
+    } catch { refreshOrders(); toast.error('Erro ao atribuir entregador'); }
+  }, []); // eslint-disable-line
+
   // COUPONS
   const addCoupon = useCallback(async (data) => {
     try {
@@ -710,7 +721,7 @@ export function OrdersProvider({ children }) {
     addInventoryItem, updateInventoryItem, deleteInventoryItem,
     addTable, updateTable, deleteTable,
     addLeadMessage, markLeadAsRead,
-    addDriver, removeDriver,
+    addDriver, removeDriver, assignDriverToOrder,
     addCoupon, updateCoupon, deleteCoupon,
     updateLoyaltyConfig, addLoyaltyReward, removeLoyaltyReward,
     updateSettings,
