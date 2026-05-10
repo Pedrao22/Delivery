@@ -1573,6 +1573,124 @@
    MOBILE TWEAKS
    ══════════════════════════════════════════════════════════════ */
 
+/* ── Cupom de desconto ────────────────────────────────── */
+.cv-coupon-row {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+}
+
+.cv-coupon-input {
+  flex: 1;
+  padding: 12px 14px;
+  background: #F7F7FA;
+  border: 2px solid #E5E5EA;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: #1A1A1A;
+  outline: none;
+  font-family: inherit;
+  text-transform: uppercase;
+  transition: border-color 0.2s;
+}
+
+.cv-coupon-input:focus { border-color: #999; }
+.cv-coupon-input::placeholder { letter-spacing: 0; font-weight: 500; text-transform: none; }
+
+.cv-coupon-btn {
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fff;
+  border: none;
+  cursor: pointer;
+  white-space: nowrap;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: filter 0.15s;
+}
+
+.cv-coupon-btn:hover:not(:disabled) { filter: brightness(0.9); }
+.cv-coupon-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+.cv-coupon-applied {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  background: #F0FDF4;
+  border: 2px solid #BBF7D0;
+  border-radius: 12px;
+}
+
+.cv-coupon-badge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: #166534;
+  letter-spacing: 0.04em;
+}
+
+.cv-coupon-value {
+  font-weight: 700;
+  color: #16A34A;
+  font-size: 0.85rem;
+}
+
+.cv-coupon-remove {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #DCFCE7;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #166534;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.cv-coupon-remove:hover { background: #BBF7D0; }
+
+.cv-coupon-error {
+  margin: 6px 0 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #C62828;
+}
+
+/* Footer totalizador — sub-elementos do desconto */
+.final-sum-discount {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: #888;
+  font-weight: 500;
+}
+
+.final-sum-discount.green {
+  color: #16A34A;
+  font-weight: 700;
+}
+
+.final-sum-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.final-sum-total span { font-size: 0.85rem; color: #555; }
+.final-sum-total strong { font-size: 1.1rem; font-weight: 900; }
+
 @media (max-width: 480px) {
   .cv-brand-bar  { padding: 14px 14px 16px; gap: 10px; }
   .cv-brand-logo { width: 50px; height: 50px; min-width: 50px; font-size: 1.6rem; }

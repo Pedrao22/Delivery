@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import {
-  Phone, ShoppingCart, ArrowLeft, Check,
-  MapPin, CreditCard, QrCode, Wallet, Info,
-  Star, Clock, ChevronRight, Search,
-  ChevronDown, MessageCircle, Heart, Share2,
-  Navigation, Loader2
+  ShoppingCart, ArrowLeft, Check,
+  CreditCard, QrCode, Wallet,
+  Star, ChevronRight, Search,
+  MessageCircle, Share2,
+  Navigation, Loader2, Tag, X as XIcon
 } from 'lucide-react';
 import Modal from '../shared/Modal';
 import { menuCategories, menuItems } from '../../data/menuItems';
@@ -53,6 +53,47 @@ export default function CustomerView({ ridOverride } = {}) {
   const [submitting, setSubmitting] = useState(false);
   const [orderError, setOrderError] = useState('');
   const [locating, setLocating] = useState(false);
+  const [couponInput, setCouponInput] = useState('');
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponError, setCouponError] = useState('');
+
+  const handleApplyCoupon = async () => {
+    const code = couponInput.trim().toUpperCase();
+    if (!code) return;
+    setCouponError('');
+    setCouponLoading(true);
+    try {
+      if (isPublic) {
+        const res = await fetch(`${API_URL}/public/validate-coupon`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ restaurante_id: publicRestaurant?.id, codigo: code, total: cartTotal }),
+        });
+        const result = await res.json();
+        if (!result.success) { setCouponError(result.message || 'Cupom inválido'); return; }
+        setCheckoutForm(prev => ({ ...prev, couponCode: result.codigo, couponDiscount: result.desconto }));
+      } else {
+        const found = coupons.find(c => (c.code || '').toUpperCase() === code && c.active !== false);
+        if (!found) { setCouponError('Cupom inválido ou expirado'); return; }
+        if (cartTotal < (found.minOrder || 0)) {
+          setCouponError(`Pedido mínimo: R$ ${(found.minOrder || 0).toFixed(2).replace('.', ',')}`);
+          return;
+        }
+        const desconto = found.type === 'percentage'
+          ? (cartTotal * found.value) / 100
+          : found.value;
+        setCheckoutForm(prev => ({ ...prev, couponCode: found.code, couponDiscount: Math.min(desconto, cartTotal) }));
+      }
+      setCouponInput('');
+    } catch { setCouponError('Erro ao validar cupom. Tente novamente.'); }
+    finally { setCouponLoading(false); }
+  };
+
+  const handleRemoveCoupon = () => {
+    setCheckoutForm(prev => ({ ...prev, couponCode: '', couponDiscount: 0 }));
+    setCouponError('');
+    setCouponInput('');
+  };
 
   const handleUseLocation = async () => {
     if (!navigator.geolocation) {
@@ -251,6 +292,8 @@ export default function CustomerView({ ridOverride } = {}) {
             itens: cart,
             total: finalTotal,
             subtotal: cartTotal,
+            descontos: checkoutForm.couponDiscount || 0,
+            coupon_code: checkoutForm.couponCode || null,
           }),
         });
         const result = await res.json();
@@ -586,8 +629,22 @@ export default function CustomerView({ ridOverride } = {}) {
         footer={
           <div className="checkout-footer-sticky">
             <div className="final-sum">
-              <span>Total a pagar</span>
-              <strong>R$ {(cartTotal - (checkoutForm.couponDiscount || 0)).toFixed(2).replace('.', ',')}</strong>
+              {checkoutForm.couponDiscount > 0 && (
+                <div className="final-sum-discount">
+                  <span>Subtotal</span>
+                  <span>R$ {cartTotal.toFixed(2).replace('.', ',')}</span>
+                </div>
+              )}
+              {checkoutForm.couponDiscount > 0 && (
+                <div className="final-sum-discount green">
+                  <span>🎟️ Desconto</span>
+                  <span>− R$ {(checkoutForm.couponDiscount).toFixed(2).replace('.', ',')}</span>
+                </div>
+              )}
+              <div className="final-sum-total">
+                <span>Total a pagar</span>
+                <strong>R$ {(cartTotal - (checkoutForm.couponDiscount || 0)).toFixed(2).replace('.', ',')}</strong>
+              </div>
             </div>
             <button
               className="confirm-btn"
@@ -663,6 +720,43 @@ export default function CustomerView({ ridOverride } = {}) {
                 <input placeholder="Referência (Opcional)" value={checkoutForm.reference} onChange={e => setCheckoutForm({...checkoutForm, reference: e.target.value})} />
               </div>
             )}
+          </div>
+
+          {/* ── Cupom de desconto ── */}
+          <div className="revamp-section">
+            <h4><Tag size={14} style={{ marginRight: 6, verticalAlign: 'middle' }} />Cupom de Desconto</h4>
+            {checkoutForm.couponCode ? (
+              <div className="cv-coupon-applied">
+                <span className="cv-coupon-badge">
+                  🎟️ {checkoutForm.couponCode}
+                  <span className="cv-coupon-value">
+                    − R$ {(checkoutForm.couponDiscount || 0).toFixed(2).replace('.', ',')}
+                  </span>
+                </span>
+                <button className="cv-coupon-remove" onClick={handleRemoveCoupon} title="Remover cupom">
+                  <XIcon size={14} />
+                </button>
+              </div>
+            ) : (
+              <div className="cv-coupon-row">
+                <input
+                  className="cv-coupon-input"
+                  placeholder="Código do cupom"
+                  value={couponInput}
+                  onChange={e => { setCouponInput(e.target.value.toUpperCase()); setCouponError(''); }}
+                  onKeyDown={e => e.key === 'Enter' && handleApplyCoupon()}
+                />
+                <button
+                  className="cv-coupon-btn"
+                  style={{ background: primaryColor }}
+                  onClick={handleApplyCoupon}
+                  disabled={couponLoading || !couponInput.trim()}
+                >
+                  {couponLoading ? <Loader2 size={14} className="cv-spin" /> : 'Aplicar'}
+                </button>
+              </div>
+            )}
+            {couponError && <p className="cv-coupon-error">{couponError}</p>}
           </div>
 
           <div className="revamp-section">
