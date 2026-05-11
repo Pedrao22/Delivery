@@ -22,7 +22,7 @@ export default function OrderCard({ order, onClick, onFinalize, drivers, onAssig
   const [showPicker, setShowPicker] = useState(false);
   const type = typeConfig[order.type || order.tipo] || typeConfig.delivery;
   const isDelivery = (order.type || order.tipo) === 'delivery';
-  const availableDrivers = (drivers || []).filter(d => d.status === 'available' || d.status === 'disponivel');
+  const availableDrivers = (drivers || []).filter(d => d.ativo !== false);
   
   const nomeExibicao = order.cliente_nome || order.customer?.name || 'Cliente';
   const initials = nomeExibicao.split(' ').map(n => n[0]).join('').slice(0, 2);

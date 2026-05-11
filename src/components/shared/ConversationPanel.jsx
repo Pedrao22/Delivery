@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Loader2, MessageSquare } from 'lucide-react';
 import { API_URL, getAuthHeaders } from '../../lib/supabase';
+const authHeaders = getAuthHeaders;
 import './ConversationPanel.css';
 
 function timeAgo(dateStr) {
