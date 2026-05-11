@@ -371,6 +371,7 @@ export function OrdersProvider({ children }) {
         slug: d.slug || null,
         pedidoProximoNumero: d.pedido_proximo_numero ?? 1,
         horarios: d.horarios || DEFAULT_HORARIOS,
+        chatwootInboxId: d.chatwoot_inbox_id ?? null,
       });
     } catch (err) { console.warn('Erro ao carregar configurações:', err); }
     finally { setSettingsLoaded(true); }

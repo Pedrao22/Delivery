@@ -202,6 +202,69 @@ export default function ChatPage() {
       );
     });
 
+  if (!restaurantSettings.chatwootInboxId) {
+    return (
+      <div style={{
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
+        minHeight: '70vh', gap: '24px', padding: '40px 24px', textAlign: 'center',
+      }}>
+        <div style={{
+          width: 72, height: 72, borderRadius: '20px',
+          background: 'linear-gradient(135deg, rgba(37,211,102,0.15), rgba(37,211,102,0.05))',
+          border: '1px solid rgba(37,211,102,0.25)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '2rem',
+        }}>
+          💬
+        </div>
+        <div>
+          <h2 style={{ color: 'var(--text-primary)', fontWeight: 800, fontSize: '1.4rem', margin: '0 0 8px 0' }}>
+            WhatsApp não configurado
+          </h2>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', maxWidth: 420, margin: '0 auto', lineHeight: 1.6 }}>
+            Para usar o chat com clientes, você precisa conectar seu número de WhatsApp. Siga os passos abaixo:
+          </p>
+        </div>
+        <div style={{
+          background: 'var(--card-bg, rgba(255,255,255,0.04))',
+          border: '1px solid var(--border-color, rgba(255,255,255,0.08))',
+          borderRadius: '16px', padding: '24px 32px', maxWidth: 440, width: '100%', textAlign: 'left',
+        }}>
+          {[
+            { n: 1, text: 'Acesse o Uply.chat clicando no botão abaixo' },
+            { n: 2, text: 'Vá em Configurações → Caixas de entrada → Nova caixa' },
+            { n: 3, text: 'Escolha o canal WhatsApp e escaneie o QR code com seu celular' },
+            { n: 4, text: 'Após conectar, avise o suporte para ativar o chat aqui no painel' },
+          ].map(({ n, text }) => (
+            <div key={n} style={{ display: 'flex', gap: 12, alignItems: 'flex-start', marginBottom: n < 4 ? 14 : 0 }}>
+              <div style={{
+                width: 26, height: 26, borderRadius: '50%', flexShrink: 0, marginTop: 1,
+                background: 'rgba(37,211,102,0.15)', border: '1px solid rgba(37,211,102,0.3)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: '0.72rem', fontWeight: 800, color: '#25d366',
+              }}>{n}</div>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', margin: 0, lineHeight: 1.5 }}>{text}</p>
+            </div>
+          ))}
+        </div>
+        <a
+          href="https://app.uply.chat"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            display: 'inline-flex', alignItems: 'center', gap: 8,
+            padding: '13px 28px', borderRadius: '12px',
+            background: 'linear-gradient(135deg, #25d366, #128c7e)',
+            color: '#fff', fontWeight: 700, fontSize: '0.95rem',
+            textDecoration: 'none', boxShadow: '0 4px 20px rgba(37,211,102,0.3)',
+          }}
+        >
+          <ExternalLink size={16} />
+          Abrir Uply.chat para conectar
+        </a>
+      </div>
+    );
+  }
+
   return (
     <div className="chat-page">
       {/* Sidebar */}
