@@ -33,6 +33,7 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/shared/ProtectedRoute';
 import { useTheme } from './hooks/useTheme';
 import ToastContainer from './components/shared/ToastContainer';
+import ChatNotificationToast from './components/shared/ChatNotificationToast';
 import './App.css';
 
 function PageWrapper({ title, subtitle, onMenuToggle, children }) {
@@ -153,6 +154,7 @@ function AppContent() {
         </Routes>
       </main>
       <ToastContainer />
+      <ChatNotificationToast />
     </div>
   );
 }

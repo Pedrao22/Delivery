@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
-import { apiFetch } from '../lib/supabase';
+import { apiFetch, API_URL, getAuthHeaders } from '../lib/supabase';
 import toast from '../lib/toast';
 
 const OrdersContext = createContext();
@@ -706,8 +706,63 @@ export function OrdersProvider({ children }) {
     return { orders: all.length, ordersCount: all.length, revenue, ticket, avgTicket: ticket, growth: prevRev ? ((revenue - prevRev) / prevRev) * 100 : 0, payments, dailyData };
   }, []);
 
+  // ── Chat notifications (polling global, funciona em qualquer tela) ──
+  const [chatNotifications, setChatNotifications] = useState([]);
+  const unreadMapRef = useRef({}); // { [convId]: unread_count }
+  const initializedRef = useRef(false);
+
+  useEffect(() => {
+    if (!restaurantSettings.chatwootInboxId) return;
+
+    const poll = async () => {
+      try {
+        const res = await fetch(`${API_URL}/chatwoot/conversations`, { headers: getAuthHeaders() });
+        const d = await res.json();
+        const convs = d?.data ?? [];
+        if (!Array.isArray(convs)) return;
+
+        if (!initializedRef.current) {
+          // Primeira carga: salva estado atual sem notificar
+          const map = {};
+          convs.forEach(c => { map[c.id] = c.unread_count ?? 0; });
+          unreadMapRef.current = map;
+          initializedRef.current = true;
+          return;
+        }
+
+        const newNotifs = [];
+        convs.forEach(c => {
+          const prev = unreadMapRef.current[c.id] ?? 0;
+          const curr = c.unread_count ?? 0;
+          if (curr > prev) {
+            newNotifs.push({
+              id: `${c.id}-${Date.now()}`,
+              convId: c.id,
+              contactName: c.contact_name || c.contact_phone || 'Cliente',
+              message: c.last_message || 'Nova mensagem',
+            });
+          }
+          unreadMapRef.current[c.id] = curr;
+        });
+
+        if (newNotifs.length > 0) {
+          setChatNotifications(prev => [...newNotifs, ...prev].slice(0, 5));
+        }
+      } catch {}
+    };
+
+    poll();
+    const interval = setInterval(poll, 20000);
+    return () => clearInterval(interval);
+  }, [restaurantSettings.chatwootInboxId]);
+
+  const dismissChatNotification = useCallback((id) => {
+    setChatNotifications(prev => prev.filter(n => n.id !== id));
+  }, []);
+
   const value = {
     notifications, dismissNotification, clearAllNotifications,
+    chatNotifications, dismissChatNotification,
     orders, analyzing: orders.filter(o => o.status === 'analyzing'),
     production: orders.filter(o => o.status === 'production'),
     ready: orders.filter(o => o.status === 'ready'),

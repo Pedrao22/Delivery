@@ -1,0 +1,112 @@
+.chat-notif-stack {
+  position: fixed;
+  bottom: 28px;
+  right: 24px;
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 0;
+  z-index: 9000;
+  pointer-events: none;
+}
+
+.chat-notif-toast {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 320px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: #1a2744;
+  border: 1px solid rgba(37, 211, 102, 0.3);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(37, 211, 102, 0.1);
+  cursor: pointer;
+  pointer-events: all;
+  margin-top: 8px;
+  animation: chatNotifSlideIn 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.chat-notif-toast:hover {
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(37, 211, 102, 0.3);
+  transform: translateY(-2px) !important;
+}
+
+@keyframes chatNotifSlideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100%) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+.chat-notif-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #25d366, #128c7e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+  box-shadow: 0 4px 12px rgba(37, 211, 102, 0.35);
+}
+
+.chat-notif-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.chat-notif-name {
+  color: #f1f5f9;
+  font-size: 0.82rem;
+  font-weight: 700;
+  margin: 0 0 3px 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-notif-msg {
+  color: #94a3b8;
+  font-size: 0.75rem;
+  margin: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.chat-notif-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: none;
+  color: #64748b;
+  border-radius: 8px;
+  width: 26px;
+  height: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.chat-notif-close:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: #e2e8f0;
+}
+
+@media (max-width: 480px) {
+  .chat-notif-stack {
+    bottom: 80px;
+    right: 12px;
+    left: 12px;
+  }
+  .chat-notif-toast {
+    width: 100%;
+  }
+}
