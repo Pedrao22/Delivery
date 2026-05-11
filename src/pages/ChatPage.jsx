@@ -174,7 +174,7 @@ export default function ChatPage() {
 
   useEffect(() => { fetchConversations(); }, []);
   useEffect(() => {
-    const t = setInterval(() => fetchConversations(true), 15000);
+    const t = setInterval(() => fetchConversations(true), 5000);
     return () => clearInterval(t);
   }, []);
 

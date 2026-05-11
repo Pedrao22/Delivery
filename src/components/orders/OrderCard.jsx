@@ -40,7 +40,13 @@ export default function OrderCard({ order, onClick, onFinalize, drivers, onAssig
         {/* Header: Code + Timer */}
         <div className="order-card-header">
           <div className="order-card-header-left">
-            <span className="order-card-id">{order.codigo || order.id}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, flexWrap: 'wrap' }}>
+              <span className="order-card-id">{order.codigo || order.confirmCode}</span>
+              <span style={{ color: 'var(--text-tertiary)', fontSize: '0.7rem' }}>|</span>
+              <span style={{ fontSize: '0.78rem', fontWeight: 700, color: 'var(--text-primary)', maxWidth: 110, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                {nomeExibicao}
+              </span>
+            </div>
             <span className={`order-card-type-badge ${type.cls}`}>
               {type.icon} {type.label} {(order.mesa_id || order.tableId) && ` • Mesa ${order.mesa_id || order.tableId}`}
             </span>

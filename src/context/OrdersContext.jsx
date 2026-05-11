@@ -752,7 +752,7 @@ export function OrdersProvider({ children }) {
     };
 
     poll();
-    const interval = setInterval(poll, 20000);
+    const interval = setInterval(poll, 5000);
     return () => clearInterval(interval);
   }, [restaurantSettings.chatwootInboxId]);
 
