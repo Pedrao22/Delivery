@@ -31,18 +31,32 @@
 }
 
 .super-sidebar-header {
-  padding: 20px 16px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  padding: 36px 32px 24px 32px;
 }
 
-.super-logo-img {
-  width: 100%;
-  max-width: 210px;
-  height: auto;
-  border-radius: 12px;
+.super-logo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-weight: 900;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+  color: #fff;
+}
+
+.super-logo-icon {
+  color: #a855f7;
+  filter: drop-shadow(0 0 12px rgba(168, 85, 247, 0.5));
+}
+
+.super-logo small {
   display: block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  color: #6366f1;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  margin-top: -2px;
 }
 
 .super-nav {
