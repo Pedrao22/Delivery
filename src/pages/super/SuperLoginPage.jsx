@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, Lock, Mail, ArrowRight, AlertCircle, Loader2, Zap } from 'lucide-react';
+import { Lock, Mail, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import superLogo from '../../assets/super-logo.svg';
 import './SuperLoginPage.css';
 
 export default function SuperLoginPage() {
@@ -45,12 +46,7 @@ export default function SuperLoginPage() {
       
       <div className="glass-card login-card animate-fadeInUp">
         <div className="super-login-header">
-          <div className="super-logo-premium">
-            <Zap size={40} className="logo-spark" />
-            <div className="logo-text">
-              Pedi&Recebe <span>PORTAL DO CEO</span>
-            </div>
-          </div>
+          <img src={superLogo} alt="Pedi&Recebe SuperAdmin" className="super-login-logo" />
           <h2>Autenticação Global</h2>
           <p className="subtitle">Entre para gerenciar todo o ecossistema estratégico.</p>
         </div>
