@@ -398,6 +398,7 @@ export function OrdersProvider({ children }) {
         setOrders(prev => prev.map(o => o.id === orderId ? prevOrder : o));
         allOrdersRef.current = allOrdersRef.current.map(o => o.id === orderId ? prevOrder : o);
       }
+      toast.error('Erro ao atualizar status do pedido');
     }
   }, []); // eslint-disable-line
 
@@ -440,7 +441,9 @@ export function OrdersProvider({ children }) {
     allOrdersRef.current = allOrdersRef.current.map(o => o.id === orderId ? { ...o, status: 'delivered' } : o);
     try {
       await apiFetch(`/orders/${orderId}/status`, { method: 'PATCH', body: JSON.stringify({ status: 'delivered' }) });
-    } catch {}
+    } catch {
+      toast.error('Erro ao finalizar pedido');
+    }
     setTimeout(() => pendingFinalizeRef.current.delete(orderId), 15_000);
   }, []);
 
