@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Users, Calendar, CheckCircle2, AlertCircle, Coffee, MapPin, Plus, Trash2, Eraser
+  Users, Calendar, CheckCircle2, AlertCircle, Coffee, MapPin, Plus, Trash2, Eraser, RefreshCw
 } from 'lucide-react';
 import { useOrdersContext } from '../context/OrdersContext';
+import { apiFetch } from '../lib/supabase';
+import toast from '../lib/toast';
 import Badge from '../components/shared/Badge';
 import './TablesPage.css';
 
@@ -30,11 +32,13 @@ function buildDefaultPositions(tables, saved) {
 }
 
 export default function TablesPage() {
-  const { tables, addTable, updateTable, deleteTable, clearAllTables, orders, restaurantSettings } = useOrdersContext();
+  const { tables, addTable, updateTable, deleteTable, clearAllTables, refreshTables, orders, restaurantSettings } = useOrdersContext();
   const [selectedTable, setSelectedTable] = useState(null);
   const [positions, setPositions] = useState({});
   const [clearConfirm, setClearConfirm] = useState(false);
   const clearConfirmTimer = useRef(null);
+  const [isAdding, setIsAdding] = useState(false);
+  const [isRenumbering, setIsRenumbering] = useState(false);
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const [loaded, setLoaded] = useState(false);
@@ -88,6 +92,8 @@ export default function TablesPage() {
   };
 
   const handleAddTable = async () => {
+    if (isAdding) return;
+    setIsAdding(true);
     const nums = (tables || []).map(t => parseInt(t.numero, 10)).filter(n => !isNaN(n));
     const next = nums.length > 0 ? Math.max(...nums) + 1 : 1;
     const numero = String(next).padStart(2, '0');
@@ -95,6 +101,22 @@ export default function TablesPage() {
       await addTable({ numero, capacidade: 4 });
     } catch (e) {
       alert('Erro ao adicionar mesa:\n' + (e?.message || JSON.stringify(e)));
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleRenumber = async () => {
+    if (isRenumbering) return;
+    setIsRenumbering(true);
+    try {
+      await apiFetch('/tables/renumber', { method: 'POST' });
+      await refreshTables();
+      toast.success('Mesas renumeradas com sucesso!');
+    } catch {
+      toast.error('Erro ao renumerar mesas');
+    } finally {
+      setIsRenumbering(false);
     }
   };
 
@@ -235,10 +257,36 @@ export default function TablesPage() {
                 <span className="legend-item"><span className="dot reserved"></span> Reservada</span>
                 <span className="legend-item"><span className="dot maintenance"></span> Limpeza</span>
               </div>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button className="add-table-btn" onClick={handleAddTable}>
-                  <Plus size={14} /> Adicionar Mesa
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                <button
+                  className="add-table-btn"
+                  onClick={handleAddTable}
+                  disabled={isAdding}
+                  style={{ opacity: isAdding ? 0.6 : 1, cursor: isAdding ? 'not-allowed' : 'pointer' }}
+                >
+                  <Plus size={14} /> {isAdding ? 'Adicionando...' : 'Adicionar Mesa'}
                 </button>
+                {(() => {
+                  const nums = (tables || []).map(t => t.numero);
+                  const hasDuplicates = nums.length !== new Set(nums).size;
+                  return hasDuplicates ? (
+                    <button
+                      className="add-table-btn"
+                      onClick={handleRenumber}
+                      disabled={isRenumbering}
+                      style={{
+                        background: 'rgba(99,102,241,0.12)',
+                        color: '#6366F1',
+                        border: '1px solid rgba(99,102,241,0.4)',
+                        opacity: isRenumbering ? 0.6 : 1,
+                      }}
+                      title="Corrigir numeração duplicada"
+                    >
+                      <RefreshCw size={14} />
+                      {isRenumbering ? 'Renumerando...' : 'Corrigir números'}
+                    </button>
+                  ) : null;
+                })()}
                 {(tables || []).length > 0 && (
                   <button
                     className="add-table-btn"
