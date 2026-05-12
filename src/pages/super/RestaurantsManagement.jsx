@@ -72,24 +72,25 @@ const RestaurantsManagement = () => {
 
   const fetchData = async () => {
     setLoading(true);
-    try {
-      const statsRes = await apiFetch('/restaurants/stats');
-      if (statsRes?.success) setStats(statsRes.data);
+    const params = new URLSearchParams({ page, limit: 20 });
+    if (filter !== 'all') params.append('status', filter);
+    if (debouncedSearch) params.append('search', debouncedSearch);
 
-      const params = new URLSearchParams({ page, limit: 10 });
-      if (filter !== 'all') params.append('status', filter);
-      if (debouncedSearch) params.append('search', debouncedSearch);
+    const [statsRes, listRes] = await Promise.allSettled([
+      apiFetch('/restaurants/stats'),
+      apiFetch(`/restaurants?${params}`),
+    ]);
 
-      const listRes = await apiFetch(`/restaurants?${params}`);
-      if (listRes?.success) {
-        setRestaurants(listRes.data.data);
-        setTotalPages(listRes.data.totalPages);
-      }
-    } catch (err) {
-      console.error('Erro ao buscar restaurantes:', err);
-    } finally {
-      setLoading(false);
+    if (statsRes.status === 'fulfilled' && statsRes.value?.success) {
+      setStats(statsRes.value.data);
     }
+    if (listRes.status === 'fulfilled' && listRes.value?.success) {
+      setRestaurants(listRes.value.data.data ?? []);
+      setTotalPages(listRes.value.data.totalPages ?? 1);
+    } else if (listRes.status === 'rejected') {
+      console.error('Erro ao buscar restaurantes:', listRes.reason);
+    }
+    setLoading(false);
   };
 
   const handleCreate = async (e) => {
@@ -378,25 +379,24 @@ const RestaurantsManagement = () => {
           <thead>
             <tr>
               <th>Restaurante</th>
-              <th>Plano</th>
+              <th>WhatsApp</th>
               <th>Status</th>
               <th>CNPJ</th>
-              <th>Usuários</th>
               <th>Criado em</th>
               <th className="text-right">Ações</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan="7" className="loading-cell">Carregando...</td></tr>
+              <tr><td colSpan="6" className="loading-cell">Carregando...</td></tr>
             ) : restaurants.length === 0 ? (
-              <tr><td colSpan="7" className="empty-cell">Nenhum restaurante encontrado.</td></tr>
+              <tr><td colSpan="6" className="empty-cell">Nenhum restaurante encontrado.</td></tr>
             ) : restaurants.map((res) => (
               <tr key={res.id}>
                 <td>
                   <div className="res-cell">
                     <div className="res-logo-mini" style={{ backgroundColor: res.cor_primaria || '#6366f1' }}>
-                      {res.nome.charAt(0).toUpperCase()}
+                      {(res.nome || '?').charAt(0).toUpperCase()}
                     </div>
                     <div className="res-name-info">
                       <p className="res-name">{res.nome}</p>
@@ -405,9 +405,16 @@ const RestaurantsManagement = () => {
                   </div>
                 </td>
                 <td>
-                  <span className={`plan-badge ${res.planos?.nome?.toLowerCase() || 'gratuito'}`}>
-                    {res.planos?.nome || 'Sem Plano'}
-                  </span>
+                  {res.telefone ? (
+                    <a
+                      href={`https://wa.me/${res.telefone.replace(/\D/g, '')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: '#4ade80', fontWeight: 600, fontSize: '0.85rem', textDecoration: 'none' }}
+                    >
+                      {res.telefone}
+                    </a>
+                  ) : <span style={{ color: 'rgba(255,255,255,0.3)' }}>—</span>}
                 </td>
                 <td>
                   <span className={`status-pill ${res.status}`}>
@@ -415,12 +422,6 @@ const RestaurantsManagement = () => {
                   </span>
                 </td>
                 <td className="font-mono">{res.cnpj || '—'}</td>
-                <td>
-                  <div className="users-stack">
-                    <Users size={16} />
-                    <span>{res.usuarios?.length || 0}</span>
-                  </div>
-                </td>
                 <td>{new Date(res.criado_em).toLocaleDateString('pt-BR')}</td>
                 <td>
                   <div className="actions-cell">
