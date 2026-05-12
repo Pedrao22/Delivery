@@ -41,7 +41,8 @@ export default function TablesPage() {
   const storageKey = `mesa_layout_${restaurantSettings?.id || 'default'}`;
 
   useEffect(() => {
-    if (!loaded && (tables || []).length > 0) {
+    if ((tables || []).length === 0) return;
+    if (!loaded) {
       try {
         const raw = localStorage.getItem(storageKey);
         const saved = raw ? JSON.parse(raw) : null;
@@ -50,6 +51,15 @@ export default function TablesPage() {
         setPositions(buildDefaultPositions(tables, null));
       }
       setLoaded(true);
+    } else {
+      // Assign positions to any tables added after initial load
+      setPositions(prev => {
+        const hasNew = (tables || []).some(t => !prev[t.id]);
+        if (!hasNew) return prev;
+        const next = buildDefaultPositions(tables, prev);
+        try { localStorage.setItem(storageKey, JSON.stringify(next)); } catch {}
+        return next;
+      });
     }
   }, [tables, storageKey, loaded]);
 
