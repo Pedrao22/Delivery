@@ -32,7 +32,7 @@ import { OrdersProvider, useOrdersContext } from './context/OrdersContext';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ProtectedRoute } from './components/shared/ProtectedRoute';
 import { useTheme } from './hooks/useTheme';
-import ToastContainer from './components/shared/ToastContainer';
+import { Toaster } from 'sonner';
 import ChatNotificationToast from './components/shared/ChatNotificationToast';
 import './App.css';
 
@@ -153,7 +153,13 @@ function AppContent() {
           <Route path="/cliente" element={<CustomerView />} />
         </Routes>
       </main>
-      <ToastContainer />
+      <Toaster
+        position="bottom-right"
+        richColors
+        closeButton
+        expand={false}
+        toastOptions={{ style: { fontFamily: "'Outfit', system-ui, sans-serif", fontWeight: 600 } }}
+      />
       <ChatNotificationToast />
     </div>
   );

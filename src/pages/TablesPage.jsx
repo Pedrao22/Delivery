@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
-  Users, Calendar, CheckCircle2, AlertCircle, Coffee, MapPin, Plus, Trash2
+  Users, Calendar, CheckCircle2, AlertCircle, Coffee, MapPin, Plus, Trash2, Eraser
 } from 'lucide-react';
 import { useOrdersContext } from '../context/OrdersContext';
 import Badge from '../components/shared/Badge';
@@ -30,9 +30,11 @@ function buildDefaultPositions(tables, saved) {
 }
 
 export default function TablesPage() {
-  const { tables, addTable, updateTable, deleteTable, orders, restaurantSettings } = useOrdersContext();
+  const { tables, addTable, updateTable, deleteTable, clearAllTables, orders, restaurantSettings } = useOrdersContext();
   const [selectedTable, setSelectedTable] = useState(null);
   const [positions, setPositions] = useState({});
+  const [clearConfirm, setClearConfirm] = useState(false);
+  const clearConfirmTimer = useRef(null);
   const [dragging, setDragging] = useState(null);
   const [dragOver, setDragOver] = useState(null);
   const [loaded, setLoaded] = useState(false);
@@ -104,6 +106,20 @@ export default function TablesPage() {
     savePositions(newPos);
     setSelectedTable(null);
     await deleteTable(selectedTable);
+  };
+
+  const handleClearAll = async () => {
+    if (!clearConfirm) {
+      setClearConfirm(true);
+      clearConfirmTimer.current = setTimeout(() => setClearConfirm(false), 3000);
+      return;
+    }
+    clearTimeout(clearConfirmTimer.current);
+    setClearConfirm(false);
+    setSelectedTable(null);
+    setPositions({});
+    try { localStorage.removeItem(storageKey); } catch {}
+    await clearAllTables();
   };
 
   // Grid map: "col,row" → table
@@ -219,9 +235,27 @@ export default function TablesPage() {
                 <span className="legend-item"><span className="dot reserved"></span> Reservada</span>
                 <span className="legend-item"><span className="dot maintenance"></span> Limpeza</span>
               </div>
-              <button className="add-table-btn" onClick={handleAddTable}>
-                <Plus size={14} /> Adicionar Mesa
-              </button>
+              <div style={{ display: 'flex', gap: 8 }}>
+                <button className="add-table-btn" onClick={handleAddTable}>
+                  <Plus size={14} /> Adicionar Mesa
+                </button>
+                {(tables || []).length > 0 && (
+                  <button
+                    className="add-table-btn"
+                    onClick={handleClearAll}
+                    style={{
+                      background: clearConfirm ? '#EF4444' : 'rgba(239,68,68,0.12)',
+                      color: clearConfirm ? '#fff' : '#EF4444',
+                      border: '1px solid rgba(239,68,68,0.4)',
+                      transition: 'all 0.2s',
+                    }}
+                    title={clearConfirm ? 'Clique novamente para confirmar' : 'Remover todas as mesas'}
+                  >
+                    <Eraser size={14} />
+                    {clearConfirm ? 'Confirmar remoção' : 'Remover todas'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
 

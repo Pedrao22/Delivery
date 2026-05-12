@@ -553,6 +553,17 @@ export function OrdersProvider({ children }) {
     try { await apiFetch(`/tables/${id}`, { method: 'DELETE' }); } catch {}
   }, []);
 
+  const clearAllTables = useCallback(async () => {
+    setTables([]);
+    try {
+      await apiFetch('/tables/all', { method: 'DELETE' });
+      toast.success('Todas as mesas foram removidas');
+    } catch {
+      refreshTables();
+      toast.error('Erro ao remover todas as mesas');
+    }
+  }, []); // eslint-disable-line
+
   // LEADS
   const addLeadMessage = useCallback(async (leadId, text, sender = 'admin') => {
     setLeads(prev => prev.map(l => {
@@ -778,7 +789,7 @@ export function OrdersProvider({ children }) {
     addProduct, updateProduct, deleteProduct,
     addCategory, updateCategory, deleteCategory,
     addInventoryItem, updateInventoryItem, deleteInventoryItem,
-    addTable, updateTable, deleteTable,
+    addTable, updateTable, deleteTable, clearAllTables,
     addLeadMessage, markLeadAsRead,
     addDriver, removeDriver, assignDriverToOrder,
     addCoupon, updateCoupon, deleteCoupon,
