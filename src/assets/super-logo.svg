@@ -1,0 +1,44 @@
+<svg viewBox="140 30 400 260" xmlns="http://www.w3.org/2000/svg" role="img">
+  <!-- Background card -->
+  <rect x="140" y="30" width="400" height="260" rx="20" fill="#1a0f2e"/>
+
+  <!-- Glow ring behind icon -->
+  <circle cx="340" cy="108" r="52" fill="#3C3489" opacity="0.5"/>
+
+  <!-- Icon hexagon base -->
+  <polygon points="340,60 380,83 380,129 340,152 300,129 300,83" fill="#534AB7"/>
+  <!-- Inner hex highlight -->
+  <polygon points="340,70 372,88 372,124 340,142 308,124 308,88" fill="#7F77DD" opacity="0.3"/>
+
+  <!-- Fork icon -->
+  <line x1="326" y1="82" x2="326" y2="96" stroke="#EEEDFE" stroke-width="3" stroke-linecap="round"/>
+  <line x1="326" y1="82" x2="320" y2="75" stroke="#EEEDFE" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="326" y1="82" x2="332" y2="75" stroke="#EEEDFE" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="326" y1="100" x2="326" y2="130" stroke="#EEEDFE" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Speed/dash lines -->
+  <line x1="345" y1="92" x2="358" y2="92" stroke="#AFA9EC" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="342" y1="106" x2="358" y2="106" stroke="#AFA9EC" stroke-width="2.5" stroke-linecap="round"/>
+  <line x1="347" y1="120" x2="358" y2="120" stroke="#AFA9EC" stroke-width="2.5" stroke-linecap="round"/>
+
+  <!-- Crown (superadmin badge) -->
+  <polygon points="316,66 322,58 328,64 334,56 340,62 346,56 352,64 358,58 364,66" fill="#EF9F27" opacity="0.9"/>
+
+  <!-- Wordmark -->
+  <text x="340" y="183" text-anchor="middle" font-family="Georgia, serif" font-size="28" font-weight="700" fill="#EEEDFE" letter-spacing="1">Pedi<tspan fill="#EF9F27">&amp;</tspan>Recebe</text>
+
+  <!-- Divider line -->
+  <line x1="240" y1="196" x2="440" y2="196" stroke="#534AB7" stroke-width="0.5"/>
+
+  <!-- SuperAdmin label -->
+  <text x="340" y="218" text-anchor="middle" font-family="monospace" font-size="11" fill="#AFA9EC" letter-spacing="4">SUPERADMIN</text>
+
+  <!-- Tagline -->
+  <text x="340" y="246" text-anchor="middle" font-family="sans-serif" font-size="12" fill="#7F77DD">Painel de controle administrativo</text>
+
+  <!-- Corner dots decoration -->
+  <circle cx="165" cy="55" r="3" fill="#534AB7" opacity="0.5"/>
+  <circle cx="515" cy="55" r="3" fill="#534AB7" opacity="0.5"/>
+  <circle cx="165" cy="265" r="3" fill="#534AB7" opacity="0.5"/>
+  <circle cx="515" cy="265" r="3" fill="#534AB7" opacity="0.5"/>
+</svg>

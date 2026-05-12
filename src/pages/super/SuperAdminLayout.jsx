@@ -1,16 +1,16 @@
 import React from 'react';
 import { Outlet, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
-import { 
-  BarChart3, 
-  Store, 
-  CreditCard, 
-  History, 
-  Settings, 
-  LogOut, 
-  ShieldCheck,
+import {
+  BarChart3,
+  Store,
+  CreditCard,
+  History,
+  Settings,
+  LogOut,
   ChevronRight
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import superLogo from '../../assets/super-logo.svg';
 import './SuperAdminLayout.css';
 
 const SuperAdminLayout = () => {
@@ -40,10 +40,7 @@ const SuperAdminLayout = () => {
       {/* Sidebar */}
       <aside className="super-sidebar">
         <div className="super-sidebar-header">
-          <div className="super-logo">
-            <ShieldCheck className="super-logo-icon" />
-            <span>Pedi&Recebe <small>SuperAdmin</small></span>
-          </div>
+          <img src={superLogo} alt="Pedi&Recebe SuperAdmin" className="super-logo-img" />
         </div>
 
         <nav className="super-nav">
