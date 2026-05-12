@@ -368,7 +368,7 @@ export default function TablesPage() {
                   <div className="table-order-info">
                     <div className="detail-section-title">Pedido Atual</div>
                     <div className="order-id-highlight">{currentOrder.codigo}</div>
-                    <div className="order-customer-main">{currentOrder.cliente_nome}</div>
+                    <div className="order-customer-main">{currentOrder.customer?.name || currentOrder.cliente_nome}</div>
                     <div className="order-items-summary">
                       {(currentOrder.itens || []).length} itens • R$ {parseFloat(currentOrder.total).toFixed(2).replace('.', ',')}
                     </div>

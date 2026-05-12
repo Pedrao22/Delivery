@@ -83,7 +83,7 @@ function AssignModal({ isOpen, onClose, driver, orders, onAssign, restaurantAddr
   const [assigned, setAssigned] = useState(null);
 
   if (!isOpen) return null;
-  const readyOrders = (orders || []).filter(o => o.status === 'ready' && o.tipo !== 'local');
+  const readyOrders = (orders || []).filter(o => o.status === 'ready' && o.type !== 'local');
   const driverName  = driver?.nome || driver?.name || 'Entregador';
   const driverPhone = driver?.telefone || driver?.phone || '';
 

@@ -305,7 +305,7 @@ export default function CustomerView({ ridOverride } = {}) {
           setOrderError(result.message || 'Erro ao enviar pedido. Tente novamente.');
         }
       } else {
-        const orderId = await addOrder({
+        const newOrder = await addOrder({
           customer: {
             name: checkoutForm.customerName || customer?.name || 'Cliente',
             phone: checkoutForm.customerPhone || customer?.phone || phone,
@@ -316,7 +316,7 @@ export default function CustomerView({ ridOverride } = {}) {
           payment: checkoutForm.paymentMethod.replace('_', ' ').toUpperCase(),
           couponUsed: checkoutForm.couponCode, discounts: checkoutForm.couponDiscount,
         });
-        setActiveOrderId(orderId);
+        setActiveOrderId(newOrder?.id || newOrder);
         setCart([]);
         setIsCheckoutOpen(false);
         setCheckoutForm(prev => ({ ...prev, couponCode: '', couponDiscount: 0, taxId: '' }));
