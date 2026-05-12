@@ -41,14 +41,33 @@
   position: relative;
 }
 
-.super-login-logo {
-  width: 100%;
-  max-width: 260px;
-  height: auto;
+.super-logo-premium {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+.logo-spark {
+  color: var(--accent);
+  filter: drop-shadow(0 0 12px rgba(99, 102, 241, 0.6));
+}
+
+.logo-text {
+  font-weight: 800;
+  font-size: 1.5rem;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.logo-text span {
   display: block;
-  margin: 0 auto 28px;
-  border-radius: 14px;
-  filter: drop-shadow(0 8px 32px rgba(83, 74, 183, 0.35));
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  letter-spacing: 0.2em;
+  margin-top: 4px;
 }
 
 .super-login-header {
