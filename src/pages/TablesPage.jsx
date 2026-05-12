@@ -37,6 +37,8 @@ export default function TablesPage() {
   const [positions, setPositions] = useState({});
   const [clearConfirm, setClearConfirm] = useState(false);
   const clearConfirmTimer = useRef(null);
+  const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const deleteConfirmTimer = useRef(null);
   const [isAdding, setIsAdding] = useState(false);
   const [isRenumbering, setIsRenumbering] = useState(false);
   const [dragging, setDragging] = useState(null);
@@ -122,7 +124,13 @@ export default function TablesPage() {
 
   const handleDeleteTable = async () => {
     if (!selectedTable) return;
-    if (!window.confirm('Remover esta mesa?')) return;
+    if (!deleteConfirm) {
+      setDeleteConfirm(true);
+      deleteConfirmTimer.current = setTimeout(() => setDeleteConfirm(false), 3000);
+      return;
+    }
+    clearTimeout(deleteConfirmTimer.current);
+    setDeleteConfirm(false);
     const newPos = { ...positions };
     delete newPos[selectedTable];
     savePositions(newPos);
@@ -193,8 +201,9 @@ export default function TablesPage() {
   };
 
   const handleTableClick = (tableId) => {
-    // Only treat as click if no drag happened
     if (dragStartPos.current !== null) return;
+    clearTimeout(deleteConfirmTimer.current);
+    setDeleteConfirm(false);
     setSelectedTable(prev => prev === tableId ? null : tableId);
   };
 
@@ -377,8 +386,16 @@ export default function TablesPage() {
                   <button onClick={() => handleStatusChange('reserved')} className="status-btn reserved">Reservar</button>
                   <button onClick={() => handleStatusChange('dirty')}    className="status-btn dirty">Limpar</button>
                 </div>
-                <button className="remove-table-btn" onClick={handleDeleteTable}>
-                  <Trash2 size={14} /> Remover Mesa
+                <button
+                  className="remove-table-btn"
+                  onClick={handleDeleteTable}
+                  style={{
+                    background: deleteConfirm ? '#EF4444' : undefined,
+                    color: deleteConfirm ? '#fff' : undefined,
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  <Trash2 size={14} /> {deleteConfirm ? 'Confirmar remoção' : 'Remover Mesa'}
                 </button>
               </div>
             </div>
