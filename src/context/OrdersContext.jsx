@@ -782,6 +782,38 @@ export function OrdersProvider({ children }) {
     setChatNotifications(prev => prev.filter(n => n.id !== id));
   }, []);
 
+  // ── Feedback response notifications ──
+  const seenFeedbackNotifsRef = useRef(new Set());
+
+  useEffect(() => {
+    if (!restauranteId) return;
+    const poll = async () => {
+      try {
+        const res = await apiFetch('/restaurants/my-feedback-notifs');
+        if (!res?.success || !Array.isArray(res.data) || res.data.length === 0) return;
+        const fresh = res.data.filter(fb => !seenFeedbackNotifsRef.current.has(fb.id));
+        if (fresh.length === 0) return;
+        fresh.forEach(fb => seenFeedbackNotifsRef.current.add(fb.id));
+        setNotifications(prev => [
+          ...fresh.map(fb => ({
+            id: `feedback-${fb.id}`,
+            type: 'feedback',
+            title: fb.resolvido ? 'Feedback resolvido ✅' : 'Feedback analisado',
+            message: fb.resolvido
+              ? 'Sua sugestão foi marcada como resolvida pelo suporte.'
+              : 'Seu reporte foi analisado pela equipe.',
+            timestamp: new Date(),
+          })),
+          ...prev,
+        ].slice(0, 15));
+        apiFetch('/restaurants/my-feedback-notifs/mark-read', { method: 'POST' }).catch(() => {});
+      } catch {}
+    };
+    poll();
+    const interval = setInterval(poll, 60_000);
+    return () => clearInterval(interval);
+  }, [restauranteId]); // eslint-disable-line
+
   const value = {
     notifications, dismissNotification, clearAllNotifications,
     chatNotifications, dismissChatNotification,

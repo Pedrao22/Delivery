@@ -98,16 +98,33 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
     const content = replyText.trim();
     if (!content || !convId || sending) return;
     setSending(true);
+
+    // Optimistic — show the message immediately
+    const optId = `_opt_${Date.now()}`;
+    const optimistic = {
+      id: optId,
+      message_type: 1,
+      content,
+      created_at: Math.floor(Date.now() / 1000),
+      sender: { name: 'Você' },
+    };
+    setMessages(prev => [...prev, optimistic]);
+    setReplyText('');
+
     try {
       await fetch(`${API_URL}/chatwoot/conversations/${convId}/reply`, {
         method: 'POST',
         headers: authHeaders(),
         body: JSON.stringify({ conversationId: convId, content }),
       });
-      setReplyText('');
       await fetchMessages(convId, true);
-    } catch {}
-    finally { setSending(false); }
+    } catch {
+      // Revert optimistic on failure
+      setMessages(prev => prev.filter(m => m.id !== optId));
+      setReplyText(content);
+    } finally {
+      setSending(false);
+    }
   };
 
   if (notFound) {

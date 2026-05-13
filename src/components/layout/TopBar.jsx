@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Bell, Menu, ShoppingBag, Package, X, CheckCheck } from 'lucide-react';
+import { Bell, Menu, ShoppingBag, Package, Megaphone, X, CheckCheck } from 'lucide-react';
 import { useOrdersContext } from '../../context/OrdersContext';
 import './TopBar.css';
 
@@ -60,7 +60,7 @@ export default function TopBar({ title, subtitle, onMenuClick, children }) {
                   {notifications.map(n => (
                     <div key={n.id} className={`topbar-notif-item topbar-notif-${n.type}`}>
                       <div className="topbar-notif-icon">
-                        {n.type === 'order' ? <ShoppingBag size={15} /> : <Package size={15} />}
+                        {n.type === 'order' ? <ShoppingBag size={15} /> : n.type === 'feedback' ? <Megaphone size={15} /> : <Package size={15} />}
                       </div>
                       <div className="topbar-notif-body">
                         <div className="topbar-notif-title">{n.title}</div>
