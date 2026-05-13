@@ -650,3 +650,80 @@
 
 .cat-action-btn.save { background: var(--accent); color: #1a1a2e; }
 .cat-action-btn.cancel { background: var(--bg-secondary); color: var(--text-secondary); }
+
+/* Aba Estoque */
+.stock-links-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.stock-link-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  font-size: 0.88rem;
+}
+
+.link-name {
+  flex: 1;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.link-unit {
+  color: var(--accent);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.link-available {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.stock-link-add {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 12px;
+  border-top: 1px solid var(--border-light);
+}
+
+.stock-link-add select {
+  flex: 1;
+  min-width: 180px;
+  padding: 10px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-size: 0.88rem;
+  font-family: inherit;
+}
+
+.link-qty-input {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.link-qty-input input {
+  padding: 8px 10px;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 10px;
+  color: var(--text-primary);
+  font-family: inherit;
+  text-align: center;
+}

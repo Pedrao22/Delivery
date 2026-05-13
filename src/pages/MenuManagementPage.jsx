@@ -1,21 +1,25 @@
-import { useState, useMemo } from 'react';
-import { 
-  Plus, 
-  Edit3, 
-  Trash2, 
-  Star, 
-  Save, 
-  LayoutGrid, 
-  X, 
-  ChevronRight, 
-  Search, 
-  Settings, 
-  Layers, 
+import { useState, useMemo, useEffect } from 'react';
+import {
+  Plus,
+  Edit3,
+  Trash2,
+  Star,
+  Save,
+  LayoutGrid,
+  X,
+  ChevronRight,
+  Search,
+  Settings,
+  Layers,
   CheckCircle2,
   AlertCircle,
-  Loader2
+  Loader2,
+  Package,
+  Link2,
+  Unlink
 } from 'lucide-react';
 import { useOrdersContext } from '../context/OrdersContext';
+import { apiFetch } from '../lib/supabase';
 import SearchInput from '../components/shared/SearchInput';
 import Button from '../components/shared/Button';
 import Badge from '../components/shared/Badge';
@@ -40,6 +44,14 @@ export default function MenuManagementPage() {
   const [newCatEmoji, setNewCatEmoji] = useState('📦');
   const [editingCatId, setEditingCatId] = useState(null);
   const [editCatData, setEditCatData] = useState({ nome: '', icone: '' });
+
+  // Estoque
+  const [inventoryItems, setInventoryItems] = useState([]);
+  const [productLinks, setProductLinks] = useState([]);
+  const [loadingLinks, setLoadingLinks] = useState(false);
+  const [newLinkEstoqueId, setNewLinkEstoqueId] = useState('');
+  const [newLinkQtd, setNewLinkQtd] = useState(1);
+  const [savingLink, setSavingLink] = useState(false);
 
   // Memoized Filtered List
   const filtered = useMemo(() => {
@@ -105,6 +117,48 @@ export default function MenuManagementPage() {
     if (!editCatData.nome.trim()) return;
     updateCategory(editingCatId, editCatData);
     setEditingCatId(null);
+  };
+
+  // Carrega itens de estoque disponíveis uma vez
+  useEffect(() => {
+    apiFetch('/inventory').then(r => { if (r?.success) setInventoryItems(r.data); }).catch(() => {});
+  }, []);
+
+  const handleOpenStockTab = async (produtoId) => {
+    if (!produtoId) return;
+    setLoadingLinks(true);
+    try {
+      const r = await apiFetch(`/inventory/product-links/${produtoId}`);
+      if (r?.success) setProductLinks(r.data);
+    } catch {}
+    finally { setLoadingLinks(false); }
+  };
+
+  const handleAddLink = async () => {
+    if (!newLinkEstoqueId || !editingItem?.id) return;
+    setSavingLink(true);
+    try {
+      const r = await apiFetch('/inventory/product-links', {
+        method: 'POST',
+        body: JSON.stringify({ produto_id: editingItem.id, estoque_id: newLinkEstoqueId, quantidade: newLinkQtd }),
+      });
+      if (r?.success) {
+        setProductLinks(prev => {
+          const sem = prev.filter(l => l.id !== r.data.id);
+          return [...sem, r.data];
+        });
+        setNewLinkEstoqueId('');
+        setNewLinkQtd(1);
+      }
+    } catch {}
+    finally { setSavingLink(false); }
+  };
+
+  const handleRemoveLink = async (linkId) => {
+    try {
+      await apiFetch(`/inventory/product-links/${linkId}`, { method: 'DELETE' });
+      setProductLinks(prev => prev.filter(l => l.id !== linkId));
+    } catch {}
   };
 
   return (
@@ -214,6 +268,10 @@ export default function MenuManagementPage() {
               <button className={activeTab === 'basic' ? 'active' : ''} onClick={() => setActiveTab('basic')}><Settings size={18} /> Básico</button>
               <button className={activeTab === 'variations' ? 'active' : ''} onClick={() => setActiveTab('variations')}><Layers size={18} /> Sabores/Tamanhos</button>
               <button className={activeTab === 'combo' ? 'active' : ''} onClick={() => setActiveTab('combo')}><LayoutGrid size={18} /> Combo Builder</button>
+              <button
+                className={activeTab === 'stock' ? 'active' : ''}
+                onClick={() => { setActiveTab('stock'); handleOpenStockTab(editingItem?.id); }}
+              ><Package size={18} /> Estoque</button>
             </div>
 
             <div className="editor-content">
@@ -290,6 +348,74 @@ export default function MenuManagementPage() {
                       <Plus size={16} /> Adicionar Variação/Sabor
                     </button>
                   </div>
+                </div>
+              )}
+
+              {activeTab === 'stock' && (
+                <div className="tab-pane animate-in">
+                  <div className="pane-header">
+                    <h4>Vínculos de Estoque</h4>
+                    <p>Defina quais itens de estoque são consumidos quando este produto é vendido.</p>
+                  </div>
+
+                  {!editingItem?.id ? (
+                    <div className="empty-tab-state">
+                      <Package size={32} />
+                      <p>Salve o produto antes de vincular estoque.</p>
+                    </div>
+                  ) : loadingLinks ? (
+                    <div className="menu-loading"><Loader2 className="animate-spin" /><span>Carregando...</span></div>
+                  ) : (
+                    <>
+                      <div className="stock-links-list">
+                        {productLinks.length === 0 && (
+                          <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', padding: '8px 0' }}>
+                            Nenhum vínculo configurado. Este produto não controla estoque.
+                          </p>
+                        )}
+                        {productLinks.map(link => (
+                          <div key={link.id} className="stock-link-row">
+                            <span className="link-name">{link.estoque?.nome}</span>
+                            <span className="link-unit">{link.quantidade} {link.estoque?.unidade}</span>
+                            <span className="link-available">Disponível: {link.estoque?.quantidade ?? '—'}</span>
+                            <button className="del-btn" onClick={() => handleRemoveLink(link.id)} title="Remover vínculo">
+                              <Unlink size={15} />
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="stock-link-add">
+                        <select value={newLinkEstoqueId} onChange={e => setNewLinkEstoqueId(e.target.value)}>
+                          <option value="">Selecione item de estoque...</option>
+                          {inventoryItems
+                            .filter(i => !productLinks.some(l => l.estoque?.id === i.id))
+                            .map(i => (
+                              <option key={i.id} value={i.id}>{i.nome} ({i.unidade})</option>
+                            ))}
+                        </select>
+                        <div className="link-qty-input">
+                          <span>Qtd/venda:</span>
+                          <input
+                            type="number"
+                            min="0.01"
+                            step="0.01"
+                            value={newLinkQtd}
+                            onChange={e => setNewLinkQtd(parseFloat(e.target.value) || 1)}
+                            style={{ width: '70px' }}
+                          />
+                        </div>
+                        <button
+                          className="add-dynamic-btn"
+                          onClick={handleAddLink}
+                          disabled={!newLinkEstoqueId || savingLink}
+                        >
+                          {savingLink ? <Loader2 size={15} className="animate-spin" /> : <Link2 size={15} />}
+                          Vincular
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               )}
 

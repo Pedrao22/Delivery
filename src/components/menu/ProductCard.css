@@ -238,3 +238,37 @@
   border: none;
   box-shadow: 0 2px 8px rgba(255,143,0,0.35);
 }
+
+/* Esgotado */
+.product-card-premium.esgotado,
+.product-card.compact.esgotado {
+  opacity: 0.6;
+  cursor: default;
+  pointer-events: auto;
+}
+
+.esgotado-overlay-badge {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+
+.esgotado-badge {
+  background: #ef4444;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
