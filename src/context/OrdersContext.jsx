@@ -799,10 +799,8 @@ export function OrdersProvider({ children }) {
             id: `feedback-${fb.id}`,
             type: 'feedback',
             resolved: fb.resolvido,
-            title: 'Retorno do suporte',
-            message: fb.resolvido
-              ? 'Sua sugestão foi marcada como resolvida.'
-              : 'Seu feedback foi analisado mas ainda não resolvido.',
+            title: fb.resolvido ? 'Feedback resolvido ✅' : 'Feedback não resolvido ❌',
+            message: (fb.mensagem || '').slice(0, 80) + ((fb.mensagem || '').length > 80 ? '...' : ''),
             timestamp: new Date(),
           })),
           ...prev,

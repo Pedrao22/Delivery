@@ -66,39 +66,22 @@ export default function TopBar({ title, subtitle, onMenuClick, children }) {
                       </div>
                       <div className="topbar-notif-body">
                         <div className="topbar-notif-title">{n.title}</div>
-
-                        {n.type === 'feedback' ? (
-                          <>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '4px 0' }}>
-                              <span style={{ fontSize: '0.72rem', color: 'var(--text-tertiary)', fontWeight: 600 }}>Resolvido?</span>
-                              <span style={{
-                                fontSize: '0.72rem', fontWeight: 800, padding: '2px 8px', borderRadius: 20,
-                                background: n.resolved ? 'rgba(0,184,148,0.15)' : 'rgba(229,57,53,0.12)',
-                                color: n.resolved ? 'var(--success, #00B894)' : 'var(--danger, #E53935)',
-                              }}>
-                                {n.resolved ? 'Sim' : 'Não'}
-                              </span>
-                            </div>
-                            {!n.resolved && (
-                              <button
-                                onClick={() => { dismissNotification(n.id); setBellOpen(false); navigate('/feedback'); }}
-                                style={{
-                                  display: 'inline-flex', alignItems: 'center', gap: 4,
-                                  marginTop: 4, padding: '3px 8px', borderRadius: 6,
-                                  border: '1px solid var(--border-light, #E9ECEF)',
-                                  background: 'transparent', cursor: 'pointer',
-                                  fontSize: '0.7rem', fontWeight: 700,
-                                  color: 'var(--accent, #FFC107)',
-                                }}
-                              >
-                                Enviar novamente →
-                              </button>
-                            )}
-                          </>
-                        ) : (
-                          <div className="topbar-notif-msg">{n.message}</div>
+                        <div className="topbar-notif-msg">{n.message}</div>
+                        {n.type === 'feedback' && !n.resolved && (
+                          <button
+                            onClick={() => { dismissNotification(n.id); setBellOpen(false); navigate('/feedback'); }}
+                            style={{
+                              display: 'inline-flex', alignItems: 'center', gap: 4,
+                              marginTop: 5, padding: '3px 8px', borderRadius: 6,
+                              border: '1px solid var(--border-light, #E9ECEF)',
+                              background: 'transparent', cursor: 'pointer',
+                              fontSize: '0.7rem', fontWeight: 700,
+                              color: 'var(--accent, #FFC107)',
+                            }}
+                          >
+                            Enviar novamente →
+                          </button>
                         )}
-
                         <div className="topbar-notif-time">
                           {n.timestamp.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
                         </div>
