@@ -458,9 +458,16 @@ export function OrdersProvider({ children }) {
   }, []);
 
   // PRODUCTS
+  const sanitizeProduct = (data) => {
+    // Strip fields not in the DB schema (e.g. combo builder config which has no column yet)
+    // eslint-disable-next-line no-unused-vars
+    const { config, id, ...rest } = data;
+    return rest;
+  };
+
   const addProduct = useCallback(async (data) => {
     try {
-      const r = await apiFetch('/menu/products', { method: 'POST', body: JSON.stringify(data) });
+      const r = await apiFetch('/menu/products', { method: 'POST', body: JSON.stringify(sanitizeProduct(data)) });
       const p = mapProduct(r.data);
       setProducts(prev => [...prev, p]);
       toast.success('Produto adicionado!');
@@ -473,7 +480,7 @@ export function OrdersProvider({ children }) {
     const payload = data !== undefined ? data : idOrItem;
     setProducts(prev => prev.map(x => x.id === id ? { ...x, ...payload } : x));
     try {
-      await apiFetch(`/menu/products/${id}`, { method: 'PUT', body: JSON.stringify(payload) });
+      await apiFetch(`/menu/products/${id}`, { method: 'PUT', body: JSON.stringify(sanitizeProduct(payload)) });
       toast.success('Produto atualizado!');
     } catch { refreshMenu(); toast.error('Erro ao salvar produto'); }
   }, []); // eslint-disable-line
