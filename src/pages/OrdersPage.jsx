@@ -35,7 +35,7 @@ export default function OrdersPage({ onMenuToggle }) {
   const printRef = useRef(false);
   const { items, total, count, addItem, removeItem, updateQty, clearCart } = useCart();
 
-  const printerEnabled = restaurantSettings?.printerEnabled ?? true;
+  const printerEnabled = restaurantSettings?.printerEnabled ?? false;
   const printerCopies  = Math.max(1, Math.min(3, restaurantSettings?.printerCopies || 1));
 
   // Auto-print when an order moves to production
