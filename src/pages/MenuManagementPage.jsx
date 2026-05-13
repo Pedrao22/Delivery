@@ -45,6 +45,9 @@ export default function MenuManagementPage() {
   const [editingCatId, setEditingCatId] = useState(null);
   const [editCatData, setEditCatData] = useState({ nome: '', icone: '' });
 
+  // Upload de imagem
+  const [uploadingImage, setUploadingImage] = useState(false);
+
   // Estoque
   const [inventoryItems, setInventoryItems] = useState([]);
   const [productLinks, setProductLinks] = useState([]);
@@ -117,6 +120,44 @@ export default function MenuManagementPage() {
     if (!editCatData.nome.trim()) return;
     updateCategory(editingCatId, editCatData);
     setEditingCatId(null);
+  };
+
+  const compressImage = (file) => new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const MAX = 900;
+        let { width, height } = img;
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
+          else { width = Math.round(width * MAX / height); height = MAX; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width; canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.80));
+      };
+      img.src = e.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
+  const handleImageUpload = async (file) => {
+    if (!file || !file.type.startsWith('image/')) return;
+    setUploadingImage(true);
+    try {
+      const base64 = await compressImage(file);
+      const res = await apiFetch('/menu/products/upload-image', {
+        method: 'POST',
+        body: JSON.stringify({ base64 }),
+      });
+      if (res?.success) setEditingItem(prev => ({ ...prev, imagem_url: res.url }));
+    } catch (err) {
+      alert('Erro ao fazer upload da imagem.');
+    } finally {
+      setUploadingImage(false);
+    }
   };
 
   // Carrega itens de estoque disponíveis uma vez
@@ -294,25 +335,53 @@ export default function MenuManagementPage() {
                   </div>
 
                   <div className="form-group">
-                    <label>Imagem do Produto (URL)</label>
-                    <div className="image-url-row">
-                      <input
-                        value={editingItem.imagem_url || ''}
-                        onChange={e => setEditingItem({...editingItem, imagem_url: e.target.value})}
-                        placeholder="https://images.unsplash.com/..."
-                        style={{ flex: 1 }}
-                      />
-                      {editingItem.imagem_url && (
-                        <button className="del-btn" onClick={() => setEditingItem({...editingItem, imagem_url: ''})} title="Remover imagem"><X size={15} /></button>
+                    <label>Foto do Produto</label>
+                    <div
+                      className={`product-upload-zone ${uploadingImage ? 'uploading' : ''}`}
+                      onClick={() => !uploadingImage && document.getElementById('product-img-input').click()}
+                      onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('drag-over'); }}
+                      onDragLeave={e => e.currentTarget.classList.remove('drag-over')}
+                      onDrop={e => {
+                        e.preventDefault();
+                        e.currentTarget.classList.remove('drag-over');
+                        const file = e.dataTransfer.files[0];
+                        if (file) handleImageUpload(file);
+                      }}
+                    >
+                      {uploadingImage ? (
+                        <div className="upload-zone-loading">
+                          <Loader2 size={28} className="animate-spin" />
+                          <span>Enviando...</span>
+                        </div>
+                      ) : editingItem.imagem_url ? (
+                        <div className="upload-zone-preview">
+                          <img src={editingItem.imagem_url} alt="preview" onError={e => { e.currentTarget.style.display = 'none'; }} />
+                          <div className="upload-zone-overlay">
+                            <span>Clique para trocar</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="upload-zone-empty">
+                          <div className="upload-zone-icon">🖼️</div>
+                          <span className="upload-zone-label">Clique ou arraste uma foto</span>
+                          <span className="upload-zone-hint">JPG, PNG ou WebP · máx 5 MB</span>
+                        </div>
                       )}
                     </div>
-                    {editingItem.imagem_url && (
-                      <img
-                        src={editingItem.imagem_url}
-                        alt="preview"
-                        className="image-preview"
-                        onError={e => { e.currentTarget.style.display = 'none'; }}
-                      />
+                    <input
+                      id="product-img-input"
+                      type="file"
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={e => { if (e.target.files[0]) handleImageUpload(e.target.files[0]); e.target.value = ''; }}
+                    />
+                    {editingItem.imagem_url && !uploadingImage && (
+                      <button
+                        className="remove-image-btn"
+                        onClick={() => setEditingItem({...editingItem, imagem_url: ''})}
+                      >
+                        <X size={13} /> Remover foto
+                      </button>
                     )}
                   </div>
 
