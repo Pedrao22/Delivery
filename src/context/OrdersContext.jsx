@@ -410,6 +410,7 @@ export function OrdersProvider({ children }) {
         type: orderData.type, payment: orderData.payment, customer: orderData.customer,
         obs: orderData.obs, table_id: orderData.table_id, discounts: orderData.discounts,
         delivery_fee: orderData.delivery_fee, coupon_used: orderData.couponUsed,
+        ...(orderData.chatwoot_conversation_id ? { chatwoot_conversation_id: orderData.chatwoot_conversation_id } : {}),
       }),
     });
     const newOrder = mapOrder(result.data);

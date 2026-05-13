@@ -138,7 +138,8 @@ export default function ChatPage() {
   };
 
   const handleConfirmOrder = async (orderData) => {
-    const newOrder = await addOrder(orderData);
+    // Passa o ID da conversa Chatwoot para vincular o pedido automaticamente
+    const newOrder = await addOrder({ ...orderData, chatwoot_conversation_id: selectedId ?? undefined });
     if (selectedId) {
       try {
         const summary = buildOrderSummary(newOrder, orderData, restaurantSettings);
