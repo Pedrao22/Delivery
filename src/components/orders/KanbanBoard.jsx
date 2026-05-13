@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { DndContext, closestCenter, PointerSensor, useSensor, useSensors, DragOverlay } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { CheckCheck, ArrowUpRight, Clock, Edit2, X, ToggleLeft, ToggleRight } from 'lucide-react';
+import { CheckCheck, Clock, Edit2, X, ToggleLeft, ToggleRight } from 'lucide-react';
 import OrderCard from './OrderCard';
 import OrderModal from './OrderModal';
 import EmptyState from '../shared/EmptyState';
@@ -124,12 +124,6 @@ export default function KanbanBoard({ orders, onMoveOrder, onFinalizeReady, onFi
 
   const activeOrder = activeId ? orders.find(o => o.id === activeId) : null;
 
-  // Stats
-  const totalRevenue = orders.reduce((s, o) => s + o.total, 0);
-  const deliveryCount = orders.filter(o => o.type === 'delivery').length;
-  const pickupCount = orders.filter(o => o.type === 'pickup').length;
-  const localCount = orders.filter(o => o.type === 'local').length;
-
   return (
     <DndContext
       sensors={sensors}
@@ -211,63 +205,6 @@ export default function KanbanBoard({ orders, onMoveOrder, onFinalizeReady, onFi
           );
         })}
 
-        {/* Stats Console (Now inside the board) */}
-        <div className="orders-stats-sidebar">
-          <div className="orders-stats-sidebar-title">Resumo do Dia</div>
-          
-          <div className="orders-stat-card">
-            <div className="orders-stat-icon" style={{ background: 'var(--accent-lighter)', color: 'var(--accent)' }}>
-              📦
-            </div>
-            <div className="orders-stat-info">
-              <div className="orders-stat-label">Total de Pedidos</div>
-              <div className="orders-stat-value">{orders.length}</div>
-            </div>
-          </div>
-          
-          <div className="orders-stat-card">
-            <div className="orders-stat-icon" style={{ background: 'var(--success-light)', color: 'var(--success)' }}>
-              💰
-            </div>
-            <div className="orders-stat-info">
-              <div className="orders-stat-label">Faturamento</div>
-              <div className="orders-stat-value">R$ {totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}</div>
-              <div className="orders-stat-change"><ArrowUpRight size={10} /> +12% hoje</div>
-            </div>
-          </div>
-          
-          <div className="orders-stats-divider">Breakdown</div>
-
-          <div className="orders-stat-card mini">
-            <div className="orders-stat-icon small" style={{ background: '#EBF5FF', color: '#2E86DE' }}>
-              🛵
-            </div>
-            <div className="orders-stat-info">
-              <div className="orders-stat-label">Delivery</div>
-              <div className="orders-stat-value">{deliveryCount}</div>
-            </div>
-          </div>
-          
-          <div className="orders-stat-card mini">
-            <div className="orders-stat-icon small" style={{ background: '#FFF3E0', color: '#E67E22' }}>
-              🏪
-            </div>
-            <div className="orders-stat-info">
-              <div className="orders-stat-label">Retirada</div>
-              <div className="orders-stat-value">{pickupCount}</div>
-            </div>
-          </div>
-          
-          <div className="orders-stat-card mini">
-            <div className="orders-stat-icon small" style={{ background: '#E8F5E9', color: '#27AE60' }}>
-              🍽️
-            </div>
-            <div className="orders-stat-info">
-              <div className="orders-stat-label">Local</div>
-              <div className="orders-stat-value">{localCount}</div>
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Dots indicadores — visíveis só no mobile */}
