@@ -56,11 +56,6 @@ export default function CustomerView({ ridOverride } = {}) {
   const [couponInput, setCouponInput] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
-  const [feedbackOpen, setFeedbackOpen] = useState(false);
-  const [feedbackTipo, setFeedbackTipo] = useState('sugestao');
-  const [feedbackMsg, setFeedbackMsg] = useState('');
-  const [feedbackSubmitting, setFeedbackSubmitting] = useState(false);
-  const [feedbackDone, setFeedbackDone] = useState(false);
 
   const handleApplyCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
@@ -592,12 +587,6 @@ export default function CustomerView({ ridOverride } = {}) {
             ))}
           </div>
         </section>
-        {/* Feedback link at bottom */}
-        <div className="cv-feedback-bar">
-          <button className="cv-feedback-btn" onClick={() => { setFeedbackDone(false); setFeedbackMsg(''); setFeedbackOpen(true); }}>
-            💬 Sugestões &amp; Bugs
-          </button>
-        </div>
       </main>
 
       {/* Premium Floating Cart — hidden when checkout modal is open */}
@@ -798,72 +787,6 @@ export default function CustomerView({ ridOverride } = {}) {
           )}
         </div>
       </Modal>
-      {/* Feedback Modal */}
-      {feedbackOpen && (
-        <div className="cv-feedback-overlay" onClick={() => setFeedbackOpen(false)}>
-          <div className="cv-feedback-modal" onClick={e => e.stopPropagation()}>
-            <div className="cv-feedback-header">
-              <span>💬 Sugestões &amp; Bugs</span>
-              <button onClick={() => setFeedbackOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1.1rem' }}>✕</button>
-            </div>
-            {feedbackDone ? (
-              <div className="cv-feedback-done">
-                <div style={{ fontSize: '2.5rem' }}>🎉</div>
-                <p>Obrigado pelo seu feedback!</p>
-                <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary, #666)' }}>Sua mensagem foi enviada com sucesso.</p>
-                <button className="cv-feedback-submit" style={{ marginTop: 12 }} onClick={() => setFeedbackOpen(false)}>Fechar</button>
-              </div>
-            ) : (
-              <div className="cv-feedback-body">
-                <div className="cv-feedback-tipo-row">
-                  <button
-                    className={`cv-feedback-tipo-btn${feedbackTipo === 'sugestao' ? ' active' : ''}`}
-                    onClick={() => setFeedbackTipo('sugestao')}
-                    style={feedbackTipo === 'sugestao' ? { borderColor: primaryColor, color: primaryColor } : {}}
-                  >
-                    💡 Sugestão
-                  </button>
-                  <button
-                    className={`cv-feedback-tipo-btn${feedbackTipo === 'bug' ? ' active' : ''}`}
-                    onClick={() => setFeedbackTipo('bug')}
-                    style={feedbackTipo === 'bug' ? { borderColor: '#e74c3c', color: '#e74c3c' } : {}}
-                  >
-                    🐛 Bug / Erro
-                  </button>
-                </div>
-                <textarea
-                  className="cv-feedback-textarea"
-                  placeholder={feedbackTipo === 'sugestao' ? 'Descreva sua sugestão...' : 'Descreva o erro encontrado...'}
-                  value={feedbackMsg}
-                  onChange={e => setFeedbackMsg(e.target.value)}
-                  rows={4}
-                />
-                <button
-                  className="cv-feedback-submit"
-                  style={{ backgroundColor: primaryColor }}
-                  disabled={!feedbackMsg.trim() || feedbackSubmitting}
-                  onClick={async () => {
-                    if (!feedbackMsg.trim()) return;
-                    setFeedbackSubmitting(true);
-                    try {
-                      const restauranteId = publicRestaurant?.id ?? restaurantSettings.id ?? null;
-                      await fetch(`${API_URL}/public/feedback`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ restaurante_id: restauranteId, tipo: feedbackTipo, mensagem: feedbackMsg.trim() }),
-                      });
-                      setFeedbackDone(true);
-                    } catch {}
-                    finally { setFeedbackSubmitting(false); }
-                  }}
-                >
-                  {feedbackSubmitting ? 'Enviando...' : 'Enviar'}
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
