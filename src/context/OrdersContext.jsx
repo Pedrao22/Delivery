@@ -798,10 +798,11 @@ export function OrdersProvider({ children }) {
           ...fresh.map(fb => ({
             id: `feedback-${fb.id}`,
             type: 'feedback',
-            title: fb.resolvido ? 'Feedback resolvido ✅' : 'Feedback analisado',
+            resolved: fb.resolvido,
+            title: 'Retorno do suporte',
             message: fb.resolvido
-              ? 'Sua sugestão foi marcada como resolvida pelo suporte.'
-              : 'Seu reporte foi analisado pela equipe.',
+              ? 'Sua sugestão foi marcada como resolvida.'
+              : 'Seu feedback foi analisado mas ainda não resolvido.',
             timestamp: new Date(),
           })),
           ...prev,
