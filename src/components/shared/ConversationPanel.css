@@ -32,6 +32,10 @@
   background: #f0f2f5;
 }
 
+[data-theme="dark"] .conv-messages {
+  background: #111111;
+}
+
 .conv-msg {
   display: flex;
   flex-direction: column;
@@ -68,6 +72,11 @@
   border-bottom-left-radius: 3px;
 }
 
+[data-theme="dark"] .conv-msg.incoming .conv-bubble {
+  background: #1e1e1e;
+  border-color: #2c2c2c;
+}
+
 .conv-msg-time {
   font-size: 0.68rem;
   color: var(--text-tertiary);
@@ -85,6 +94,11 @@
   border: 1px solid #cbd5e1;
   border-radius: var(--radius-full);
   max-width: 90%;
+}
+
+[data-theme="dark"] .conv-msg-activity {
+  background: #1a1a1a;
+  border-color: #2c2c2c;
 }
 
 .conv-activity-dot {
