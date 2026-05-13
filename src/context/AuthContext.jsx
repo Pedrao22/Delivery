@@ -92,6 +92,18 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   useEffect(() => {
+    const handler = () => {
+      clearSession();
+      setUser(null); setProfile(null); setRestaurant(null);
+      setImpersonatedId(null); setMaintenance(false);
+      localStorage.removeItem('pedirecebe_impersonate_id');
+      window.location.href = '/login';
+    };
+    window.addEventListener('auth:session-expired', handler);
+    return () => window.removeEventListener('auth:session-expired', handler);
+  }, []);
+
+  useEffect(() => {
     if (!user) return;
     const poll = async () => {
       try {

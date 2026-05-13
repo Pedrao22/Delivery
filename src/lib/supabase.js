@@ -78,6 +78,10 @@ export async function apiFetch(path, options = {}) {
 
   const data = await response.json();
   if (!response.ok) {
+    if (response.status === 401 && !options.skipAuth) {
+      clearSession();
+      window.dispatchEvent(new CustomEvent('auth:session-expired'));
+    }
     const err = new Error(data.message || 'Erro na requisição');
     err.status = response.status;
     throw err;
