@@ -19,6 +19,12 @@
   box-shadow: var(--shadow-sm);
 }
 
+[data-theme="dark"] .menu-header {
+  background: var(--surface);
+  border-color: var(--border-light);
+  box-shadow: var(--shadow-md);
+}
+
 .header-info h1 {
   font-size: 1.85rem;
   font-weight: 800;
