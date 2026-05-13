@@ -16,6 +16,7 @@ import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
 import LoyaltyPage from './pages/LoyaltyPage';
 import CouponsPage from './pages/CouponsPage';
+import RestaurantFeedbackPage from './pages/RestaurantFeedbackPage';
 import LoginPage from './pages/LoginPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 import OnboardingPage from './pages/OnboardingPage';
@@ -151,6 +152,7 @@ function AppContent() {
             </PageWrapper>
           } />
           <Route path="/cliente" element={<CustomerView />} />
+          <Route path="/feedback" element={<RestaurantFeedbackPage onMenuToggle={toggleSidebar} />} />
         </Routes>
       </main>
       <Toaster
