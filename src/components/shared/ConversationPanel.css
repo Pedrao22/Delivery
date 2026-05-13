@@ -165,3 +165,33 @@
 }
 .conv-send-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .conv-send-btn:not(:disabled):hover { opacity: 0.82; }
+
+.conv-load-more {
+  display: flex;
+  justify-content: center;
+  padding: 8px 0 4px;
+}
+
+.conv-load-more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border-light);
+  background: var(--bg-secondary);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+.conv-load-more-btn:hover:not(:disabled) {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.conv-load-more-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}

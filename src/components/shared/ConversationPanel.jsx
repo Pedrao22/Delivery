@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Loader2, MessageSquare } from 'lucide-react';
+import { Send, Loader2, MessageSquare, ChevronUp } from 'lucide-react';
 import { API_URL, getAuthHeaders } from '../../lib/supabase';
 const authHeaders = getAuthHeaders;
 import './ConversationPanel.css';
+
+const PAGE_SIZE = 20; // Chatwoot's default page size
 
 function timeAgo(dateStr) {
   if (!dateStr) return '';
@@ -42,7 +44,10 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const messagesEndRef = useRef(null);
+  const messagesTopRef = useRef(null);
   const convIdRef = useRef(convId);
   convIdRef.current = convId;
 
@@ -73,13 +78,45 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
     try {
       const res = await fetch(`${API_URL}/chatwoot/conversations/${id}/messages`, { headers: authHeaders() });
       const d = await res.json();
-      if (d?.success) setMessages(d.data ?? []);
+      if (d?.success) {
+        const msgs = d.data ?? [];
+        setMessages(msgs);
+        setHasMore(msgs.length >= PAGE_SIZE);
+      }
     } catch {}
     finally { if (!silent) setLoading(false); }
   };
 
+  const loadOlderMessages = async () => {
+    if (!convId || loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    const oldest = messages.reduce((min, m) =>
+      (m.id && m.id < (min ?? Infinity)) ? m.id : min, null);
+    try {
+      const url = `${API_URL}/chatwoot/conversations/${convId}/messages${oldest ? `?before=${oldest}` : ''}`;
+      const res = await fetch(url, { headers: authHeaders() });
+      const d = await res.json();
+      if (d?.success) {
+        const older = d.data ?? [];
+        setHasMore(older.length >= PAGE_SIZE);
+        if (older.length > 0) {
+          setMessages(prev => {
+            const existingIds = new Set(prev.map(m => m.id));
+            const newOnes = older.filter(m => !existingIds.has(m.id));
+            return [...newOnes, ...prev];
+          });
+          // Keep scroll position after prepend
+          setTimeout(() => messagesTopRef.current?.scrollIntoView({ block: 'start' }), 0);
+        }
+      }
+    } catch {}
+    finally { setLoadingMore(false); }
+  };
+
   useEffect(() => {
     if (!convId) return;
+    setMessages([]);
+    setHasMore(false);
     fetchMessages(convId);
   }, [convId]);
 
@@ -152,6 +189,21 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
   return (
     <div className="conv-panel">
       <div className="conv-messages">
+        {hasMore && (
+          <div className="conv-load-more">
+            <button
+              className="conv-load-more-btn"
+              onClick={loadOlderMessages}
+              disabled={loadingMore}
+            >
+              {loadingMore
+                ? <Loader2 size={13} className="animate-spin" />
+                : <ChevronUp size={13} />}
+              {loadingMore ? 'Carregando...' : 'Carregar mensagens anteriores'}
+            </button>
+          </div>
+        )}
+        <div ref={messagesTopRef} />
         {sorted.length === 0 && (
           <div className="conv-panel-empty" style={{ flex: 1 }}>
             <MessageSquare size={24} style={{ color: 'var(--text-tertiary)' }} />
