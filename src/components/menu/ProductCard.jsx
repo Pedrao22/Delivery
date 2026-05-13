@@ -7,12 +7,16 @@ export default function ProductCard({ product, onAdd, compact = false }) {
   const { restaurantSettings } = useOrdersContext();
   const primaryColor = restaurantSettings.primaryColor || '#e74c3c';
   const esgotado = !!product.estoque_esgotado;
+  const hasImage = !!product.imagem_url;
 
   if (compact) {
     return (
       <div className={`product-card compact ${esgotado ? 'esgotado' : ''}`} onClick={esgotado ? undefined : onAdd}>
         <div className="product-image-container">
-          <span className="product-emoji">{product.imagem_emoji}</span>
+          {hasImage
+            ? <img src={product.imagem_url} alt={product.nome} className="product-img" />
+            : <span className="product-emoji">{product.imagem_emoji}</span>
+          }
         </div>
         <div className="product-info-compact">
           <h3 className="product-name">{product.nome}</h3>
@@ -29,7 +33,10 @@ export default function ProductCard({ product, onAdd, compact = false }) {
   return (
     <div className={`product-card-premium ${esgotado ? 'esgotado' : ''}`} onClick={esgotado ? undefined : onAdd}>
       <div className="card-image-section">
-        <span className="card-emoji-large">{product.imagem_emoji}</span>
+        {hasImage
+          ? <img src={product.imagem_url} alt={product.nome} className="card-product-img" />
+          : <span className="card-emoji-large">{product.imagem_emoji}</span>
+        }
         {esgotado && <div className="esgotado-overlay-badge">Esgotado</div>}
         {!esgotado && product.bestseller && (
           <div className="bestseller-badge">
@@ -43,7 +50,6 @@ export default function ProductCard({ product, onAdd, compact = false }) {
           <h3 className="card-title">{product.nome}</h3>
           <p className="card-description">{product.descricao}</p>
         </div>
-
         <div className="card-footer-info">
           <span className="card-price-tag" style={{ color: esgotado ? 'var(--text-tertiary)' : primaryColor }}>
             R$ {parseFloat(product.preco || 0).toFixed(2).replace('.', ',')}

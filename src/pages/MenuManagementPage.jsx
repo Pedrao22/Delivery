@@ -293,6 +293,29 @@ export default function MenuManagementPage() {
                     <textarea value={editingItem.descricao} onChange={e => setEditingItem({...editingItem, descricao: e.target.value})} placeholder="Ingredientes e detalhes..." />
                   </div>
 
+                  <div className="form-group">
+                    <label>Imagem do Produto (URL)</label>
+                    <div className="image-url-row">
+                      <input
+                        value={editingItem.imagem_url || ''}
+                        onChange={e => setEditingItem({...editingItem, imagem_url: e.target.value})}
+                        placeholder="https://images.unsplash.com/..."
+                        style={{ flex: 1 }}
+                      />
+                      {editingItem.imagem_url && (
+                        <button className="del-btn" onClick={() => setEditingItem({...editingItem, imagem_url: ''})} title="Remover imagem"><X size={15} /></button>
+                      )}
+                    </div>
+                    {editingItem.imagem_url && (
+                      <img
+                        src={editingItem.imagem_url}
+                        alt="preview"
+                        className="image-preview"
+                        onError={e => { e.currentTarget.style.display = 'none'; }}
+                      />
+                    )}
+                  </div>
+
                   <div className="form-row">
                     <div className="form-group flex-1">
                       <label>Categoria Principal</label>
