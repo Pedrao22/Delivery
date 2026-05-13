@@ -83,10 +83,10 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
     fetchMessages(convId);
   }, [convId]);
 
-  // Auto-refresh every 8s
+  // Auto-refresh every 3s
   useEffect(() => {
     if (!convId) return;
-    const t = setInterval(() => fetchMessages(convIdRef.current, true), 4000);
+    const t = setInterval(() => fetchMessages(convIdRef.current, true), 3000);
     return () => clearInterval(t);
   }, [convId]);
 

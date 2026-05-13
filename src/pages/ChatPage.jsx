@@ -172,7 +172,11 @@ export default function ChatPage() {
     finally { setActionLoading(false); }
   };
 
-  useEffect(() => { fetchConversations(); }, []);
+  useEffect(() => {
+    fetchConversations();
+    // Auto-sync from Chatwoot on first load to ensure the list is current
+    fetch(`${API_URL}/chatwoot/sync`, { method: 'POST', headers: getAuthHeaders() }).catch(() => {});
+  }, []);
   useEffect(() => {
     const t = setInterval(() => fetchConversations(true), 5000);
     return () => clearInterval(t);
