@@ -73,14 +73,10 @@ function buildMapsUrl(origin, destination) {
   return `${base}&${params.toString()}`;
 }
 
-function buildWhatsAppUrl(phone, message) {
-  const cleaned = phone.replace(/\D/g, '');
-  const number = cleaned.startsWith('55') ? cleaned : `55${cleaned}`;
-  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
-}
-
 function AssignModal({ isOpen, onClose, driver, orders, onAssign, restaurantAddress }) {
   const [assigned, setAssigned] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
 
   if (!isOpen) return null;
   const readyOrders = (orders || []).filter(o => o.status === 'ready' && o.type !== 'local');
@@ -89,18 +85,35 @@ function AssignModal({ isOpen, onClose, driver, orders, onAssign, restaurantAddr
 
   const handleAssign = (order) => {
     onAssign(driver.id, order);
+    setSending(false);
+    setSent(false);
     setAssigned(order);
   };
 
-  const handleClose = () => { setAssigned(null); onClose(); };
+  const handleClose = () => { setAssigned(null); setSending(false); setSent(false); onClose(); };
 
   if (assigned) {
     const address     = assigned.customer?.address || assigned.endereco || '';
     const clientName  = assigned.cliente_nome || assigned.customer?.name || 'Cliente';
     const code        = `#${(assigned.id || '').slice(-4).toUpperCase()}`;
     const mapsUrl     = buildMapsUrl(restaurantAddress, address);
-    const waMessage   = `🛵 *Nova entrega, ${driverName}!*\n\n📦 Pedido: ${code}\n👤 Cliente: ${clientName}\n📍 Endereço: ${address}\n\n🗺️ Rota: ${mapsUrl}`;
-    const waUrl       = driverPhone ? buildWhatsAppUrl(driverPhone, waMessage) : null;
+    const chatMessage = `🛵 *Nova entrega, ${driverName}!*\n\n📦 Pedido: ${code}\n👤 Cliente: ${clientName}\n📍 Endereço: ${address}\n\n🗺️ Rota: ${mapsUrl}`;
+
+    const handleSendToDriver = async () => {
+      if (!driverPhone || sending || sent) return;
+      setSending(true);
+      try {
+        await apiFetch('/chatwoot/send-to-phone', {
+          method: 'POST',
+          body: JSON.stringify({ phone: driverPhone, name: driverName, message: chatMessage }),
+        });
+        setSent(true);
+      } catch {
+        // silent
+      } finally {
+        setSending(false);
+      }
+    };
 
     return (
       <div className="driver-modal-overlay">
@@ -124,19 +137,19 @@ function AssignModal({ isOpen, onClose, driver, orders, onAssign, restaurantAddr
               >
                 <MapPin size={15} /> Abrir Rota
               </a>
-              {waUrl && (
-                <a
+              {driverPhone && (
+                <button
                   className="assign-wa-btn"
-                  href={waUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
+                  onClick={handleSendToDriver}
+                  disabled={sending || sent}
                 >
-                  <MessageCircle size={15} /> Enviar ao Entregador
-                </a>
+                  <MessageCircle size={15} />
+                  {sent ? 'Enviado!' : sending ? 'Enviando...' : 'Enviar ao Entregador'}
+                </button>
               )}
             </div>
             {!driverPhone && (
-              <p className="assign-no-phone">Cadastre o telefone do entregador para enviar via WhatsApp</p>
+              <p className="assign-no-phone">Cadastre o telefone do entregador para enviar mensagem</p>
             )}
           </div>
         </div>

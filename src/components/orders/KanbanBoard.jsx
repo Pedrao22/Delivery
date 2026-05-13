@@ -5,6 +5,7 @@ import { CheckCheck, Clock, Edit2, X, ToggleLeft, ToggleRight } from 'lucide-rea
 import OrderCard from './OrderCard';
 import OrderModal from './OrderModal';
 import EmptyState from '../shared/EmptyState';
+import { apiFetch } from '../../lib/supabase';
 import './KanbanBoard.css';
 
 const columns = [
@@ -17,12 +18,6 @@ function buildMapsUrl(origin, destination) {
   const base = 'https://www.google.com/maps/dir/?api=1';
   const params = new URLSearchParams({ destination: destination || '', ...(origin ? { origin } : {}), travelmode: 'driving' });
   return `${base}&${params.toString()}`;
-}
-
-function buildWhatsAppUrl(phone, message) {
-  const cleaned = phone.replace(/\D/g, '');
-  const number = cleaned.startsWith('55') ? cleaned : `55${cleaned}`;
-  return `https://wa.me/${number}?text=${encodeURIComponent(message)}`;
 }
 
 export default function KanbanBoard({ orders, onMoveOrder, onFinalizeReady, onFinalizeOrder, drivers, onAssignDriver, restaurantAddress }) {
@@ -44,20 +39,24 @@ export default function KanbanBoard({ orders, onMoveOrder, onFinalizeReady, onFi
   }, []);
 
 
-  // Driver assignment — save + open WhatsApp to driver
-  const handleAssignDriver = (order, driver) => {
+  // Driver assignment — save + notify driver via Uply.chat
+  const handleAssignDriver = async (order, driver) => {
     onAssignDriver?.(order.id, driver);
     const driverPhone = driver.telefone || driver.phone || '';
     if (!driverPhone) return;
+    const driverName = driver.nome || driver.name || 'Entregador';
     const address = order.customer?.address || order.cliente_endereco || '';
     const clientName = order.cliente_nome || order.customer?.name || 'Cliente';
     const code = order.confirmCode || order.codigo || `#${(order.id || '').slice(-4).toUpperCase()}`;
     const mapsUrl = buildMapsUrl(restaurantAddress, address);
     const msg = `🛵 *Nova entrega!*\n\n📦 Pedido: ${code}\n👤 Cliente: ${clientName}\n📍 Endereço: ${address || '—'}\n\n🗺️ Rota: ${mapsUrl}`;
-    window.open(buildWhatsAppUrl(driverPhone, msg), '_blank');
+    apiFetch('/chatwoot/send-to-phone', {
+      method: 'POST',
+      body: JSON.stringify({ phone: driverPhone, name: driverName, message: msg }),
+    }).catch(() => {});
   };
 
-  // When finalizing a delivery order with an assigned driver, also send WA reminder
+  // When finalizing a delivery order with an assigned driver, also notify via Uply.chat
   const handleFinalizeOrder = (orderId) => {
     const order = orders.find(o => o.id === orderId);
     if (order && (order.type === 'delivery' || order.tipo === 'delivery') && order.entregadorTelefone) {
@@ -66,7 +65,10 @@ export default function KanbanBoard({ orders, onMoveOrder, onFinalizeReady, onFi
       const code = order.confirmCode || order.codigo || `#${(order.id || '').slice(-4).toUpperCase()}`;
       const mapsUrl = buildMapsUrl(restaurantAddress, address);
       const msg = `🟢 *Entrega liberada, ${order.entregadorNome}!*\n\n📦 Pedido: ${code}\n👤 Cliente: ${clientName}\n📍 Endereço: ${address || '—'}\n\n🗺️ Rota: ${mapsUrl}`;
-      window.open(buildWhatsAppUrl(order.entregadorTelefone, msg), '_blank');
+      apiFetch('/chatwoot/send-to-phone', {
+        method: 'POST',
+        body: JSON.stringify({ phone: order.entregadorTelefone, name: order.entregadorNome, message: msg }),
+      }).catch(() => {});
     }
     onFinalizeOrder(orderId);
   };
