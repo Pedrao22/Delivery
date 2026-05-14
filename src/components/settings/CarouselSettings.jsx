@@ -113,13 +113,14 @@ export default function CarouselSettings() {
     <div className="crs-wrap">
       <p className="crs-hint">
         As imagens aparecem em ordem no carrossel do cardápio do cliente.
-        Quando vazio, o carrossel usa automaticamente os produtos que têm foto.
+        Enquanto não houver imagens cadastradas, o carrossel não é exibido.
       </p>
 
       {images.length === 0 && !adding ? (
         <div className="crs-empty">
           <ImageIcon size={36} strokeWidth={1.5} />
           <p>Nenhuma imagem cadastrada ainda.</p>
+          <p style={{ fontSize: 'var(--font-xs)' }}>O carrossel não aparece no cardápio até você adicionar a primeira imagem.</p>
         </div>
       ) : (
         <div className="crs-list">

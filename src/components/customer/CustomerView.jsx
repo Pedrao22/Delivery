@@ -207,14 +207,10 @@ export default function CustomerView({ ridOverride } = {}) {
   const displayProducts = publicData?.produtos?.length > 0 ? publicData.produtos : (products?.length > 0 ? products : menuItems);
   const displayCategories = publicData?.categorias?.length > 0 ? publicData.categorias : (categories?.length > 0 ? categories : menuCategories);
 
-  // Carrossel: imagens configuradas pelo admin têm prioridade sobre fotos de produtos
-  const configuredSlides = (publicRestaurant?.carousel_images ?? restaurantSettings.carouselImages ?? [])
-    .filter(s => s?.url);
-  const carouselItems = configuredSlides.length > 0
-    ? configuredSlides.map(s => ({ id: s.id, url: s.url, titulo: s.titulo || '', price: null, product: null }))
-    : displayProducts
-        .filter(p => p.imagem_url && p.ativo !== false)
-        .map(p => ({ id: p.id, url: p.imagem_url, titulo: p.nome, price: p.preco, product: p }));
+  // Carrossel: apenas imagens configuradas pelo admin na aba Carrossel
+  const carouselItems = (publicRestaurant?.carousel_images ?? restaurantSettings.carouselImages ?? [])
+    .filter(s => s?.url)
+    .map(s => ({ id: s.id, url: s.url, titulo: s.titulo || '', price: null, product: null }));
 
   // Pre-fill form when customer logs in
   useEffect(() => {
