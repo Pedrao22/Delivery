@@ -1805,4 +1805,136 @@
   cursor: pointer;
   transition: opacity 0.15s;
 }
+
+/* ── Carousel ───────────────────────────────────────────── */
+.cv-carousel {
+  position: relative;
+  height: 210px;
+  margin: 16px 16px 0;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #e0e0e0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.cv-carousel-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  will-change: transform;
+}
+
+.cv-carousel-slide {
+  min-width: 100%;
+  height: 100%;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.cv-carousel-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.cv-carousel-caption {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 28px 16px 14px;
+  background: linear-gradient(to top, rgba(0,0,0,0.65) 0%, transparent 100%);
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cv-carousel-name {
+  color: #fff;
+  font-weight: 700;
+  font-size: 1rem;
+  text-shadow: 0 1px 4px rgba(0,0,0,0.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+.cv-carousel-price {
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.9rem;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(4px);
+  padding: 4px 10px;
+  border-radius: 20px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cv-carousel-btn {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(255,255,255,0.88);
+  backdrop-filter: blur(6px);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #222;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  line-height: 1;
+  padding: 0;
+  transition: background 0.15s, transform 0.15s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+}
+
+.cv-carousel-btn:hover { background: #fff; }
+.cv-carousel-btn:active { transform: translateY(-50%) scale(0.92); }
+.cv-carousel-prev { left: 10px; }
+.cv-carousel-next { right: 10px; }
+
+.cv-carousel-dots {
+  position: absolute;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 5px;
+  z-index: 10;
+}
+
+.cv-carousel-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 4px;
+  border: none;
+  background: rgba(255,255,255,0.5);
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.25s ease;
+}
+
+.cv-carousel-dot.active {
+  background: #fff;
+  width: 20px;
+}
+
+@media (max-width: 480px) {
+  .cv-carousel { height: 180px; margin: 12px 12px 0; }
+}
+
+@media (min-width: 768px) {
+  .cv-carousel { height: 260px; }
+}
 .cv-feedback-submit:disabled { opacity: 0.5; cursor: not-allowed; }

@@ -56,6 +56,7 @@ export default function CustomerView({ ridOverride } = {}) {
   const [couponInput, setCouponInput] = useState('');
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponError, setCouponError] = useState('');
+  const [carouselIdx, setCarouselIdx] = useState(0);
 
   const handleApplyCoupon = async () => {
     const code = couponInput.trim().toUpperCase();
@@ -206,6 +207,8 @@ export default function CustomerView({ ridOverride } = {}) {
   const displayProducts = publicData?.produtos?.length > 0 ? publicData.produtos : (products?.length > 0 ? products : menuItems);
   const displayCategories = publicData?.categorias?.length > 0 ? publicData.categorias : (categories?.length > 0 ? categories : menuCategories);
 
+  const carouselItems = displayProducts.filter(p => p.imagem_url && p.ativo !== false);
+
   // Pre-fill form when customer logs in
   useEffect(() => {
     if (customer) {
@@ -223,6 +226,13 @@ export default function CustomerView({ ridOverride } = {}) {
     if (activeOrderId) localStorage.setItem('pedirecebe_active_order_id', activeOrderId);
     else localStorage.removeItem('pedirecebe_active_order_id');
   }, [step, activeOrderId]);
+
+  // Carousel auto-slide
+  useEffect(() => {
+    if (carouselItems.length < 2) return;
+    const t = setInterval(() => setCarouselIdx(i => (i + 1) % carouselItems.length), 4000);
+    return () => clearInterval(t);
+  }, [carouselItems.length]);
 
   const trackingOrder = activeOrderId ? orders.find(o => o.id === activeOrderId) : null;
 
@@ -560,6 +570,47 @@ export default function CustomerView({ ridOverride } = {}) {
       </header>
 
       <main className="menu-inner">
+        {/* Carousel */}
+        {activeCategory === 'all' && !searchQuery && carouselItems.length >= 1 && (
+          <div className="cv-carousel">
+            <div
+              className="cv-carousel-track"
+              style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
+            >
+              {carouselItems.map(p => (
+                <div key={p.id} className="cv-carousel-slide" onClick={() => setSelectedProduct(p)}>
+                  <img src={p.imagem_url} alt={p.nome} />
+                  <div className="cv-carousel-caption">
+                    <span className="cv-carousel-name">{p.nome}</span>
+                    <span className="cv-carousel-price">R$ {parseFloat(p.preco || 0).toFixed(2).replace('.', ',')}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+            {carouselItems.length > 1 && (
+              <>
+                <button
+                  className="cv-carousel-btn cv-carousel-prev"
+                  onClick={e => { e.stopPropagation(); setCarouselIdx(i => (i - 1 + carouselItems.length) % carouselItems.length); }}
+                >‹</button>
+                <button
+                  className="cv-carousel-btn cv-carousel-next"
+                  onClick={e => { e.stopPropagation(); setCarouselIdx(i => (i + 1) % carouselItems.length); }}
+                >›</button>
+                <div className="cv-carousel-dots">
+                  {carouselItems.map((_, i) => (
+                    <button
+                      key={i}
+                      className={`cv-carousel-dot${i === carouselIdx ? ' active' : ''}`}
+                      onClick={e => { e.stopPropagation(); setCarouselIdx(i); }}
+                    />
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
         {/* Bestsellers Section */}
         {activeCategory === 'all' && !searchQuery && displayProducts.some(p => p.bestseller) && (
           <section className="menu-section">
