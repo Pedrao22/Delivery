@@ -40,7 +40,9 @@ export default function CustomerView({ ridOverride } = {}) {
 
   const [step, setStep] = useState(() => {
     if (ridOverride || new URLSearchParams(window.location.search).get('rid')) return 'menu';
-    return localStorage.getItem('pedirecebe_customer_step') || 'login';
+    // Admin preview: always start at menu (skip customer login screen)
+    const saved = localStorage.getItem('pedirecebe_customer_step');
+    return saved === 'tracking' ? 'tracking' : 'menu';
   });
   const [phone, setPhone] = useState('');
   const [customer, setCustomer] = useState(null);
