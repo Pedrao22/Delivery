@@ -1,8 +1,42 @@
-import { useState, useEffect } from 'react';
-import { X, Trash2, ShoppingBag } from 'lucide-react';
+import { useState, useEffect, useRef } from 'react';
+import { X, Trash2, ShoppingBag, MapPin, Loader2, AlertTriangle, CheckCircle } from 'lucide-react';
+import { apiFetch } from '../../lib/supabase';
 import Button from '../shared/Button';
 import EmptyState from '../shared/EmptyState';
 import './Cart.css';
+
+function useDeliveryFee(address, orderType) {
+  const [result, setResult] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const timerRef = useRef(null);
+
+  useEffect(() => {
+    if (orderType !== 'delivery' || !address || address.trim().length < 10) {
+      setResult(null);
+      return;
+    }
+
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(async () => {
+      setLoading(true);
+      try {
+        const d = await apiFetch('/delivery-zones/calculate', {
+          method: 'POST',
+          body: JSON.stringify({ address: address.trim() }),
+        });
+        setResult(d?.data ?? null);
+      } catch {
+        setResult(null);
+      } finally {
+        setLoading(false);
+      }
+    }, 700);
+
+    return () => clearTimeout(timerRef.current);
+  }, [address, orderType]);
+
+  return { result, loading };
+}
 
 export default function Cart({ items, total, count, onUpdateQty, onRemove, onClear, onConfirm, isOpen, onClose, initialCustomer }) {
   const [orderType, setOrderType] = useState('delivery');
@@ -11,6 +45,14 @@ export default function Cart({ items, total, count, onUpdateQty, onRemove, onCle
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [address, setAddress] = useState('');
+
+  const { result: feeResult, loading: feeLoading } = useDeliveryFee(address, orderType);
+
+  const deliveryFee = feeResult && !feeResult.error && !feeResult.out_of_range
+    ? Number(feeResult.fee)
+    : 0;
+
+  const grandTotal = total + deliveryFee;
 
   useEffect(() => {
     if (isOpen && initialCustomer) {
@@ -35,7 +77,9 @@ export default function Cart({ items, total, count, onUpdateQty, onRemove, onCle
         price: i.unitPrice,
         obs: i.obs || '',
       })),
-      total,
+      total: grandTotal,
+      subtotal: total,
+      delivery_fee: orderType === 'delivery' ? deliveryFee : 0,
       type: orderType,
       payment: payment === 'pix' ? 'Pix Online' : payment === 'card' ? 'Cartão de Crédito' : payment === 'cash' ? 'Dinheiro' : 'Pix Balcão',
       cashPaid: payment === 'cash' ? parseFloat(cashGiven) || 0 : undefined,
@@ -68,7 +112,6 @@ export default function Cart({ items, total, count, onUpdateQty, onRemove, onCle
           </button>
         </div>
 
-        {/* Single scrollable area: items + form */}
         <div className="cart-scroll">
           {items.length === 0 ? (
             <EmptyState icon="🛒" title="Carrinho vazio" description="Adicione itens do cardápio" />
@@ -126,13 +169,40 @@ export default function Cart({ items, total, count, onUpdateQty, onRemove, onCle
                 </div>
 
                 {orderType === 'delivery' && (
-                  <input
-                    className="cart-customer-input"
-                    type="text"
-                    placeholder="Endereço de entrega"
-                    value={address}
-                    onChange={e => setAddress(e.target.value)}
-                  />
+                  <>
+                    <input
+                      className="cart-customer-input"
+                      type="text"
+                      placeholder="Endereço de entrega (Rua, número, bairro, cidade)"
+                      value={address}
+                      onChange={e => setAddress(e.target.value)}
+                    />
+
+                    {/* Fee status */}
+                    {address.trim().length >= 10 && (
+                      <div className={`cart-fee-badge ${
+                        feeLoading ? 'loading' :
+                        feeResult?.error ? 'error' :
+                        feeResult?.out_of_range ? 'warn' :
+                        feeResult ? 'ok' : ''
+                      }`}>
+                        {feeLoading && <><Loader2 size={13} className="animate-spin" /> Calculando distância...</>}
+                        {!feeLoading && feeResult?.error && <><AlertTriangle size={13} /> {feeResult.error}</>}
+                        {!feeLoading && feeResult?.out_of_range && (
+                          <><AlertTriangle size={13} /> Fora da área de entrega ({feeResult.distance_km} km)</>
+                        )}
+                        {!feeLoading && feeResult && !feeResult.error && !feeResult.out_of_range && (
+                          <>
+                            <CheckCircle size={13} />
+                            <span><MapPin size={11} /> {feeResult.distance_km} km</span>
+                            <span className="cart-fee-sep">·</span>
+                            <span>Taxa: <strong>R$ {Number(feeResult.fee).toFixed(2).replace('.', ',')}</strong></span>
+                            {feeResult.zone?.label && <span className="cart-fee-zone">{feeResult.zone.label}</span>}
+                          </>
+                        )}
+                      </div>
+                    )}
+                  </>
                 )}
 
                 <select className="cart-payment-select" value={payment} onChange={(e) => setPayment(e.target.value)}>
@@ -162,15 +232,34 @@ export default function Cart({ items, total, count, onUpdateQty, onRemove, onCle
           )}
         </div>
 
-        {/* Sticky bottom: total + confirm */}
+        {/* Sticky bottom: totals + confirm */}
         {items.length > 0 && (
           <div className="cart-actions">
-            <div className="cart-total-row">
-              <span className="cart-total-label">Total</span>
-              <span className="cart-total-value">R$ {total.toFixed(2).replace('.', ',')}</span>
+            <div className="cart-total-rows">
+              <div className="cart-total-row sub">
+                <span className="cart-total-label">Subtotal</span>
+                <span className="cart-total-value-sub">R$ {total.toFixed(2).replace('.', ',')}</span>
+              </div>
+              {orderType === 'delivery' && deliveryFee > 0 && (
+                <div className="cart-total-row sub">
+                  <span className="cart-total-label">Taxa de entrega</span>
+                  <span className="cart-total-value-sub">R$ {deliveryFee.toFixed(2).replace('.', ',')}</span>
+                </div>
+              )}
+              <div className="cart-total-row">
+                <span className="cart-total-label">Total</span>
+                <span className="cart-total-value">R$ {grandTotal.toFixed(2).replace('.', ',')}</span>
+              </div>
             </div>
-            <Button fullWidth onClick={handleConfirm} icon={<ShoppingBag size={16} />}>
-              Confirmar Pedido
+            <Button
+              fullWidth
+              onClick={handleConfirm}
+              icon={<ShoppingBag size={16} />}
+              disabled={orderType === 'delivery' && feeResult?.out_of_range}
+            >
+              {orderType === 'delivery' && feeResult?.out_of_range
+                ? 'Fora da área de entrega'
+                : 'Confirmar Pedido'}
             </Button>
           </div>
         )}

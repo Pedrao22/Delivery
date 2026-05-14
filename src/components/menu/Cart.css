@@ -249,10 +249,45 @@
   outline: none;
 }
 
+/* Delivery fee badge */
+.cart-fee-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: var(--radius-md);
+  font-size: var(--font-xs);
+  font-weight: var(--fw-medium);
+  flex-wrap: wrap;
+}
+
+.cart-fee-badge.loading { background: var(--bg-secondary); color: var(--text-tertiary); }
+.cart-fee-badge.ok      { background: #f0fdf4; color: #15803d; }
+.cart-fee-badge.warn    { background: #fffbeb; color: #92400e; }
+.cart-fee-badge.error   { background: #fff1f1; color: #dc2626; }
+
+.cart-fee-sep  { color: var(--text-tertiary); margin: 0 2px; }
+.cart-fee-zone { font-style: italic; opacity: 0.8; }
+
+/* Total rows */
+.cart-total-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: var(--space-3);
+}
+
 .cart-total-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.cart-total-row.sub .cart-total-label,
+.cart-total-row.sub .cart-total-value-sub {
+  font-size: var(--font-sm);
+  color: var(--text-tertiary);
+  font-weight: var(--fw-medium);
 }
 
 .cart-total-label {
@@ -265,6 +300,12 @@
   font-size: var(--font-xl);
   font-weight: var(--fw-bold);
   color: var(--accent);
+}
+
+.cart-total-value-sub {
+  font-size: var(--font-sm);
+  font-weight: var(--fw-semibold);
+  color: var(--text-secondary);
 }
 
 @media (max-width: 480px) {

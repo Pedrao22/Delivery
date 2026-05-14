@@ -21,6 +21,7 @@ import { useOrdersContext } from '../context/OrdersContext';
 import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/supabase';
 import Button from '../components/shared/Button';
+import DeliveryZonesSettings from '../components/settings/DeliveryZonesSettings';
 import './SettingsPage.css';
 
 const tabs = [
@@ -515,6 +516,12 @@ export default function SettingsPage() {
                 <ShieldCheck size={20} color="var(--success)" />
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>As alterações de status são aplicadas instantaneamente em todos os canais de venda.</span>
               </div>
+
+              {/* Delivery Zones */}
+              <h3 className="settings-section-title" style={{ marginTop: 'var(--space-8)' }}>
+                <MapPin size={20} /> Zonas de Entrega
+              </h3>
+              <DeliveryZonesSettings />
             </div>
           )}
           {activeTab === 'security' && (
