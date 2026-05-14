@@ -152,9 +152,13 @@ export default function MenuManagementPage() {
         method: 'POST',
         body: JSON.stringify({ base64 }),
       });
-      if (res?.success) setEditingItem(prev => ({ ...prev, imagem_url: res.url }));
+      if (res?.url) {
+        setEditingItem(prev => ({ ...prev, imagem_url: res.url }));
+      } else {
+        alert('Erro ao fazer upload: ' + (res?.message || res?.error || 'resposta inválida do servidor'));
+      }
     } catch (err) {
-      alert('Erro ao fazer upload da imagem.');
+      alert('Erro ao fazer upload da imagem: ' + (err?.message || String(err)));
     } finally {
       setUploadingImage(false);
     }
