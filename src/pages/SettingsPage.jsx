@@ -5,7 +5,7 @@ import {
   Camera, Briefcase, Bell, QrCode, Wallet, Info,
   Sparkles, ShieldCheck, Zap, DollarSign,
   Lock, Eye, EyeOff, KeyRound, Copy, ExternalLink, ToggleLeft, ToggleRight,
-  Printer
+  Printer, Truck
 } from 'lucide-react';
 
 const DIAS_SEMANA = [
@@ -25,11 +25,12 @@ import DeliveryZonesSettings from '../components/settings/DeliveryZonesSettings'
 import './SettingsPage.css';
 
 const tabs = [
-  { id: 'general', label: 'Informações Gerais', icon: Building2 },
-  { id: 'payments', label: 'Pagamentos', icon: CreditCard },
-  { id: 'branding', label: 'Identidade Visual', icon: Palette },
-  { id: 'ops', label: 'Operacional', icon: Clock },
-  { id: 'security', label: 'Segurança', icon: Lock },
+  { id: 'general',  label: 'Informações Gerais',  icon: Building2 },
+  { id: 'payments', label: 'Pagamentos',           icon: CreditCard },
+  { id: 'branding', label: 'Identidade Visual',    icon: Palette },
+  { id: 'ops',      label: 'Operacional',          icon: Clock },
+  { id: 'delivery', label: 'Entrega',              icon: Truck },
+  { id: 'security', label: 'Segurança',            icon: Lock },
 ];
 
 export default function SettingsPage() {
@@ -517,10 +518,11 @@ export default function SettingsPage() {
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-tertiary)' }}>As alterações de status são aplicadas instantaneamente em todos os canais de venda.</span>
               </div>
 
-              {/* Delivery Zones */}
-              <h3 className="settings-section-title" style={{ marginTop: 'var(--space-8)' }}>
-                <MapPin size={20} /> Zonas de Entrega
-              </h3>
+            </div>
+          )}
+          {activeTab === 'delivery' && (
+            <div style={{ animation: 'fadeIn 0.3s ease' }}>
+              <h3 className="settings-section-title"><Truck size={20} /> Entrega</h3>
               <DeliveryZonesSettings />
             </div>
           )}
