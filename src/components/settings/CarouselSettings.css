@@ -26,11 +26,9 @@
   text-align: center;
 }
 
-.crs-empty p {
-  font-size: var(--font-sm);
-  margin: 0;
-}
+.crs-empty p { font-size: var(--font-sm); margin: 0; }
 
+/* ── Slide list ─────────────────────────────────────────── */
 .crs-list {
   display: flex;
   flex-direction: column;
@@ -48,13 +46,11 @@
   transition: box-shadow var(--transition-fast);
 }
 
-.crs-item:hover {
-  box-shadow: var(--shadow-sm);
-}
+.crs-item:hover { box-shadow: var(--shadow-sm); }
 
 .crs-thumb {
-  width: 96px;
-  height: 60px;
+  width: 100px;
+  height: 64px;
   border-radius: var(--radius-sm);
   overflow: hidden;
   flex-shrink: 0;
@@ -121,18 +117,15 @@
   color: var(--accent);
 }
 
-.crs-order-btn:disabled {
-  opacity: 0.35;
-  cursor: not-allowed;
-}
+.crs-order-btn:disabled { opacity: 0.35; cursor: not-allowed; }
 
 .crs-remove-btn {
   width: 30px;
   height: 30px;
   border-radius: var(--radius-sm);
-  border: 1px solid var(--error-light, #fecaca);
-  background: var(--error-lighter, #fff1f1);
-  color: var(--error, #dc2626);
+  border: 1px solid #fecaca;
+  background: #fff1f1;
+  color: #dc2626;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -141,12 +134,9 @@
   margin-left: var(--space-1);
 }
 
-.crs-remove-btn:hover {
-  background: var(--error, #dc2626);
-  color: #fff;
-}
+.crs-remove-btn:hover { background: #dc2626; color: #fff; }
 
-/* Add form */
+/* ── Add form ───────────────────────────────────────────── */
 .crs-form {
   display: flex;
   flex-direction: column;
@@ -157,12 +147,114 @@
   border: 1px solid var(--border-light);
 }
 
-.crs-form-fields {
+/* Drop zone */
+.crs-drop-zone {
+  height: 180px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  background: var(--surface);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s, background 0.2s;
+  overflow: hidden;
+  position: relative;
+}
+
+.crs-drop-zone:hover,
+.crs-drop-zone.drag-over {
+  border-color: var(--accent);
+  background: var(--accent-lighter, #fff0f0);
+}
+
+.crs-drop-zone.uploading {
+  cursor: wait;
+  opacity: 0.75;
+}
+
+.crs-drop-zone.has-image {
+  border-style: solid;
+  border-color: var(--accent);
+}
+
+.crs-dz-content {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--text-tertiary);
+  text-align: center;
+  padding: var(--space-4);
+  pointer-events: none;
+}
+
+.crs-dz-content strong {
+  font-size: var(--font-sm);
+  color: var(--text-secondary);
+}
+
+.crs-dz-content span {
+  font-size: var(--font-xs);
+}
+
+.crs-spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Preview inside drop zone */
+.crs-dz-preview {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.crs-dz-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.crs-dz-preview-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  color: #fff;
+  font-size: var(--font-sm);
+  font-weight: var(--fw-semibold);
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.crs-drop-zone:hover .crs-dz-preview-overlay {
+  opacity: 1;
+}
+
+/* URL fallback row */
+.crs-url-row {
+  display: flex;
+  align-items: center;
   gap: var(--space-2);
 }
 
+.crs-url-icon {
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+
+.crs-url-input {
+  flex: 1;
+}
+
+/* Generic input */
 .crs-input {
   width: 100%;
   height: 40px;
@@ -178,33 +270,18 @@
   box-sizing: border-box;
 }
 
-.crs-input:focus {
-  border-color: var(--accent);
-}
+.crs-input:focus { border-color: var(--accent); }
 
-.crs-preview-box {
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  max-height: 200px;
-  background: var(--bg-tertiary, #e5e5e5);
-}
-
-.crs-preview-box img {
-  width: 100%;
-  max-height: 200px;
-  object-fit: cover;
-  display: block;
-}
-
+/* Preview error */
 .crs-preview-error {
   display: flex;
   align-items: center;
   gap: var(--space-2);
-  padding: var(--space-4);
-  color: var(--error, #dc2626);
-  font-size: var(--font-sm);
+  font-size: var(--font-xs);
+  color: #dc2626;
 }
 
+/* Form buttons */
 .crs-form-btns {
   display: flex;
   align-items: center;
@@ -221,6 +298,4 @@
   font-family: inherit;
 }
 
-.crs-cancel-btn:hover {
-  color: var(--text-primary);
-}
+.crs-cancel-btn:hover { color: var(--text-primary); }
