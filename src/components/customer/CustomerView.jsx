@@ -207,7 +207,14 @@ export default function CustomerView({ ridOverride } = {}) {
   const displayProducts = publicData?.produtos?.length > 0 ? publicData.produtos : (products?.length > 0 ? products : menuItems);
   const displayCategories = publicData?.categorias?.length > 0 ? publicData.categorias : (categories?.length > 0 ? categories : menuCategories);
 
-  const carouselItems = displayProducts.filter(p => p.imagem_url && p.ativo !== false);
+  // Carrossel: imagens configuradas pelo admin têm prioridade sobre fotos de produtos
+  const configuredSlides = (publicRestaurant?.carousel_images ?? restaurantSettings.carouselImages ?? [])
+    .filter(s => s?.url);
+  const carouselItems = configuredSlides.length > 0
+    ? configuredSlides.map(s => ({ id: s.id, url: s.url, titulo: s.titulo || '', price: null, product: null }))
+    : displayProducts
+        .filter(p => p.imagem_url && p.ativo !== false)
+        .map(p => ({ id: p.id, url: p.imagem_url, titulo: p.nome, price: p.preco, product: p }));
 
   // Pre-fill form when customer logs in
   useEffect(() => {
@@ -577,13 +584,22 @@ export default function CustomerView({ ridOverride } = {}) {
               className="cv-carousel-track"
               style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
             >
-              {carouselItems.map(p => (
-                <div key={p.id} className="cv-carousel-slide" onClick={() => setSelectedProduct(p)}>
-                  <img src={p.imagem_url} alt={p.nome} />
-                  <div className="cv-carousel-caption">
-                    <span className="cv-carousel-name">{p.nome}</span>
-                    <span className="cv-carousel-price">R$ {parseFloat(p.preco || 0).toFixed(2).replace('.', ',')}</span>
-                  </div>
+              {carouselItems.map(slide => (
+                <div
+                  key={slide.id}
+                  className="cv-carousel-slide"
+                  onClick={() => slide.product && setSelectedProduct(slide.product)}
+                  style={{ cursor: slide.product ? 'pointer' : 'default' }}
+                >
+                  <img src={slide.url} alt={slide.titulo} />
+                  {(slide.titulo || slide.price !== null) && (
+                    <div className="cv-carousel-caption">
+                      {slide.titulo && <span className="cv-carousel-name">{slide.titulo}</span>}
+                      {slide.price !== null && (
+                        <span className="cv-carousel-price">R$ {parseFloat(slide.price || 0).toFixed(2).replace('.', ',')}</span>
+                      )}
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

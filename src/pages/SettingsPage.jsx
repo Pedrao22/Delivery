@@ -5,7 +5,7 @@ import {
   Camera, Briefcase, Bell, QrCode, Wallet, Info,
   Sparkles, ShieldCheck, Zap, DollarSign,
   Lock, Eye, EyeOff, KeyRound, Copy, ExternalLink, ToggleLeft, ToggleRight,
-  Printer, Truck
+  Printer, Truck, Images
 } from 'lucide-react';
 
 const DIAS_SEMANA = [
@@ -22,6 +22,7 @@ import { useAuth } from '../context/AuthContext';
 import { apiFetch } from '../lib/supabase';
 import Button from '../components/shared/Button';
 import DeliveryZonesSettings from '../components/settings/DeliveryZonesSettings';
+import CarouselSettings from '../components/settings/CarouselSettings';
 import './SettingsPage.css';
 
 const tabs = [
@@ -30,6 +31,7 @@ const tabs = [
   { id: 'branding', label: 'Identidade Visual',    icon: Palette },
   { id: 'ops',      label: 'Operacional',          icon: Clock },
   { id: 'delivery', label: 'Entrega',              icon: Truck },
+  { id: 'carousel', label: 'Carrossel',            icon: Images },
   { id: 'security', label: 'Segurança',            icon: Lock },
 ];
 
@@ -524,6 +526,12 @@ export default function SettingsPage() {
             <div style={{ animation: 'fadeIn 0.3s ease' }}>
               <h3 className="settings-section-title"><Truck size={20} /> Entrega</h3>
               <DeliveryZonesSettings />
+            </div>
+          )}
+          {activeTab === 'carousel' && (
+            <div style={{ animation: 'fadeIn 0.3s ease' }}>
+              <h3 className="settings-section-title"><Images size={20} /> Carrossel do Cardápio</h3>
+              <CarouselSettings />
             </div>
           )}
           {activeTab === 'security' && (

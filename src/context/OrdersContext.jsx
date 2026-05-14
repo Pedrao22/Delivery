@@ -371,6 +371,7 @@ export function OrdersProvider({ children }) {
         slug: d.slug || null,
         pedidoProximoNumero: d.pedido_proximo_numero ?? 1,
         horarios: d.horarios || DEFAULT_HORARIOS,
+        carouselImages: d.carousel_images || [],
         chatwootInboxId: d.chatwoot_inbox_id ?? null,
       });
     } catch (err) { console.warn('Erro ao carregar configurações:', err); }
@@ -683,6 +684,7 @@ export function OrdersProvider({ children }) {
           cnpj: data.cnpj, email: data.email, telefone: data.telefone, endereco: data.endereco,
           slug: data.slug, pedido_proximo_numero: data.pedidoProximoNumero ? parseInt(data.pedidoProximoNumero, 10) : undefined,
           horarios: data.horarios || undefined,
+          carousel_images: data.carouselImages !== undefined ? data.carouselImages : undefined,
         }),
       });
       toast.success('Configurações salvas!');
