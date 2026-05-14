@@ -1,7 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { Send, Loader2, MessageSquare, ChevronUp } from 'lucide-react';
-import { API_URL, getAuthHeaders } from '../../lib/supabase';
-const authHeaders = getAuthHeaders;
+import { apiFetch, API_URL, getAuthHeaders } from '../../lib/supabase';
 import './ConversationPanel.css';
 
 const PAGE_SIZE = 20; // Chatwoot's default page size
@@ -57,12 +56,9 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
     if (!phone) { setLoading(false); setNotFound(true); return; }
 
     const normalized = phone.replace(/\D/g, '');
-    fetch(`${API_URL}/chatwoot/by-phone/${encodeURIComponent(normalized)}`, {
-      headers: authHeaders(),
-    })
-      .then(r => r.json())
+    apiFetch(`/chatwoot/by-phone/${encodeURIComponent(normalized)}`)
       .then(d => {
-        if (d?.success && d.data?.id) {
+        if (d?.data?.id) {
           setConvId(d.data.id);
         } else {
           setNotFound(true);
@@ -76,13 +72,10 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
     if (!id) return;
     if (!silent) setLoading(true);
     try {
-      const res = await fetch(`${API_URL}/chatwoot/conversations/${id}/messages`, { headers: authHeaders() });
-      const d = await res.json();
-      if (d?.success) {
-        const msgs = d.data ?? [];
-        setMessages(msgs);
-        setHasMore(msgs.length >= PAGE_SIZE);
-      }
+      const d = await apiFetch(`/chatwoot/conversations/${id}/messages`);
+      const msgs = d?.data ?? [];
+      setMessages(msgs);
+      setHasMore(msgs.length >= PAGE_SIZE);
     } catch {}
     finally { if (!silent) setLoading(false); }
   };
@@ -93,21 +86,17 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
     const oldest = messages.reduce((min, m) =>
       (m.id && m.id < (min ?? Infinity)) ? m.id : min, null);
     try {
-      const url = `${API_URL}/chatwoot/conversations/${convId}/messages${oldest ? `?before=${oldest}` : ''}`;
-      const res = await fetch(url, { headers: authHeaders() });
-      const d = await res.json();
-      if (d?.success) {
-        const older = d.data ?? [];
-        setHasMore(older.length >= PAGE_SIZE);
-        if (older.length > 0) {
-          setMessages(prev => {
-            const existingIds = new Set(prev.map(m => m.id));
-            const newOnes = older.filter(m => !existingIds.has(m.id));
-            return [...newOnes, ...prev];
-          });
-          // Keep scroll position after prepend
-          setTimeout(() => messagesTopRef.current?.scrollIntoView({ block: 'start' }), 0);
-        }
+      const suffix = oldest ? `?before=${oldest}` : '';
+      const d = await apiFetch(`/chatwoot/conversations/${convId}/messages${suffix}`);
+      const older = d?.data ?? [];
+      setHasMore(older.length >= PAGE_SIZE);
+      if (older.length > 0) {
+        setMessages(prev => {
+          const existingIds = new Set(prev.map(m => m.id));
+          const newOnes = older.filter(m => !existingIds.has(m.id));
+          return [...newOnes, ...prev];
+        });
+        setTimeout(() => messagesTopRef.current?.scrollIntoView({ block: 'start' }), 0);
       }
     } catch {}
     finally { setLoadingMore(false); }
@@ -149,9 +138,8 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
     setReplyText('');
 
     try {
-      await fetch(`${API_URL}/chatwoot/conversations/${convId}/reply`, {
+      await apiFetch(`/chatwoot/conversations/${convId}/reply`, {
         method: 'POST',
-        headers: authHeaders(),
         body: JSON.stringify({ conversationId: convId, content }),
       });
       await fetchMessages(convId, true);

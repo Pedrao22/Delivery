@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { MessageSquare, RefreshCw, ExternalLink, Loader2, User, RefreshCcw, Search, CheckCircle, XCircle, ShoppingCart } from 'lucide-react';
-import { API_URL, getAuthHeaders } from '../lib/supabase';
+import { API_URL, apiFetch, getAuthHeaders } from '../lib/supabase';
 import { useOrdersContext } from '../context/OrdersContext';
 import { useCart } from '../hooks/useCart';
 import ConversationPanel from '../components/shared/ConversationPanel';
@@ -113,9 +113,8 @@ export default function ChatPage() {
   const fetchConversations = async (silent = false) => {
     if (!silent) setLoadingConvs(true);
     try {
-      const res = await fetch(`${API_URL}/chatwoot/conversations`, { headers: getAuthHeaders() });
-      const d = await res.json();
-      if (d?.success) setConversations(d.data ?? []);
+      const d = await apiFetch('/chatwoot/conversations');
+      setConversations(d?.data ?? d ?? []);
     } catch {}
     finally { if (!silent) setLoadingConvs(false); }
   };
@@ -124,8 +123,7 @@ export default function ChatPage() {
     setSyncing(true);
     setSyncMsg(null);
     try {
-      const res = await fetch(`${API_URL}/chatwoot/sync`, { method: 'POST', headers: getAuthHeaders() });
-      const d = await res.json();
+      const d = await apiFetch('/chatwoot/sync', { method: 'POST' });
       const count = d?.synced ?? 0;
       setSyncMsg(count > 0 ? `${count} sincronizada(s)` : 'Nenhuma nova');
       await fetchConversations(true);
@@ -159,12 +157,10 @@ export default function ChatPage() {
   const handleStatusChange = async (convId, newStatus) => {
     setActionLoading(true);
     try {
-      await fetch(`${API_URL}/chatwoot/conversations/${convId}/status`, {
+      await apiFetch(`/chatwoot/conversations/${convId}/status`, {
         method: 'POST',
-        headers: getAuthHeaders(),
         body: JSON.stringify({ status: newStatus }),
       });
-      // Optimistic update
       setConversations(prev =>
         prev.map(c => c.id === convId ? { ...c, status: newStatus } : c)
       );
@@ -175,8 +171,7 @@ export default function ChatPage() {
 
   useEffect(() => {
     fetchConversations();
-    // Auto-sync from Chatwoot on first load to ensure the list is current
-    fetch(`${API_URL}/chatwoot/sync`, { method: 'POST', headers: getAuthHeaders() }).catch(() => {});
+    apiFetch('/chatwoot/sync', { method: 'POST' }).catch(() => {});
   }, []);
   useEffect(() => {
     const t = setInterval(() => fetchConversations(true), 5000);
