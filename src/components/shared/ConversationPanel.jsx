@@ -170,9 +170,9 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
     );
   }
 
-  const sorted = [...messages].sort((a, b) =>
-    new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
-  );
+  // created_at do Chatwoot é Unix timestamp em segundos (inteiro)
+  const toMs = (v) => typeof v === 'number' ? v * 1000 : new Date(v).getTime();
+  const sorted = [...messages].sort((a, b) => toMs(a.created_at) - toMs(b.created_at));
 
   return (
     <div className="conv-panel">
