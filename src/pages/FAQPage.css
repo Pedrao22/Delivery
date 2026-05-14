@@ -1,6 +1,4 @@
 .faq-page {
-  max-width: 780px;
-  margin: 0 auto;
   padding: var(--space-5);
   animation: fadeIn 300ms ease;
 }

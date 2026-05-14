@@ -14,6 +14,7 @@ const navItems = [
   { to: '/pdv',          icon: Monitor,         label: 'PDV / Caixa',   section: 'main' },
   { to: '/mesas',        icon: Map,             label: 'Mesas',         section: 'main' },
   { to: '/atendimento',  icon: MessageSquare,   label: 'Atendimento',   section: 'main' },
+  { to: '/faq',          icon: HelpCircle,      label: 'Ajuda / FAQ',   section: 'main' },
   { to: '/estoque',      icon: Package,         label: 'Estoque',       section: 'gestao' },
   { to: '/entregas',     icon: Truck,           label: 'Entregas',      section: 'gestao' },
   { to: '/financeiro',   icon: DollarSign,      label: 'Financeiro',    section: 'gestao' },
@@ -22,7 +23,6 @@ const navItems = [
   { to: '/configuracoes',icon: Settings,        label: 'Configurações', section: 'extra' },
   { to: '/cliente',      icon: User,            label: 'Visão Cliente', section: 'extra' },
   { to: '/feedback',     icon: Megaphone,       label: 'Feedback',      section: 'extra' },
-  { to: '/faq',          icon: HelpCircle,      label: 'Ajuda / FAQ',   section: 'extra' },
 ];
 
 export default function Sidebar({ isOpen, onToggle, orderCount, isDark, onToggleTheme }) {
