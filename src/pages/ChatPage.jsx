@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { MessageSquare, RefreshCw, ExternalLink, Loader2, User, RefreshCcw, Search, CheckCircle, XCircle, ShoppingCart } from 'lucide-react';
+import { MessageSquare, RefreshCw, Loader2, User, RefreshCcw, Search, CheckCircle, XCircle, ShoppingCart } from 'lucide-react';
 import { API_URL, apiFetch, getAuthHeaders } from '../lib/supabase';
 import { useOrdersContext } from '../context/OrdersContext';
 import { useCart } from '../hooks/useCart';
@@ -10,8 +10,6 @@ import Modal from '../components/shared/Modal';
 import Button from '../components/shared/Button';
 import './ChatPage.css';
 
-const CHATWOOT_URL = 'https://app.uply.chat';
-const ACCOUNT_ID = '12113';
 
 const TYPE_LABEL = { delivery: '🛵 Delivery', pickup: '🏪 Retirada', local: '🍽️ Local' };
 
@@ -221,9 +219,6 @@ export default function ChatPage() {
             <button className="chat-icon-btn" onClick={() => fetchConversations()} title="Atualizar">
               <RefreshCw size={14} className={loadingConvs ? 'animate-spin' : ''} />
             </button>
-            <a href={CHATWOOT_URL} target="_blank" rel="noopener noreferrer" className="chat-icon-btn" title="Abrir Chatwoot">
-              <ExternalLink size={14} />
-            </a>
           </div>
         </div>
 
@@ -388,15 +383,6 @@ export default function ChatPage() {
                     Reabrir
                   </button>
                 )}
-                <a
-                  href={`${CHATWOOT_URL}/app/accounts/${ACCOUNT_ID}/conversations/${selectedId}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="chat-icon-btn"
-                  title="Abrir no Chatwoot"
-                >
-                  <ExternalLink size={14} />
-                </a>
               </div>
             </div>
 
