@@ -49,6 +49,9 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
   const messagesTopRef = useRef(null);
   const convIdRef = useRef(convId);
   convIdRef.current = convId;
+  // Track whether user is at the bottom so auto-refresh doesn't interrupt scrolling up
+  const atBottomRef = useRef(true);
+  const containerRef = useRef(null);
 
   // If phone provided, look up conversation ID first
   useEffect(() => {
@@ -73,9 +76,19 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
     if (!silent) setLoading(true);
     try {
       const d = await apiFetch(`/chatwoot/conversations/${id}/messages`);
-      const msgs = d?.data ?? [];
-      setMessages(msgs);
-      setHasMore(msgs.length >= PAGE_SIZE);
+      const incoming = d?.data ?? [];
+      setHasMore(incoming.length >= PAGE_SIZE);
+      setMessages(prev => {
+        if (!silent) return incoming; // carga inicial: substitui tudo
+        // Refresh silencioso: preserva mensagens otimistas (_opt_) que o Chatwoot
+        // ainda não confirmou (casamento por conteúdo entre mensagens outgoing)
+        const outReal = incoming.filter(m => m.message_type === 1 || m.message_type === 'outgoing');
+        const pendingOpt = prev.filter(m => {
+          if (!String(m.id).startsWith('_opt_')) return false;
+          return !outReal.some(r => r.content === m.content);
+        });
+        return pendingOpt.length > 0 ? [...incoming, ...pendingOpt] : incoming;
+      });
     } catch {}
     finally { if (!silent) setLoading(false); }
   };
@@ -116,16 +129,20 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
     return () => clearInterval(t);
   }, [convId]);
 
+  // Scroll to bottom only on initial load or when user was already at the bottom
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (atBottomRef.current) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [messages]);
 
   const handleSend = async () => {
     const content = replyText.trim();
     if (!content || !convId || sending) return;
     setSending(true);
+    atBottomRef.current = true; // força scroll ao fim após envio
 
-    // Optimistic — show the message immediately
+    // Otimista — exibe a mensagem imediatamente
     const optId = `_opt_${Date.now()}`;
     const optimistic = {
       id: optId,
@@ -142,9 +159,11 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
         method: 'POST',
         body: JSON.stringify({ conversationId: convId, content }),
       });
+      // Aguarda o Chatwoot indexar a mensagem antes de buscar
+      await new Promise(r => setTimeout(r, 900));
       await fetchMessages(convId, true);
     } catch {
-      // Revert optimistic on failure
+      // Reverte otimista em caso de falha
       setMessages(prev => prev.filter(m => m.id !== optId));
       setReplyText(content);
     } finally {
@@ -176,7 +195,14 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
 
   return (
     <div className="conv-panel">
-      <div className="conv-messages">
+      <div
+        className="conv-messages"
+        ref={containerRef}
+        onScroll={e => {
+          const el = e.currentTarget;
+          atBottomRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 60;
+        }}
+      >
         {hasMore && (
           <div className="conv-load-more">
             <button
