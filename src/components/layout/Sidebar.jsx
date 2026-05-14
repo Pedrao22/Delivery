@@ -8,21 +8,25 @@ import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
 
 const navItems = [
-  { to: '/',             icon: ClipboardList,   label: 'Pedidos',       section: 'main' },
-  { to: '/dashboard',    icon: LayoutDashboard, label: 'Dashboard',     section: 'main' },
-  { to: '/cardapio',     icon: UtensilsCrossed, label: 'Cardápio',      section: 'main' },
-  { to: '/pdv',          icon: Monitor,         label: 'PDV / Caixa',   section: 'main' },
-  { to: '/mesas',        icon: Map,             label: 'Mesas',         section: 'main' },
-  { to: '/atendimento',  icon: MessageSquare,   label: 'Atendimento',   section: 'main' },
-  { to: '/faq',          icon: HelpCircle,      label: 'Ajuda / FAQ',   section: 'main' },
-  { to: '/estoque',      icon: Package,         label: 'Estoque',       section: 'gestao' },
+  // Operações — trabalho do dia a dia
+  { to: '/',             icon: ClipboardList,   label: 'Pedidos',       section: 'ops' },
+  { to: '/pdv',          icon: Monitor,         label: 'PDV / Caixa',   section: 'ops' },
+  { to: '/mesas',        icon: Map,             label: 'Mesas',         section: 'ops' },
+  { to: '/atendimento',  icon: MessageSquare,   label: 'Atendimento',   section: 'ops' },
+  // Cardápio — produtos e estoque
+  { to: '/cardapio',     icon: UtensilsCrossed, label: 'Cardápio',      section: 'menu' },
+  { to: '/estoque',      icon: Package,         label: 'Estoque',       section: 'menu' },
+  // Gestão — visão gerencial
+  { to: '/dashboard',    icon: LayoutDashboard, label: 'Dashboard',     section: 'gestao' },
   { to: '/entregas',     icon: Truck,           label: 'Entregas',      section: 'gestao' },
   { to: '/financeiro',   icon: DollarSign,      label: 'Financeiro',    section: 'gestao' },
-  { to: '/fidelidade',   icon: Gift,            label: 'Fidelidade',    section: 'extra' },
-  { to: '/cupons',       icon: Ticket,          label: 'Cupons',        section: 'extra' },
+  { to: '/fidelidade',   icon: Gift,            label: 'Fidelidade',    section: 'gestao' },
+  { to: '/cupons',       icon: Ticket,          label: 'Cupons',        section: 'gestao' },
+  // Extra — configurações e utilitários
   { to: '/configuracoes',icon: Settings,        label: 'Configurações', section: 'extra' },
   { to: '/cliente',      icon: User,            label: 'Visão Cliente', section: 'extra' },
   { to: '/feedback',     icon: Megaphone,       label: 'Feedback',      section: 'extra' },
+  { to: '/faq',          icon: HelpCircle,      label: 'Ajuda / FAQ',   section: 'extra' },
 ];
 
 export default function Sidebar({ isOpen, onToggle, orderCount, isDark, onToggleTheme }) {
@@ -81,8 +85,11 @@ export default function Sidebar({ isOpen, onToggle, orderCount, isDark, onToggle
         </div>
 
         <nav className="sidebar-nav">
-          <div className="sidebar-section-title">Principal</div>
-          {renderLinks('main')}
+          <div className="sidebar-section-title">Operações</div>
+          {renderLinks('ops')}
+
+          <div className="sidebar-section-title">Cardápio</div>
+          {renderLinks('menu')}
 
           <div className="sidebar-section-title">Gestão</div>
           {renderLinks('gestao')}
