@@ -135,6 +135,22 @@ export default function ChatPage() {
     }
   };
 
+  const handleHealthCheck = async () => {
+    try {
+      const d = await apiFetch('/chatwoot/health');
+      const h = d?.data;
+      if (!h) { setSyncMsg('Health: sem resposta'); return; }
+      if (h.errors?.length > 0) {
+        setSyncMsg(`⚠️ ${h.errors[0]}`);
+      } else {
+        setSyncMsg(`✅ Chat OK · ${h.openConversations} abertas`);
+      }
+    } catch {
+      setSyncMsg('⚠️ Health check falhou');
+    }
+    setTimeout(() => setSyncMsg(null), 6000);
+  };
+
   const handleConfirmOrder = async (orderData) => {
     // Passa o ID da conversa Chatwoot para vincular o pedido automaticamente
     const newOrder = await addOrder({ ...orderData, chatwoot_conversation_id: selectedId ?? undefined });
@@ -217,6 +233,9 @@ export default function ChatPage() {
             )}
             <button className="chat-icon-btn" onClick={handleSync} disabled={syncing} title="Sincronizar histórico">
               {syncing ? <Loader2 size={14} className="animate-spin" /> : <RefreshCcw size={14} />}
+            </button>
+            <button className="chat-icon-btn" onClick={handleHealthCheck} title="Diagnóstico do chat">
+              🩺
             </button>
             <button className="chat-icon-btn" onClick={() => fetchConversations()} title="Atualizar">
               <RefreshCw size={14} className={loadingConvs ? 'animate-spin' : ''} />
