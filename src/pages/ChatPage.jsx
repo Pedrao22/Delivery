@@ -81,7 +81,8 @@ function buildOrderSummary(newOrder, orderData, settings = {}) {
 
 function timeAgo(dateStr) {
   if (!dateStr) return '';
-  const diff = Date.now() - new Date(dateStr).getTime();
+  const ms = typeof dateStr === 'number' ? dateStr * 1000 : new Date(dateStr).getTime();
+  const diff = Date.now() - ms;
   const m = Math.floor(diff / 60000);
   if (m < 1) return 'agora';
   if (m < 60) return `${m}m atrás`;
@@ -181,10 +182,11 @@ export default function ChatPage() {
   const pendente  = conversations.filter(c => c.status === 'pending').length;
   const atendendo = conversations.filter(c => c.status === 'open').length;
 
+  const toMs = (v) => typeof v === 'number' ? v * 1000 : new Date(v ?? 0).getTime();
   const sortedConvs = [...conversations]
     .sort((a, b) =>
-      new Date(b.last_activity_at ?? b.created_at ?? 0).getTime() -
-      new Date(a.last_activity_at ?? a.created_at ?? 0).getTime()
+      toMs(b.last_activity_at ?? b.created_at ?? 0) -
+      toMs(a.last_activity_at ?? a.created_at ?? 0)
     )
     .filter(c => {
       if (activeTab === 'pending'  && c.status !== 'pending')  return false;
