@@ -15,6 +15,7 @@ import TablesPage from './pages/TablesPage';
 import ChatPage from './pages/ChatPage';
 import SettingsPage from './pages/SettingsPage';
 import LoyaltyPage from './pages/LoyaltyPage';
+import FAQPage from './pages/FAQPage';
 import CouponsPage from './pages/CouponsPage';
 import RestaurantFeedbackPage from './pages/RestaurantFeedbackPage';
 import LoginPage from './pages/LoginPage';
@@ -153,6 +154,11 @@ function AppContent() {
           } />
           <Route path="/cliente" element={<CustomerView />} />
           <Route path="/feedback" element={<RestaurantFeedbackPage onMenuToggle={toggleSidebar} />} />
+          <Route path="/faq" element={
+            <PageWrapper title="Ajuda" subtitle="Central de Dúvidas" onMenuToggle={toggleSidebar}>
+              <FAQPage />
+            </PageWrapper>
+          } />
         </Routes>
       </main>
       <Toaster

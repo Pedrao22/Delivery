@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import {
   DollarSign, ShoppingBag, TrendingUp, Clock,
   ArrowUpRight, ArrowDownRight, Star, Flame, Users, Zap,
-  BarChart3, PieChart, Info, CreditCard, HelpCircle, ChevronDown
+  BarChart3, PieChart, Info, CreditCard
 } from 'lucide-react';
 import { useOrdersContext } from '../../context/OrdersContext';
 import FilterTabs from '../shared/FilterTabs';
@@ -14,48 +14,9 @@ const periodTabs = [
   { value: '30', label: '30 dias' },
 ];
 
-const FAQ_ITEMS = [
-  {
-    icon: '🍔',
-    q: 'Como adicionar ou editar produtos no cardápio?',
-    a: 'Acesse a aba "Cardápio" no menu lateral. Para adicionar, clique em "+ Novo Produto". Para editar, clique no card do produto desejado e altere as informações. As mudanças são publicadas instantaneamente.',
-  },
-  {
-    icon: '🏪',
-    q: 'Como abrir ou fechar o restaurante?',
-    a: 'Acesse "Configurações" → aba "Operacional". Use o toggle "Restaurante Aberto" para ativar ou desativar o recebimento de pedidos. Quando fechado, o cardápio público exibe um aviso de loja fechada para os clientes.',
-  },
-  {
-    icon: '💳',
-    q: 'Como configurar os meios de pagamento aceitos?',
-    a: 'Em "Configurações" → "Pagamentos", ative ou desative cada forma: Pix, Cartão de Crédito, Cartão de Débito e Dinheiro. Apenas as formas ativas aparecem no checkout do cliente.',
-  },
-  {
-    icon: '📋',
-    q: 'Como ver o histórico completo de pedidos?',
-    a: 'Acesse a aba "Pedidos" no menu lateral. Use os filtros por status (Pendente, Preparando, Pronto, Entregue) para encontrar pedidos específicos. Clique em qualquer pedido para ver os detalhes completos.',
-  },
-  {
-    icon: '💬',
-    q: 'Como responder clientes pelo WhatsApp?',
-    a: 'Acesse a aba "Atendimento" (ícone de balão). Selecione a conversa do cliente na lista lateral e use o campo de resposta no rodapé para enviar mensagens diretamente pelo WhatsApp.',
-  },
-  {
-    icon: '🛵',
-    q: 'Como configurar a taxa e o tempo de entrega?',
-    a: 'Em "Configurações" → "Operacional", defina o valor da taxa de entrega (fixo) e o tempo estimado de entrega. Essas informações aparecem automaticamente no resumo do pedido enviado ao cliente.',
-  },
-  {
-    icon: '🛒',
-    q: 'Como criar um pedido manualmente para um cliente?',
-    a: 'Na aba "Atendimento", selecione a conversa do cliente e clique em "Fazer Pedido". Você também pode ir à aba "Pedidos" e clicar em "+ Novo Pedido". Preencha os itens, pagamento e endereço.',
-  },
-];
-
 export default function DashboardPage() {
   const { orders, getStatsForPeriod } = useOrdersContext();
   const [period, setPeriod] = useState('7');
-  const [openFaq, setOpenFaq] = useState(null);
 
   const stats = useMemo(() => getStatsForPeriod(period), [getStatsForPeriod, period, orders]);
 
@@ -248,35 +209,6 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* FAQ */}
-      <div className="dashboard-faq animate-fadeInUp" style={{ animationDelay: '440ms' }}>
-        <div className="faq-header">
-          <div className="faq-header-icon">
-            <HelpCircle size={20} />
-          </div>
-          <div>
-            <div className="faq-header-title">Central de Ajuda Rápida</div>
-            <div className="faq-header-sub">Respostas para as dúvidas mais comuns do restaurante</div>
-          </div>
-        </div>
-        <div className="faq-list">
-          {FAQ_ITEMS.map((item, i) => (
-            <div key={i} className={`faq-item${openFaq === i ? ' open' : ''}`}>
-              <button
-                className="faq-question"
-                onClick={() => setOpenFaq(openFaq === i ? null : i)}
-              >
-                <span className="faq-icon">{item.icon}</span>
-                <span className="faq-q-text">{item.q}</span>
-                <ChevronDown size={15} className="faq-chevron" />
-              </button>
-              {openFaq === i && (
-                <div className="faq-answer">{item.a}</div>
-              )}
-            </div>
-          ))}
-        </div>
-      </div>
     </div>
   );
 }

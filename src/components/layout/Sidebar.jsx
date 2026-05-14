@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom';
 import {
   ClipboardList, LayoutDashboard, UtensilsCrossed, Package,
   Truck, DollarSign, User, Menu, X, Moon, Sun,
-  Monitor, Map, MessageSquare, Gift, Ticket, Settings, LogOut, Megaphone
+  Monitor, Map, MessageSquare, Gift, Ticket, Settings, LogOut, Megaphone, HelpCircle
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import './Sidebar.css';
@@ -22,6 +22,7 @@ const navItems = [
   { to: '/configuracoes',icon: Settings,        label: 'Configurações', section: 'extra' },
   { to: '/cliente',      icon: User,            label: 'Visão Cliente', section: 'extra' },
   { to: '/feedback',     icon: Megaphone,       label: 'Feedback',      section: 'extra' },
+  { to: '/faq',          icon: HelpCircle,      label: 'Ajuda / FAQ',   section: 'extra' },
 ];
 
 export default function Sidebar({ isOpen, onToggle, orderCount, isDark, onToggleTheme }) {
