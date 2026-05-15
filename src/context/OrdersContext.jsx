@@ -675,6 +675,15 @@ export function OrdersProvider({ children }) {
   const updateSettings = useCallback(async (data) => {
     setRestaurantSettings(prev => ({ ...prev, ...data, payments: data.payments || prev.payments }));
     try {
+      // carousel_images usa endpoint dedicado para evitar class-transformer do DTO
+      if (data.carouselImages !== undefined) {
+        await apiFetch('/restaurants/me/carousel', {
+          method: 'PATCH',
+          body: JSON.stringify({ carousel_images: data.carouselImages }),
+        });
+        toast.success('Configurações salvas!');
+        return;
+      }
       await apiFetch('/restaurants/me', {
         method: 'PATCH',
         body: JSON.stringify({
@@ -684,7 +693,6 @@ export function OrdersProvider({ children }) {
           cnpj: data.cnpj, email: data.email, telefone: data.telefone, endereco: data.endereco,
           slug: data.slug, pedido_proximo_numero: data.pedidoProximoNumero ? parseInt(data.pedidoProximoNumero, 10) : undefined,
           horarios: data.horarios || undefined,
-          carousel_images: data.carouselImages !== undefined ? data.carouselImages : undefined,
         }),
       });
       toast.success('Configurações salvas!');
