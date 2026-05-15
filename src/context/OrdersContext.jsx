@@ -835,7 +835,7 @@ export function OrdersProvider({ children }) {
     addDriver, removeDriver, assignDriverToOrder,
     addCoupon, updateCoupon, deleteCoupon,
     updateLoyaltyConfig, addLoyaltyReward, removeLoyaltyReward,
-    updateSettings,
+    updateSettings, refreshSettings,
     getStatsForPeriod,
   };
 

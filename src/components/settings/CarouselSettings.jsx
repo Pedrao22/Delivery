@@ -29,7 +29,7 @@ function compressImage(file) {
 }
 
 export default function CarouselSettings() {
-  const { restaurantSettings, updateSettings } = useOrdersContext();
+  const { restaurantSettings, updateSettings, refreshSettings } = useOrdersContext();
   const images = restaurantSettings.carouselImages || [];
 
   const [adding, setAdding]         = useState(false);
@@ -77,6 +77,7 @@ export default function CarouselSettings() {
     setSaving(true);
     const newSlide = { id: `${Date.now()}`, url, titulo: tituloInput.trim() };
     await updateSettings({ carouselImages: [...images, newSlide] });
+    await refreshSettings();
     setUrlInput('');
     setTituloInput('');
     setPreviewError(false);
@@ -86,6 +87,7 @@ export default function CarouselSettings() {
 
   const handleRemove = async (id) => {
     await updateSettings({ carouselImages: images.filter(img => img.id !== id) });
+    await refreshSettings();
   };
 
   const handleMoveUp = async (idx) => {
