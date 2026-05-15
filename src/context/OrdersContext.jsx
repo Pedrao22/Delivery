@@ -354,8 +354,6 @@ export function OrdersProvider({ children }) {
     try {
       const r = await apiFetch('/restaurants/me');
       const d = r.data;
-      const ci = d.carousel_images;
-      console.log('[refreshSettings] carousel_images from backend:', Array.isArray(ci) ? ci.length + ' items' : typeof ci, ci?.[0] ? { id: ci[0].id, urlType: ci[0].url?.startsWith('data:') ? 'base64 len=' + ci[0].url.length : ci[0].url?.substring(0, 50) } : 'empty');
       setRestaurantSettings({
         id: d.id || null,
         name: d.nome || 'Meu Restaurante',
