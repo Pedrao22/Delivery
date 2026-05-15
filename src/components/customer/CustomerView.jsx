@@ -235,7 +235,7 @@ export default function CustomerView({ ridOverride } = {}) {
   // Carousel auto-slide
   useEffect(() => {
     if (carouselItems.length < 2) return;
-    const t = setInterval(() => setCarouselIdx(i => (i + 1) % carouselItems.length), 4000);
+    const t = setInterval(() => setCarouselIdx(i => (i + 1) % carouselItems.length), 3000);
     return () => clearInterval(t);
   }, [carouselItems.length]);
 
@@ -580,47 +580,37 @@ export default function CustomerView({ ridOverride } = {}) {
           <div className="cv-carousel">
             <div
               className="cv-carousel-track"
-              style={{ transform: `translateX(-${carouselIdx * 100}%)` }}
+              style={{
+                transform: `translateX(-${carouselIdx * (100 / carouselItems.length)}%)`,
+                width: `${carouselItems.length * 100}%`,
+              }}
             >
               {carouselItems.map(slide => (
                 <div
                   key={slide.id}
                   className="cv-carousel-slide"
                   onClick={() => slide.product && setSelectedProduct(slide.product)}
-                  style={{ cursor: slide.product ? 'pointer' : 'default' }}
+                  style={{ cursor: slide.product ? 'pointer' : 'default', width: `${100 / carouselItems.length}%` }}
                 >
                   <img src={slide.url} alt={slide.titulo} />
-                  {(slide.titulo || slide.price !== null) && (
+                  {slide.titulo && (
                     <div className="cv-carousel-caption">
-                      {slide.titulo && <span className="cv-carousel-name">{slide.titulo}</span>}
-                      {slide.price !== null && (
-                        <span className="cv-carousel-price">R$ {parseFloat(slide.price || 0).toFixed(2).replace('.', ',')}</span>
-                      )}
+                      <span className="cv-carousel-name">{slide.titulo}</span>
                     </div>
                   )}
                 </div>
               ))}
             </div>
             {carouselItems.length > 1 && (
-              <>
-                <button
-                  className="cv-carousel-btn cv-carousel-prev"
-                  onClick={e => { e.stopPropagation(); setCarouselIdx(i => (i - 1 + carouselItems.length) % carouselItems.length); }}
-                >‹</button>
-                <button
-                  className="cv-carousel-btn cv-carousel-next"
-                  onClick={e => { e.stopPropagation(); setCarouselIdx(i => (i + 1) % carouselItems.length); }}
-                >›</button>
-                <div className="cv-carousel-dots">
-                  {carouselItems.map((_, i) => (
-                    <button
-                      key={i}
-                      className={`cv-carousel-dot${i === carouselIdx ? ' active' : ''}`}
-                      onClick={e => { e.stopPropagation(); setCarouselIdx(i); }}
-                    />
-                  ))}
-                </div>
-              </>
+              <div className="cv-carousel-dots">
+                {carouselItems.map((_, i) => (
+                  <button
+                    key={i}
+                    className={`cv-carousel-dot${i === carouselIdx ? ' active' : ''}`}
+                    onClick={e => { e.stopPropagation(); setCarouselIdx(i); }}
+                  />
+                ))}
+              </div>
             )}
           </div>
         )}
