@@ -1,7 +1,6 @@
 import { useState, useRef } from 'react';
 import { Plus, Trash2, ImageIcon, AlertCircle, Upload, Link, Loader2 } from 'lucide-react';
 import { useOrdersContext } from '../../context/OrdersContext';
-import { apiFetch } from '../../lib/supabase';
 import Button from '../shared/Button';
 import './CarouselSettings.css';
 
@@ -48,17 +47,9 @@ export default function CarouselSettings() {
     setPreviewError(false);
     try {
       const base64 = await compressImage(file);
-      const res = await apiFetch('/menu/products/upload-image', {
-        method: 'POST',
-        body: JSON.stringify({ base64 }),
-      });
-      if (res?.url) {
-        setUrlInput(res.url);
-      } else {
-        alert('Erro ao fazer upload: ' + (res?.message || 'tente novamente'));
-      }
+      setUrlInput(base64);
     } catch (err) {
-      alert('Erro ao fazer upload: ' + (err?.message || String(err)));
+      alert('Erro ao processar imagem: ' + (err?.message || String(err)));
     } finally {
       setUploading(false);
     }
