@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Plus, Trash2, ImageIcon, AlertCircle, Upload, Link, Loader2 } from 'lucide-react';
 import { useOrdersContext } from '../../context/OrdersContext';
 import Button from '../shared/Button';
@@ -48,6 +48,13 @@ export default function CarouselSettings() {
 
   // URL efetiva: arquivo carregado tem prioridade sobre URL digitada
   const effectiveUrl = fileBase64 || urlInput.trim();
+
+  // Diagnóstico: loga images sempre que o estado muda
+  useEffect(() => {
+    console.log('[Carousel] images state changed — count:', images.length,
+      images.map(i => ({ id: i.id, urlType: i.url ? (i.url.startsWith('data:') ? 'base64 len=' + i.url.length : i.url.substring(0, 50)) : 'NULL' }))
+    );
+  }, [images]); // eslint-disable-line
 
   const handleFile = async (file) => {
     if (!file || !file.type.startsWith('image/')) return;
