@@ -5,21 +5,26 @@ import Button from '../shared/Button';
 import './CarouselSettings.css';
 
 function compressImage(file) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Falha ao ler arquivo'));
     reader.onload = (e) => {
       const img = new Image();
+      img.onerror = () => reject(new Error('Imagem inválida'));
       img.onload = () => {
-        const MAX = 1200;
+        const MAX = 700;
         let { width, height } = img;
         if (width > MAX || height > MAX) {
           if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
           else { width = Math.round(width * MAX / height); height = MAX; }
         }
+        if (width === 0 || height === 0) { reject(new Error('Dimensões inválidas')); return; }
         const canvas = document.createElement('canvas');
         canvas.width = width; canvas.height = height;
         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.82));
+        const b64 = canvas.toDataURL('image/jpeg', 0.75);
+        console.log('[Carousel] compressImage ok:', width + 'x' + height, 'base64 len:', b64.length);
+        resolve(b64);
       };
       img.src = e.target.result;
     };
@@ -32,13 +37,17 @@ export default function CarouselSettings() {
   const images = restaurantSettings.carouselImages || [];
 
   const [adding, setAdding]         = useState(false);
-  const [urlInput, setUrlInput]     = useState('');
+  const [fileBase64, setFileBase64] = useState('');   // base64 do arquivo escolhido
+  const [urlInput, setUrlInput]     = useState('');   // URL digitada manualmente
   const [tituloInput, setTituloInput] = useState('');
   const [uploading, setUploading]   = useState(false);
   const [saving, setSaving]         = useState(false);
   const [previewError, setPreviewError] = useState(false);
   const [dragOver, setDragOver]     = useState(false);
   const fileRef = useRef(null);
+
+  // URL efetiva: arquivo carregado tem prioridade sobre URL digitada
+  const effectiveUrl = fileBase64 || urlInput.trim();
 
   const handleFile = async (file) => {
     if (!file || !file.type.startsWith('image/')) return;
@@ -47,7 +56,8 @@ export default function CarouselSettings() {
     setPreviewError(false);
     try {
       const base64 = await compressImage(file);
-      setUrlInput(base64);
+      setFileBase64(base64);
+      setUrlInput(''); // limpa URL manual ao escolher arquivo
     } catch (err) {
       alert('Erro ao processar imagem: ' + (err?.message || String(err)));
     } finally {
@@ -63,12 +73,15 @@ export default function CarouselSettings() {
   };
 
   const handleAdd = async () => {
-    const url = urlInput.trim();
+    const url = effectiveUrl;
     if (!url || previewError) return;
     setSaving(true);
     const newSlide = { id: `${Date.now()}`, url, titulo: tituloInput.trim() };
+    console.log('[Carousel] salvando slide — url type:', url.startsWith('data:') ? 'base64 len=' + url.length : url);
     await updateSettings({ carouselImages: [...images, newSlide] });
     await refreshSettings();
+    console.log('[Carousel] refreshSettings concluído — carouselImages count:', images.length + 1);
+    setFileBase64('');
     setUrlInput('');
     setTituloInput('');
     setPreviewError(false);
@@ -97,6 +110,7 @@ export default function CarouselSettings() {
 
   const cancelAdding = () => {
     setAdding(false);
+    setFileBase64('');
     setUrlInput('');
     setTituloInput('');
     setPreviewError(false);
@@ -120,13 +134,19 @@ export default function CarouselSettings() {
           {images.map((img, idx) => (
             <div key={img.id} className="crs-item">
               <div className="crs-thumb">
-                <img src={img.url} alt={img.titulo || `Slide ${idx + 1}`} />
+                <img
+                  src={img.url}
+                  alt={img.titulo || `Slide ${idx + 1}`}
+                  onError={() => console.error('[Carousel] thumb load failed for id:', img.id, '| url prefix:', img.url?.substring(0, 40))}
+                />
               </div>
               <div className="crs-item-info">
                 <div className="crs-item-titulo">
                   {img.titulo || <em className="crs-no-title">Sem título</em>}
                 </div>
-                <div className="crs-item-url">{img.url}</div>
+                <div className="crs-item-url">
+                  {img.url?.startsWith('data:') ? '📎 Imagem local (base64)' : img.url}
+                </div>
               </div>
               <div className="crs-item-actions">
                 <button
@@ -154,7 +174,7 @@ export default function CarouselSettings() {
         <div className="crs-form">
           {/* Drop zone */}
           <div
-            className={`crs-drop-zone ${dragOver ? 'drag-over' : ''} ${uploading ? 'uploading' : ''} ${urlInput ? 'has-image' : ''}`}
+            className={`crs-drop-zone ${dragOver ? 'drag-over' : ''} ${uploading ? 'uploading' : ''} ${effectiveUrl ? 'has-image' : ''}`}
             onClick={() => !uploading && fileRef.current?.click()}
             onDragOver={e => { e.preventDefault(); setDragOver(true); }}
             onDragLeave={() => setDragOver(false)}
@@ -170,14 +190,14 @@ export default function CarouselSettings() {
             {uploading ? (
               <div className="crs-dz-content">
                 <Loader2 size={28} className="crs-spin" />
-                <span>Enviando imagem...</span>
+                <span>Processando imagem...</span>
               </div>
-            ) : urlInput && !previewError ? (
+            ) : effectiveUrl && !previewError ? (
               <div className="crs-dz-preview">
                 <img
-                  src={urlInput}
+                  src={effectiveUrl}
                   alt="preview"
-                  onError={() => setPreviewError(true)}
+                  onError={() => { console.error('[Carousel] preview load failed'); setPreviewError(true); }}
                   onLoad={() => setPreviewError(false)}
                 />
                 <div className="crs-dz-preview-overlay">
@@ -194,18 +214,31 @@ export default function CarouselSettings() {
             )}
           </div>
 
-          {/* URL fallback */}
-          <div className="crs-url-row">
-            <Link size={14} className="crs-url-icon" />
-            <input
-              className="crs-input crs-url-input"
-              placeholder="Ou cole uma URL de imagem..."
-              value={urlInput}
-              onChange={e => { setUrlInput(e.target.value); setPreviewError(false); }}
-            />
-          </div>
+          {/* URL manual (só aparece quando não há arquivo selecionado) */}
+          {!fileBase64 && (
+            <div className="crs-url-row">
+              <Link size={14} className="crs-url-icon" />
+              <input
+                className="crs-input crs-url-input"
+                placeholder="Ou cole uma URL de imagem..."
+                value={urlInput}
+                onChange={e => { setUrlInput(e.target.value); setPreviewError(false); }}
+              />
+            </div>
+          )}
 
-          {previewError && urlInput && (
+          {fileBase64 && (
+            <div className="crs-url-row">
+              <button
+                style={{ background: 'none', border: 'none', color: 'var(--text-tertiary)', fontSize: 'var(--font-xs)', cursor: 'pointer', padding: 0, fontFamily: 'inherit' }}
+                onClick={() => { setFileBase64(''); setPreviewError(false); }}
+              >
+                ✕ Remover imagem selecionada
+              </button>
+            </div>
+          )}
+
+          {previewError && effectiveUrl && (
             <div className="crs-preview-error">
               <AlertCircle size={14} />
               <span>URL inválida ou imagem inacessível.</span>
@@ -222,7 +255,7 @@ export default function CarouselSettings() {
           <div className="crs-form-btns">
             <Button
               onClick={handleAdd}
-              disabled={!urlInput.trim() || previewError || saving || uploading}
+              disabled={!effectiveUrl || previewError || saving || uploading}
             >
               {saving ? 'Salvando...' : 'Adicionar slide'}
             </Button>
