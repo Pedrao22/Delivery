@@ -692,9 +692,10 @@ export function OrdersProvider({ children }) {
           payments_config: data.payments, pix_key: data.pixKey,
           cnpj: data.cnpj, email: data.email, telefone: data.telefone, endereco: data.endereco,
           slug: data.slug, pedido_proximo_numero: data.pedidoProximoNumero ? parseInt(data.pedidoProximoNumero, 10) : undefined,
-          horarios: data.horarios || undefined,
+          horarios: data.horarios ?? undefined,
         }),
       });
+      await refreshSettings();
       toast.success('Configurações salvas!');
     } catch { refreshSettings(); toast.error('Erro ao salvar configurações'); }
   }, []); // eslint-disable-line
