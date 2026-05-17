@@ -684,14 +684,16 @@ export function OrdersProvider({ children }) {
         toast.success('Configurações salvas!');
         return;
       }
+      // Converte '' → undefined para não quebrar validações @IsEmail/@IsString no DTO
+      const str = v => (v === '' || v == null) ? undefined : v;
       await apiFetch('/restaurants/me', {
         method: 'PATCH',
         body: JSON.stringify({
           nome: data.name, logo_url: data.logo, cor_primaria: data.primaryColor,
           is_open: data.isOpen, delivery_time: data.deliveryTime, min_order: data.minOrder,
-          payments_config: data.payments, pix_key: data.pixKey,
-          cnpj: data.cnpj, email: data.email, telefone: data.telefone, endereco: data.endereco,
-          slug: data.slug, pedido_proximo_numero: data.pedidoProximoNumero ? parseInt(data.pedidoProximoNumero, 10) : undefined,
+          payments_config: data.payments, pix_key: str(data.pixKey),
+          cnpj: str(data.cnpj), email: str(data.email), telefone: str(data.telefone), endereco: str(data.endereco),
+          slug: str(data.slug), pedido_proximo_numero: data.pedidoProximoNumero ? parseInt(data.pedidoProximoNumero, 10) : undefined,
           horarios: data.horarios ?? undefined,
         }),
       });
