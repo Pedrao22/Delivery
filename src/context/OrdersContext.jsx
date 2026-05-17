@@ -684,6 +684,13 @@ export function OrdersProvider({ children }) {
         toast.success('Configurações salvas!');
         return;
       }
+      // horarios usa endpoint dedicado (JSONB aninhado não passa pelo DTO com whitelist:true)
+      if (data.horarios !== undefined) {
+        await apiFetch('/restaurants/me/horarios', {
+          method: 'PATCH',
+          body: JSON.stringify({ horarios: data.horarios }),
+        });
+      }
       // Converte '' → undefined para não quebrar validações @IsEmail/@IsString no DTO
       const str = v => (v === '' || v == null) ? undefined : v;
       await apiFetch('/restaurants/me', {
@@ -694,7 +701,6 @@ export function OrdersProvider({ children }) {
           payments_config: data.payments, pix_key: str(data.pixKey),
           cnpj: str(data.cnpj), email: str(data.email), telefone: str(data.telefone), endereco: str(data.endereco),
           slug: str(data.slug), pedido_proximo_numero: data.pedidoProximoNumero ? parseInt(data.pedidoProximoNumero, 10) : undefined,
-          horarios: data.horarios ?? undefined,
         }),
       });
       await refreshSettings();
