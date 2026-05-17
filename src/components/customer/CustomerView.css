@@ -820,27 +820,31 @@
 
 .checkout-footer-sticky {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  gap: 12px;
   width: 100%;
 }
 
-.final-sum { display: flex; flex-direction: column; }
-.final-sum span  { font-size: 0.75rem; color: #AAA; font-weight: 600; }
-.final-sum strong { font-size: 1.5rem; font-weight: 900; color: #1A1A1A; letter-spacing: -0.03em; }
+.final-sum {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.final-sum span  { font-size: 0.75rem; color: #AAA; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+.final-sum strong { font-size: 1.4rem; font-weight: 900; color: #1A1A1A; letter-spacing: -0.03em; }
 
 .confirm-btn {
-  padding: 16px 28px;
+  width: 100%;
+  padding: 16px;
   border: none;
-  border-radius: 16px;
+  border-radius: 14px;
   color: #fff;
   font-weight: 800;
-  font-size: 0.95rem;
+  font-size: 1rem;
   font-family: inherit;
   cursor: pointer;
   transition: transform 0.15s, filter 0.15s;
-  white-space: nowrap;
 }
 
 .confirm-btn:hover  { filter: brightness(1.07); transform: translateY(-1px); }
@@ -1077,9 +1081,9 @@
   .animated-fields input { padding: 14px 14px; }
   .payment-grid-modern { grid-template-columns: 1fr 1fr; gap: 8px; }
   .pay-btn { padding: 14px 6px; }
-  .confirm-btn { padding: 16px 20px; font-size: 0.9rem; }
-  .final-sum strong { font-size: 1.3rem; }
-  .checkout-footer-sticky { gap: 12px; width: 100%; }
+  .confirm-btn { padding: 16px; font-size: 0.95rem; width: 100%; }
+  .final-sum strong { font-size: 1.25rem; }
+  .checkout-footer-sticky { gap: 10px; width: 100%; }
 
   /* Products grid */
   .products-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
