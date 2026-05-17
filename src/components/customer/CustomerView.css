@@ -688,53 +688,52 @@
 }
 
 .revamp-section h4 {
-  font-size: 0.7rem;
-  font-weight: 800;
+  font-size: 0.73rem;
+  font-weight: 700;
   text-transform: uppercase;
-  color: #BBB;
-  margin-bottom: 12px;
-  letter-spacing: 0.07em;
+  color: #999;
+  margin-bottom: 10px;
+  letter-spacing: 0.06em;
 }
 
 .revamp-toggle {
   display: flex;
-  background: #F0F0F3;
+  background: #EDE9E3;
   padding: 4px;
-  border-radius: 14px;
+  border-radius: 16px;
   gap: 4px;
 }
 
 .revamp-toggle button {
   flex: 1;
-  padding: 11px;
+  padding: 12px;
   border: none;
-  border-radius: 11px;
-  font-size: 0.85rem;
+  border-radius: 13px;
+  font-size: 0.88rem;
   font-weight: 700;
   background: transparent;
   color: #888;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.15s;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .revamp-toggle button.active {
-  background: #fff;
-  color: #000;
-  box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+  color: #fff;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.18);
 }
 
 .animated-fields {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  margin-top: 14px;
+  margin-top: 12px;
   animation: fadeIn 0.25s ease;
 }
 
 .animated-fields input {
   padding: 14px 16px;
-  background: #F7F7FA;
+  background: #F5F2EE;
   border: 1.5px solid transparent;
   border-radius: 14px;
   font-size: 16px;
@@ -746,7 +745,7 @@
 
 .animated-fields input:focus {
   background: #fff;
-  border-color: #D0D0D8;
+  border-color: #D8D0C8;
   box-shadow: 0 0 0 4px rgba(0,0,0,0.04);
 }
 
@@ -766,9 +765,9 @@
   flex-shrink: 0;
   width: 48px;
   border-radius: 14px;
-  background: #F0F0F8;
-  border: 1.5px solid transparent;
-  color: #6366F1;
+  background: #EDE9E3;
+  border: 1.5px solid #D8D0C8;
+  color: #777;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -777,8 +776,9 @@
 }
 
 .cv-location-btn:hover:not(:disabled) {
-  background: #E8E8F8;
-  border-color: #6366F1;
+  background: #E0D8D0;
+  border-color: #C0B8B0;
+  color: #333;
 }
 
 .cv-location-btn:disabled {
@@ -804,19 +804,20 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
   padding: 16px 8px;
-  background: #F7F7FA;
-  border: 2px solid #EBEBEB;
+  background: #F5F2EE;
+  border: 2px solid #E5E0D8;
   border-radius: 16px;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.15s;
+  color: #666;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.pay-btn:hover { background: #F0F0F3; border-color: #D8D8E0; }
-.pay-btn span { font-size: 0.72rem; font-weight: 700; color: #555; }
-.pay-btn.active { background: #fff; }
+.pay-btn:hover { background: #EDE9E3; border-color: #D0C8BE; color: #333; }
+.pay-btn span { font-size: 0.78rem; font-weight: 700; color: inherit; }
+.pay-btn.active { background: #fff; box-shadow: 0 3px 12px rgba(0,0,0,0.12); }
 
 .checkout-footer-sticky {
   display: flex;

@@ -786,8 +786,16 @@ export default function CustomerView({ ridOverride } = {}) {
           <div className="revamp-section">
             <h4>Tipo de Pedido</h4>
             <div className="revamp-toggle">
-              <button className={checkoutForm.type === 'delivery' ? 'active' : ''} onClick={() => setCheckoutForm({...checkoutForm, type: 'delivery'})}>Entrega</button>
-              <button className={checkoutForm.type === 'pickup' ? 'active' : ''} onClick={() => setCheckoutForm({...checkoutForm, type: 'pickup'})}>Retirada</button>
+              <button
+                className={checkoutForm.type === 'delivery' ? 'active' : ''}
+                style={checkoutForm.type === 'delivery' ? { background: primaryColor } : {}}
+                onClick={() => setCheckoutForm({...checkoutForm, type: 'delivery'})}
+              >🛵 Entrega</button>
+              <button
+                className={checkoutForm.type === 'pickup' ? 'active' : ''}
+                style={checkoutForm.type === 'pickup' ? { background: primaryColor } : {}}
+                onClick={() => setCheckoutForm({...checkoutForm, type: 'pickup'})}
+              >🏃 Retirada</button>
             </div>
             {checkoutForm.type === 'delivery' && (
               <div className="animated-fields">
