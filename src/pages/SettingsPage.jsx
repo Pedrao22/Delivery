@@ -178,7 +178,7 @@ export default function SettingsPage() {
               <div className="settings-form-grid">
                 {renderInput("Nome do Restaurante", Building2, formData.name, "name", "text", "Ex: Pedi&Recebe")}
                 {renderInput("CNPJ / CPF", Briefcase, formData.cnpj, "cnpj", "text", "00.000.000/0000-00")}
-                {renderInput("WhatsApp / Telefone", Phone, formData.phone, "phone")}
+                {renderInput("WhatsApp / Telefone", Phone, formData.telefone, "telefone")}
                 {renderInput("E-mail de Contato", Bell, "contato@pedirecebe.com.br", "email", "email")}
               </div>
               <div className="settings-form-group" style={{ marginTop: 'var(--space-6)' }}>
