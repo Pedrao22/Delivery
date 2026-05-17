@@ -158,16 +158,15 @@ export default function CustomerView({ ridOverride } = {}) {
   // Calcula aberto/fechado com base nos horários por dia da semana
   const isOpen = useMemo(() => {
     const manualIsOpen = publicRestaurant?.is_open ?? restaurantSettings.isOpen ?? true;
-    // Toggle manual "fechado" sempre vence
-    if (!manualIsOpen) return false;
     // Sem horários configurados → confia no toggle manual
-    if (!horarios) return true;
+    if (!horarios) return manualIsOpen;
     const days = ['domingo','segunda','terca','quarta','quinta','sexta','sabado'];
     const today = days[new Date().getDay()];
     const s = horarios[today];
-    // Dia marcado como inativo → usa o toggle manual como fallback (admin pode abrir manualmente)
-    if (!s?.ativo) return manualIsOpen;
-    // Dia ativo: verifica janela de horário
+    // Dia marcado como inativo nos horários → só abre se admin forçou (is_open=true)
+    if (!s?.ativo) return manualIsOpen === true;
+    // Dia ativo: horários são a fonte primária. is_open=false = fechamento de emergência.
+    if (manualIsOpen === false) return false;
     const now = new Date().getHours() * 60 + new Date().getMinutes();
     const [hA, mA] = (s.abertura || '00:00').split(':').map(Number);
     const [hF, mF] = (s.fechamento || '23:59').split(':').map(Number);

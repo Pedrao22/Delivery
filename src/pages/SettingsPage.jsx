@@ -496,8 +496,8 @@ export default function SettingsPage() {
                     {formData.isOpen ? 'Os clientes podem realizar pedidos normalmente pelo site.' : 'Novos pedidos estão temporariamente bloqueados para os clientes.'}
                   </p>
                 </div>
-                <button 
-                  onClick={() => setFormData({...formData, isOpen: !formData.isOpen})}
+                <button
+                  onClick={() => { const next = { ...formData, isOpen: !formData.isOpen }; setFormData(next); updateSettings(next); }}
                   style={{
                     padding: '16px 32px',
                     borderRadius: 'var(--radius-xl)',
