@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
-  Settings, Save, Globe, Percent, ShieldAlert, Mail,
+  Settings, Save, Globe, ShieldAlert, Mail,
   CheckCircle2, RefreshCw, Info, Power, PowerOff, Loader2
 } from 'lucide-react';
 import { apiFetch } from '../../lib/supabase';
@@ -124,29 +124,6 @@ const GlobalSettings = () => {
             </div>
           </div>
 
-          {/* Financeiro */}
-          <div className="glass-card p-8">
-            <h3 className="text-base font-black text-white mb-6 flex items-center gap-2.5">
-              <div className="w-1.5 h-4 bg-amber-500 rounded-full" />
-              Parâmetros Financeiros
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <ConfigFieldNumber
-                label="Taxa de Marketplace (%)"
-                suffix="%"
-                defaultValue={findValue('marketplace_fee')}
-                onSave={(v) => handleUpdate('marketplace_fee', parseFloat(v))}
-                saving={savingKey === 'marketplace_fee'}
-              />
-              <ConfigFieldNumber
-                label="Período de Trial (dias)"
-                suffix="dias"
-                defaultValue={findValue('trial_days')}
-                onSave={(v) => handleUpdate('trial_days', parseInt(v))}
-                saving={savingKey === 'trial_days'}
-              />
-            </div>
-          </div>
         </div>
 
         {/* Coluna lateral */}
@@ -246,37 +223,5 @@ function ConfigField({ label, icon, defaultValue, placeholder, type = 'text', on
   );
 }
 
-function ConfigFieldNumber({ label, suffix, defaultValue, onSave, saving }) {
-  const [value, setValue] = useState(defaultValue ?? '');
-
-  useEffect(() => { setValue(defaultValue ?? ''); }, [defaultValue]);
-
-  const handleBlur = () => {
-    if (String(value) !== String(defaultValue)) onSave(value);
-  };
-
-  return (
-    <div className="space-y-2">
-      <label className="text-[11px] font-black text-slate-500 uppercase tracking-widest">{label}</label>
-      <div className="relative">
-        <input
-          type="number"
-          min="0"
-          step="any"
-          value={value}
-          onChange={e => setValue(e.target.value)}
-          onBlur={handleBlur}
-          className="w-full bg-white/[0.03] border border-white/10 rounded-xl px-4 py-3 text-2xl font-black text-white tabular-nums pr-16 focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500/50 outline-none transition-all"
-        />
-        <span className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-1.5">
-          {saving
-            ? <Loader2 size={13} className="text-amber-400 animate-spin" />
-            : null}
-          <span className="text-slate-600 font-black text-xs uppercase">{suffix}</span>
-        </span>
-      </div>
-    </div>
-  );
-}
 
 export default GlobalSettings;
