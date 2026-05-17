@@ -68,6 +68,7 @@ export default function Cart({ items, total, count, onUpdateQty, onRemove, onCle
     const validItems = items.filter(i => i && typeof i === 'object' && !Array.isArray(i));
     onConfirm({
       items: validItems.map(i => ({
+        productId: i.productId || null,
         nome: i.name,
         name: i.name,
         variation: i.variation || '',

@@ -262,6 +262,7 @@ export default function CustomerView({ ridOverride } = {}) {
     const unitPrice = parseFloat(product.preco || 0) + variationPrice + complementsTotal;
     setCart(prev => [...prev, {
       id: Date.now(),
+      productId: product.id,
       name: product.nome,
       variation: variation?.name || '',
       complements: complements.map(c => c.name),
