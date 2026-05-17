@@ -185,8 +185,16 @@ export function OrdersProvider({ children }) {
 
   useEffect(() => {
     if (!restauranteId) return;
-    const interval = setInterval(refreshOrders, 30_000);
+    const interval = setInterval(refreshOrders, 5_000);
     return () => clearInterval(interval);
+  }, [restauranteId]); // eslint-disable-line
+
+  // Atualiza imediatamente quando o usuário volta à aba
+  useEffect(() => {
+    if (!restauranteId) return;
+    const onVisible = () => { if (document.visibilityState === 'visible') refreshOrders(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => document.removeEventListener('visibilitychange', onVisible);
   }, [restauranteId]); // eslint-disable-line
 
   useEffect(() => {
