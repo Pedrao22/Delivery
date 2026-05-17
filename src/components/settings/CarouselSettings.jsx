@@ -12,7 +12,7 @@ function compressImage(file) {
       const img = new Image();
       img.onerror = () => reject(new Error('Imagem inválida'));
       img.onload = () => {
-        const MAX = 700;
+        const MAX = 1200;
         let { width, height } = img;
         if (width > MAX || height > MAX) {
           if (width > height) { height = Math.round(height * MAX / width); width = MAX; }
@@ -22,7 +22,7 @@ function compressImage(file) {
         const canvas = document.createElement('canvas');
         canvas.width = width; canvas.height = height;
         canvas.getContext('2d').drawImage(img, 0, 0, width, height);
-        resolve(canvas.toDataURL('image/jpeg', 0.75));
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
       };
       img.src = e.target.result;
     };
@@ -50,7 +50,7 @@ export default function CarouselSettings() {
 
   const handleFile = async (file) => {
     if (!file || !file.type.startsWith('image/')) return;
-    if (file.size > 10 * 1024 * 1024) { alert('Arquivo muito grande. Máximo: 10 MB'); return; }
+    if (file.size > 20 * 1024 * 1024) { alert('Arquivo muito grande. Máximo: 20 MB'); return; }
     setUploading(true);
     setPreviewError(false);
     try {
