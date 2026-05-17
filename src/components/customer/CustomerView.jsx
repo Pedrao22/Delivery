@@ -116,14 +116,16 @@ export default function CustomerView({ ridOverride } = {}) {
       );
       const data = await res.json();
       const a = data.address || {};
-      const parts = [
+      const street = [
         a.road,
-        a.house_number,
         a.suburb || a.neighbourhood || a.quarter,
         a.city || a.town || a.village || a.municipality,
-      ].filter(Boolean);
-      const formatted = parts.length > 0 ? parts.join(', ') : data.display_name;
-      setCheckoutForm(prev => ({ ...prev, address: formatted }));
+      ].filter(Boolean).join(', ') || data.display_name;
+      setCheckoutForm(prev => ({
+        ...prev,
+        address: street,
+        addressNumber: a.house_number || '',
+      }));
     } catch (err) {
       const msg = err.code === 1
         ? 'Permissão de localização negada. Habilite nas configurações do navegador.'
@@ -139,6 +141,8 @@ export default function CustomerView({ ridOverride } = {}) {
     customerPhone: '',
     type: 'delivery',
     address: '',
+    addressNumber: '',
+    addressComplement: '',
     reference: '',
     paymentMethod: 'pix_online',
     needsChange: false,
@@ -292,8 +296,10 @@ export default function CustomerView({ ridOverride } = {}) {
       return;
     }
     if (checkoutForm.type === 'delivery' && !checkoutForm.address?.trim()) {
-      setOrderError('Informe o endereço de entrega.');
-      return;
+      setOrderError('Informe o endereço de entrega.'); return;
+    }
+    if (checkoutForm.type === 'delivery' && !checkoutForm.addressNumber?.trim()) {
+      setOrderError('Informe o número da casa/estabelecimento.'); return;
     }
     setOrderError('');
     setSubmitting(true);
@@ -309,7 +315,9 @@ export default function CustomerView({ ridOverride } = {}) {
             cliente_nome: checkoutForm.customerName,
             cliente_telefone: checkoutForm.customerPhone,
             tipo: checkoutForm.type,
-            endereco: checkoutForm.type === 'delivery' ? checkoutForm.address : null,
+            endereco: checkoutForm.type === 'delivery'
+              ? [checkoutForm.address, checkoutForm.addressNumber, checkoutForm.addressComplement].filter(Boolean).join(', ')
+              : null,
             pagamento: checkoutForm.paymentMethod,
             itens: cart,
             total: finalTotal,
@@ -801,7 +809,7 @@ export default function CustomerView({ ridOverride } = {}) {
               <div className="animated-fields">
                 <div className="cv-address-row">
                   <input
-                    placeholder="Endereço Completo *"
+                    placeholder="Rua / Avenida *"
                     value={checkoutForm.address}
                     onChange={e => setCheckoutForm({...checkoutForm, address: e.target.value})}
                     className="cv-address-input"
@@ -815,6 +823,21 @@ export default function CustomerView({ ridOverride } = {}) {
                   >
                     {locating ? <Loader2 size={16} className="cv-spin" /> : <Navigation size={16} />}
                   </button>
+                </div>
+                <div className="cv-address-row">
+                  <input
+                    placeholder="Número *"
+                    value={checkoutForm.addressNumber}
+                    onChange={e => setCheckoutForm({...checkoutForm, addressNumber: e.target.value})}
+                    className="cv-address-input"
+                    style={{ maxWidth: 120 }}
+                  />
+                  <input
+                    placeholder="Complemento (Apto, Casa...)"
+                    value={checkoutForm.addressComplement}
+                    onChange={e => setCheckoutForm({...checkoutForm, addressComplement: e.target.value})}
+                    className="cv-address-input"
+                  />
                 </div>
                 <input placeholder="Referência (Opcional)" value={checkoutForm.reference} onChange={e => setCheckoutForm({...checkoutForm, reference: e.target.value})} />
               </div>
