@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { Send, Loader2, MessageSquare, ChevronUp } from 'lucide-react';
+import { Send, Loader2, MessageSquare, ChevronUp, RefreshCw, AlertCircle } from 'lucide-react';
 import { apiFetch, API_URL, getAuthHeaders } from '../../lib/supabase';
 import './ConversationPanel.css';
 
@@ -45,6 +45,7 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
   const [notFound, setNotFound] = useState(false);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
+  const [fetchError, setFetchError] = useState(false);
   const messagesEndRef = useRef(null);
   const messagesTopRef = useRef(null);
   const convIdRef = useRef(convId);
@@ -73,11 +74,12 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
 
   const fetchMessages = async (id, silent = false) => {
     if (!id) return;
-    if (!silent) setLoading(true);
+    if (!silent) { setLoading(true); setFetchError(false); }
     try {
       const d = await apiFetch(`/chatwoot/conversations/${id}/messages`);
       const incoming = d?.data ?? [];
       setHasMore(incoming.length >= PAGE_SIZE);
+      setFetchError(false);
       setMessages(prev => {
         if (!silent) return incoming; // carga inicial: substitui tudo
         // Refresh silencioso: preserva mensagens otimistas (_opt_) que o Chatwoot
@@ -89,8 +91,12 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
         });
         return pendingOpt.length > 0 ? [...incoming, ...pendingOpt] : incoming;
       });
-    } catch {}
-    finally { if (!silent) setLoading(false); }
+    } catch (e) {
+      // Erro silencioso não interrompe refresh — só mostra erro na carga inicial
+      if (!silent) setFetchError(true);
+    } finally {
+      if (!silent) setLoading(false);
+    }
   };
 
   const loadOlderMessages = async () => {
@@ -119,6 +125,7 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
     if (!convId) return;
     setMessages([]);
     setHasMore(false);
+    setFetchError(false);
     fetchMessages(convId);
   }, [convId]);
 
@@ -185,6 +192,22 @@ export default function ConversationPanel({ conversationId: propConvId, phone })
     return (
       <div className="conv-panel conv-panel-empty">
         <Loader2 size={24} className="animate-spin" style={{ color: 'var(--accent)' }} />
+      </div>
+    );
+  }
+
+  if (fetchError) {
+    return (
+      <div className="conv-panel conv-panel-empty">
+        <AlertCircle size={28} style={{ color: 'var(--danger, #e74c3c)' }} />
+        <p>Erro ao carregar mensagens.</p>
+        <button
+          className="conv-load-more-btn"
+          style={{ marginTop: 8 }}
+          onClick={() => fetchMessages(convId)}
+        >
+          <RefreshCw size={13} /> Tentar novamente
+        </button>
       </div>
     );
   }
